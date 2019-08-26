@@ -112,9 +112,50 @@ public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStat
     }
 
     //region 이벤트 처리
+    /**
+     * 로그인 진행 버튼 클릭함수
+     * @param v
+     */
     public void processLogin(View v){
 
+        // 네트워크 상태 체크
         // 로그인 요청
+
+        // 로그인 오류 팝업
+
+
+        changeLayout(SCREEN_MODE.SCREEN_MENU);
+    }
+
+    /**
+     * 미션화면으로 진행
+     * @param v
+     */
+    public void processMission(View v) {
+        changeLayout(SCREEN_MODE.SCREEN_MISSIION);
+    }
+
+    /**
+     * 비행화면으로 진행
+     * @param v
+     */
+    public void processFlight(View v) {
+        changeLayout(SCREEN_MODE.SCREEN_FLIGHT);
+    }
+
+    /**
+     * 셋팅화면으로 진행
+     * @param v
+     */
+    public void processSetting(View v) {
+        //changeLayout(SCREEN_MODE.SCREEN_SETTING);
+    }
+
+    /**
+     * 이전화면으로 전환
+     * @param v
+     */
+    public void missionBack(View v) {
         changeLayout(SCREEN_MODE.SCREEN_MENU);
     }
     //endregion
@@ -194,10 +235,10 @@ public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStat
         switch (mode){
             case SCREEN_LOGIN:
                 return findViewById(R.id.loginLayout);
-//            case SCREEN_MISSIION:
-//                return findViewById(R.id.missionLayout);
-//            case SCREEN_FLIGHT:
-//                return findViewById(R.id.flightLayout);
+            case SCREEN_MISSIION:
+                return findViewById(R.id.missionLayout);
+            case SCREEN_FLIGHT:
+                return findViewById(R.id.flightLayout);
             case SCREEN_MENU:
                 return findViewById(R.id.menuLayout);
             case SCREEN_SETTING:
