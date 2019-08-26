@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="@dimen/px60">
+
+    <ImageView
+        android:id="@+id/missionDisconnected"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/px60"
+        android:background="@mipmap/top_bg_discon"
+        android:visibility="invisible"/>
+
+    <RelativeLayout
+        android:id="@+id/missionConnected"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/px60"
+        android:background="@mipmap/top_bg_con">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px130"
+            android:textSize="@dimen/px26"
+            android:textColor="#ffffff"
+            android:layout_centerVertical="true"
+            android:text="비행준비 완료"/>
+
+
+        <ImageView
+            android:layout_width="@dimen/px76"
+            android:layout_height="@dimen/px34"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="@dimen/px690"
+            android:layout_centerVertical="true"
+            android:background="@mipmap/btn_move_n"/>
+
+
+        <LinearLayout
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/px60"
+            android:layout_marginRight="@dimen/px600"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/px38"
+                android:layout_height="@dimen/px34"
+                android:layout_gravity="center"
+                android:background="@mipmap/ico_gps"/>
+
+            <ImageView
+                android:layout_width="@dimen/px24"
+                android:layout_height="@dimen/px34"
+                android:layout_gravity="center"
+                android:background="@mipmap/signal_3"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/px60"
+            android:layout_marginRight="@dimen/px510"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/px38"
+                android:layout_height="@dimen/px34"
+                android:layout_gravity="center"
+                android:background="@mipmap/ico_controller"/>
+
+            <ImageView
+                android:layout_width="@dimen/px24"
+                android:layout_height="@dimen/px34"
+                android:layout_gravity="center"
+                android:background="@mipmap/signal_3"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/px60"
+            android:layout_marginRight="@dimen/px420"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/px38"
+                android:layout_height="@dimen/px34"
+                android:layout_gravity="center"
+                android:background="@mipmap/ico_camera"/>
+
+            <ImageView
+                android:layout_width="@dimen/px24"
+                android:layout_height="@dimen/px34"
+                android:layout_gravity="center"
+                android:background="@mipmap/signal_3"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/px60"
+            android:layout_marginRight="@dimen/px340"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/px38"
+                android:layout_height="@dimen/px34"
+                android:layout_gravity="center"
+                android:background="@mipmap/ico_hd"/>
+
+            <ImageView
+                android:layout_width="@dimen/px24"
+                android:layout_height="@dimen/px34"
+                android:layout_gravity="center"
+                android:background="@mipmap/signal_3"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="@dimen/px220"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/px60"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/px38"
+                android:layout_height="@dimen/px34"
+                android:layout_gravity="center"
+                android:background="@mipmap/ico_dbattery"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px4"
+                android:textSize="@dimen/px24"
+                android:textColor="#ffffff"
+                android:layout_gravity="center"
+                android:text="100%"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="@dimen/px110"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/px60"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/px38"
+                android:layout_height="@dimen/px34"
+                android:layout_gravity="center"
+                android:background="@mipmap/ico_mbattery"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/px24"
+                android:layout_marginTop="@dimen/px4"
+                android:textColor="#ffffff"
+                android:layout_gravity="center"
+                android:text="100%"/>
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="@dimen/px2"
+            android:layout_height="@dimen/px60"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="@dimen/px90"
+            android:background="@mipmap/top_line"/>
+
+        <Button
+            android:id="@+id/missionUploadButton"
+            android:layout_width="@dimen/px34"
+            android:layout_height="@dimen/px34"
+            android:layout_marginRight="@dimen/px26"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/btn_upload_selector"
+            android:onClick="missionUpload"/>
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/missionBackButton"
+        android:layout_width="@dimen/px34"
+        android:layout_height="@dimen/px34"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="@dimen/px26"
+        android:background="@drawable/btn_pre_selector"
+        android:onClick="missionBack"/>
+</RelativeLayout>

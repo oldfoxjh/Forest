@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include
+        layout="@layout/status_top_layout"
+        android:id="@+id/missionTop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/missionTop"
+        android:layout_marginTop="@dimen/px12"
+        android:layout_alignParentRight="true"
+        android:orientation="horizontal">
+
+        <Button
+            android:layout_width="@dimen/px54"
+            android:layout_height="@dimen/px54"
+            android:layout_marginRight="@dimen/px22"
+            android:background="@drawable/btn_location_selector"/>
+
+        <Button
+            android:layout_width="@dimen/px54"
+            android:layout_height="@dimen/px54"
+            android:layout_marginRight="@dimen/px22"
+            android:background="@drawable/btn_open_selector"/>
+
+        <Button
+            android:layout_width="@dimen/px54"
+            android:layout_height="@dimen/px54"
+            android:layout_marginRight="@dimen/px22"
+            android:background="@drawable/btn_course_selector"/>
+
+        <Button
+            android:layout_width="@dimen/px54"
+            android:layout_height="@dimen/px54"
+            android:layout_marginRight="@dimen/px22"
+            android:background="@drawable/btn_setting_selector"/>
+    </LinearLayout>
+
+    <include
+        layout="@layout/mission_setting_layout"
+        android:id="@+id/missionSetting"
+        android:layout_width="@dimen/px330"
+        android:layout_height="@dimen/px664"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"/>
+</RelativeLayout>
