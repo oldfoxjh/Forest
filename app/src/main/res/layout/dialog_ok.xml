@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/custom_dialog_ok"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000"
+        android:alpha="0.5"></RelativeLayout>
+    <RelativeLayout
+        android:layout_centerInParent="true"
+        android:id="@+id/dialog_ok_bg"
+        android:background="#FFF"
+        android:orientation="vertical"
+        android:layout_width="@dimen/px590"
+        android:layout_height="@dimen/px400">
+
+        <ImageView
+            android:id="@+id/dialog_ok_icon"
+            android:layout_centerHorizontal="true"
+            android:layout_width="@dimen/px110"
+            android:layout_height="@dimen/px110"
+            android:layout_marginTop="@dimen/px50"
+            android:background="@mipmap/ico_connect"/>
+        <TextView
+            android:id="@+id/dialog_text"
+            android:layout_below="@id/dialog_ok_icon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/px40"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:textSize="32px"
+            android:textColor="#000"
+            android:text="드론과 연결이 끊어졌습니다." />
+        <Button
+            android:id="@+id/btn_dialog_ok"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/px80"
+            android:text="확인"
+            android:textSize="34px"
+            android:textAlignment="center"
+            android:background="#555"
+            android:textColor="#FFF"
+            android:layout_alignParentBottom="true"/>
+    </RelativeLayout>
+</RelativeLayout>

@@ -1,9 +1,14 @@
 package kr.go.forest.das;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
+import android.animation.AnimatorInflater;
+import android.animation.LayoutTransition;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
 import android.os.AsyncTask;
@@ -15,13 +20,17 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.Toast;
+
+import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import dji.common.error.DJIError;
@@ -32,9 +41,13 @@ import dji.sdk.products.Aircraft;
 import dji.sdk.sdkmanager.DJISDKInitEvent;
 import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.Log.LogWrapper;
+import kr.go.forest.das.Model.MapLayer;
+import kr.go.forest.das.Model.ViewWrapper;
+import kr.go.forest.das.UI.DialogOk;
 import kr.go.forest.das.Usb.UsbStatus;
+import kr.go.forest.das.geo.GeoManager;
 
-public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStatusCallbacks{
+public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStatusCallbacks, LocationListener{
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String[] REQUIRED_PERMISSION_LIST = new String[] {
@@ -60,105 +73,60 @@ public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStat
         SCREEN_SETTING
     };
 
-    private static final int UI_ANIMATION_DELAY = 300;
-    private final Handler mHideHandler = new Handler();
-    private View mContentView;
-    private final Runnable mHidePart2Runnable = new Runnable() {
-        @SuppressLint("InlinedApi")
-        @Override
-        public void run() {
-            // Delayed removal of status and navigation bar
-
-            // Note that some of these constants are new as of API 16 (Jelly Bean)
-            // and API 19 (KitKat). It is safe to use them, as they are inlined
-            // at compile-time and do nothing on earlier devices.
-            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        }
-    };
-
     private static final int REQUEST_PERMISSION_CODE = 12345;
     private BaseProduct mProduct;
     private List<String> missingPermission = new ArrayList<>();
     private AtomicBoolean isRegistrationInProgress = new AtomicBoolean(false);
-    private BaseComponent.ComponentListener mDJIComponentListener = new BaseComponent.ComponentListener() {
 
-        @Override
-        public void onConnectivityChange(boolean isConnected) {
-            Log.d(TAG, "onComponentConnectivityChanged: " + isConnected);
-        }
-    };
+    private Stack<ViewWrapper> stack;
+    private FrameLayout contentFrameLayout;
+    private ObjectAnimator pushInAnimator;
+    private ObjectAnimator pushOutAnimator;
+    private ObjectAnimator popInAnimator;
+    private LayoutTransition popOutTransition;
+    LocationManager mManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        DroneApplication.getEventBus().register(this);
+        setContentView(R.layout.activity_main);
+
         checkAndRequestPermissions();
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        int UI_OPTIONS = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-                View.SYSTEM_UI_FLAG_FULLSCREEN |
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
-                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-
-        getWindow().getDecorView().setSystemUiVisibility(UI_OPTIONS);
-
-        setContentView(R.layout.activity_main);
+        contentFrameLayout = (FrameLayout) findViewById(R.id.framelayout_content);
         UsbStatus.getInstance().setUsbStatusCallbacks(this);
+
+        initParams();
+        setLocationManager();
+        //double _t = GeoManager.getInstance().getAreaFromPolygon();
+        MapLayer _t = new MapLayer();
+        _t.getNoFlyZoneFromValue("");
     }
 
-    //region 이벤트 처리
-    /**
-     * 로그인 진행 버튼 클릭함수
-     * @param v
-     */
-    public void processLogin(View v){
+    private void initParams() {
+        setupInAnimations();
 
-        // 네트워크 상태 체크
-        // 로그인 요청
-
-        // 로그인 오류 팝업
-
-
-        changeLayout(SCREEN_MODE.SCREEN_MENU);
+        stack = new Stack<ViewWrapper>();
+        View view = contentFrameLayout.getChildAt(0);
+        stack.push(new ViewWrapper(view, true));
     }
 
-    /**
-     * 미션화면으로 진행
-     * @param v
-     */
-    public void processMission(View v) {
-        changeLayout(SCREEN_MODE.SCREEN_MISSIION);
-    }
+    private void setupInAnimations() {
+        pushInAnimator = (ObjectAnimator) AnimatorInflater.loadAnimator(this, R.animator.slide_in_right);
+        pushOutAnimator = (ObjectAnimator) AnimatorInflater.loadAnimator(this, R.animator.fade_out);
+        popInAnimator = (ObjectAnimator) AnimatorInflater.loadAnimator(this, R.animator.fade_in);
+        ObjectAnimator popOutAnimator =
+                (ObjectAnimator) AnimatorInflater.loadAnimator(this, R.animator.slide_out_right);
 
-    /**
-     * 비행화면으로 진행
-     * @param v
-     */
-    public void processFlight(View v) {
-        changeLayout(SCREEN_MODE.SCREEN_FLIGHT);
-    }
+        pushOutAnimator.setStartDelay(100);
 
-    /**
-     * 셋팅화면으로 진행
-     * @param v
-     */
-    public void processSetting(View v) {
-        //changeLayout(SCREEN_MODE.SCREEN_SETTING);
+        popOutTransition = new LayoutTransition();
+        popOutTransition.setAnimator(LayoutTransition.DISAPPEARING, popOutAnimator);
+        popOutTransition.setDuration(popOutAnimator.getDuration());
     }
-
-    /**
-     * 이전화면으로 전환
-     * @param v
-     */
-    public void missionBack(View v) {
-        changeLayout(SCREEN_MODE.SCREEN_MENU);
-    }
-    //endregion
 
     //region 퍼미션 획득
     private void checkAndRequestPermissions() {
@@ -196,9 +164,169 @@ public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStat
             LogWrapper.i(TAG, "Missing permissions!!!");
         }
     }
+//region 위치 관리
+    private  void setLocationManager()
+    {
+        mManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // 권한 요청..다시..
+        }
+
+        List<String> providers = mManager.getAllProviders();
+        for(int i = 0; i < providers.size(); i++)
+        {
+            mManager.requestLocationUpdates(providers.get(i), 500, 0.0f, this);
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        LogWrapper.i("MainActivity", location.toString());
+        if(location != null)
+        {
+            DroneApplication.getEventBus().post(new LocationUpdate(location.getLatitude(), location.getLongitude()));
+        }
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+    //endregion
     //endregion
 
+    //region OTTO Event Subscribe
+    @Subscribe
+    public void onPushView(final ViewWrapper wrapper) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                pushView(wrapper);
+            }
+        });
+    }
 
+    @Subscribe
+    public void onPopup(final PopupDialog popup) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                ViewWrapper wrapper = null;
+                if(popup.type == PopupDialog.DIALOG_TYPE_OK)
+                {
+                    wrapper = new ViewWrapper(new DialogOk(MainActivity.this, popup.contentId), false);
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_CONFIRM)
+                {
+                    wrapper = new ViewWrapper(new DialogOk(MainActivity.this, popup.contentId), false);
+                }
+
+                pushView(wrapper);
+            }
+        });
+    }
+
+    @Subscribe
+    public void onPopdown(final PopdownView popup) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                popView();
+            }
+        });
+    }
+
+    private void pushView(ViewWrapper wrapper) {
+        if (stack.size() <= 0) {
+            return;
+        }
+
+        contentFrameLayout.setLayoutTransition(null);
+
+        View showView = wrapper.getView();
+
+        View preView = stack.peek().getView();
+
+        stack.push(wrapper);
+
+        if (showView.getParent() != null) {
+            ((ViewGroup) showView.getParent()).removeView(showView);
+        }
+        contentFrameLayout.addView(showView);
+
+        if(wrapper.isAnimation()) {
+            pushOutAnimator.setTarget(preView);
+            pushOutAnimator.start();
+
+            pushInAnimator.setTarget(showView);
+            pushInAnimator.setFloatValues(contentFrameLayout.getWidth(), 0);
+            pushInAnimator.start();
+        }
+    }
+
+    private void popView() {
+
+        if (stack.size() <= 1) {
+            finish();
+            return;
+        }
+
+        ViewWrapper removeWrapper = stack.pop();
+        ViewWrapper showWrapper = stack.peek();
+
+
+        if(removeWrapper.isAnimation())
+            contentFrameLayout.setLayoutTransition(popOutTransition);
+
+        contentFrameLayout.removeView(removeWrapper.getView());
+
+        if(removeWrapper.isAnimation()) {
+            popInAnimator.setTarget(showWrapper.getView());
+            popInAnimator.start();
+        }
+    }
+
+    public static class PopView{ }
+
+    public static class PopupDialog {
+
+        public final static int DIALOG_TYPE_OK = 0;
+        public final static int DIALOG_TYPE_CONFIRM = 1;
+
+        public int type;
+        public int contentId;
+
+        public PopupDialog(int type, int contentId){
+            this.type = type;
+            this.contentId = contentId;
+        }
+    }
+
+    public static class PopdownView { }
+
+    public static class LocationUpdate {
+        public double latitude;
+        public double longitude;
+
+        public LocationUpdate(double lat, double lng)
+        {
+            latitude = lat;
+            longitude = lng;
+        }
+    }
+    //endregion
     @Override
     public void onReceive(int status, int type) {
         Toast.makeText(MainActivity.this, "" + status, Toast.LENGTH_SHORT).show();
@@ -224,72 +352,6 @@ public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStat
             }
         }
     }
-
-    //region View 관리
-    /**
-     * 모드에 따른 뷰 가져오기
-     * @param mode
-     * @return
-     */
-    public View getContentView(SCREEN_MODE mode){
-        switch (mode){
-            case SCREEN_LOGIN:
-                return findViewById(R.id.loginLayout);
-            case SCREEN_MISSIION:
-                return findViewById(R.id.missionLayout);
-            case SCREEN_FLIGHT:
-                return findViewById(R.id.flightLayout);
-            case SCREEN_MENU:
-                return findViewById(R.id.menuLayout);
-            case SCREEN_SETTING:
-                return findViewById(R.id.settingLayout);
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * 뷰 체인지
-     * @param changeMode 변경할 뷰모드
-     */
-    public void changeLayout(SCREEN_MODE changeMode){
-        View currentView = getContentView(currentScreenMode);
-        View nextView = getContentView(changeMode);
-
-        //현재 뷰의 화면을 숨김 처리
-        currentView.setVisibility(View.INVISIBLE);
-
-        //뷰 바꿔치기
-        nextView.setVisibility(View.VISIBLE);
-
-        //뷰 화면처리
-        currentScreenMode = changeMode;
-        initLayout();
-    }
-
-    /**
-     * 현재 활성화된 뷰 초기화
-     */
-    private void initLayout(){
-        switch (currentScreenMode){
-            case SCREEN_MENU:
-
-                break;
-            case SCREEN_LOGIN:
-
-                break;
-            case SCREEN_FLIGHT:
-
-                break;
-            case SCREEN_SETTING:
-
-                break;
-            case SCREEN_MISSIION:
-
-                break;
-        }
-    }
-    //endregion
 
     //region DJI SDK
     private void startSDKRegistration() {
@@ -339,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStat
                                                       BaseComponent oldComponent,
                                                       BaseComponent newComponent) {
                             if (newComponent != null) {
-                                newComponent.setComponentListener(mDJIComponentListener);
+                                //newComponent.setComponentListener(mDJIComponentListener);
                             }
                             Toast.makeText(getApplicationContext(), "onComponentChange", Toast.LENGTH_LONG).show();
                         }

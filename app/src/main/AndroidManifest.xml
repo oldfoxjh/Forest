@@ -36,9 +36,7 @@
         <meta-data android:name="com.dji.sdk.API_KEY" android:value="521462f0d4464f3b384db674" />
         <!-- DJI SDK end -->
 
-        <activity android:name=".MainActivity"
-            android:screenOrientation="landscape"
-            android:configChanges="orientation|keyboardHidden|screenSize">
+        <activity android:name=".MainActivity" android:windowSoftInputMode="stateHidden" android:screenOrientation="landscape" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -47,18 +45,6 @@
                 android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
                 android:resource="@xml/accessory_filter" />
         </activity>
-
-        <!-- Network Change Receiver -->
-        <!--<receiver-->
-            <!--android:name=".network.NetworkReceiver"-->
-            <!--android:enabled="true"-->
-            <!--android:exported="true"-->
-            <!--&gt;-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.BOOT_COMPLETED"/>-->
-                <!--<action android:name="android.intent.action.SCREEN_ON" />-->
-            <!--</intent-filter>-->
-        <!--</receiver>-->
 
         <!-- USB Change Receiver -->
         <receiver

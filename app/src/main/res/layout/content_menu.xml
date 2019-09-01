@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@mipmap/bg"/>
+
+
+    <LinearLayout
+        android:id="@+id/buttonsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/px280"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/missionButton"
+            android:layout_width="@dimen/px300"
+            android:layout_height="@dimen/px290"
+            android:layout_marginRight="@dimen/px70"
+            android:background="@drawable/menu_mission_selector"
+            android:onClick="processMission"/>
+
+        <Button
+            android:id="@+id/flightButton"
+            android:layout_width="@dimen/px300"
+            android:layout_height="@dimen/px290"
+            android:layout_marginRight="@dimen/px70"
+            android:background="@drawable/menu_flight_selector"
+            android:onClick="processFlight"/>
+
+        <Button
+            android:id="@+id/settingButton"
+            android:layout_width="@dimen/px300"
+            android:layout_height="@dimen/px290"
+            android:background="@drawable/menu_setting_selector"
+            android:onClick="processSetting"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/propertiesLayout"
+        android:layout_width="@dimen/px1040"
+        android:layout_height="@dimen/px100"
+        android:layout_below="@+id/buttonsLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/px60"
+        android:paddingLeft="@dimen/px40"
+        android:paddingRight="@dimen/px40"
+        android:background="@mipmap/weather_box"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="@dimen/px28"
+            android:layout_height="@dimen/px28"
+            android:layout_gravity="center"
+            android:background="@mipmap/weather_ico_1"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="@dimen/px4"
+            android:textSize="@dimen/px30"
+            android:textColor="#a4a4a4"
+            android:text="지역"/>
+
+        <TextView
+            android:layout_width="@dimen/px130"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px20"
+            android:layout_gravity="center"
+            android:textSize="@dimen/px30"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:text="제주도" />
+
+        <ImageView
+            android:layout_width="@dimen/px28"
+            android:layout_height="@dimen/px28"
+            android:layout_marginLeft="@dimen/px20"
+            android:layout_gravity="center"
+            android:background="@mipmap/weather_ico_2"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px4"
+            android:layout_gravity="center"
+            android:textSize="@dimen/px30"
+            android:textColor="#a4a4a4"
+            android:text="날씨"/>
+
+        <TextView
+            android:layout_width="@dimen/px130"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px20"
+            android:layout_gravity="center"
+            android:textSize="@dimen/px30"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:text="맑음" />
+
+        <ImageView
+            android:layout_width="@dimen/px28"
+            android:layout_height="@dimen/px28"
+            android:layout_gravity="center"
+            android:layout_marginLeft="@dimen/px20"
+            android:background="@mipmap/weather_ico_3"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px4"
+            android:layout_gravity="center"
+            android:textSize="@dimen/px30"
+            android:textColor="#a4a4a4"
+            android:text="온도"/>
+
+        <TextView
+            android:layout_width="@dimen/px130"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px20"
+            android:layout_gravity="center"
+            android:textSize="@dimen/px30"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:text="28C" />
+
+        <ImageView
+            android:layout_width="@dimen/px28"
+            android:layout_height="@dimen/px28"
+            android:layout_gravity="center"
+            android:layout_marginLeft="@dimen/px20"
+            android:background="@mipmap/weather_ico_4"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px4"
+            android:layout_gravity="center"
+            android:textSize="@dimen/px30"
+            android:textColor="#a4a4a4"
+            android:text="온도"/>
+
+        <TextView
+            android:layout_width="@dimen/px130"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px20"
+            android:layout_gravity="center"
+            android:textSize="@dimen/px30"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:text="28C" />
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="mission_font">24dp</dimen>
     <dimen name="px2">1dp</dimen>
     <dimen name="px4">2dp</dimen>
     <dimen name="px6">3dp</dimen>
@@ -15,6 +16,7 @@
     <dimen name="px26">13dp</dimen>
     <dimen name="px28">14dp</dimen>
     <dimen name="px30">15dp</dimen>
+    <dimen name="px32">32dp</dimen>
     <dimen name="px34">17dp</dimen>
     <dimen name="px36">18dp</dimen>
     <dimen name="px38">19dp</dimen>
@@ -29,7 +31,9 @@
     <dimen name="px66">33dp</dimen>
     <dimen name="px70">35dp</dimen>
     <dimen name="px76">38dp</dimen>
+    <dimen name="px80">40dp</dimen>
     <dimen name="px90">45dp</dimen>
+    <dimen name="px96">48dp</dimen>
     <dimen name="px100">50dp</dimen>
     <dimen name="px110">55dp</dimen>
     <dimen name="px112">56dp</dimen>
@@ -52,11 +56,13 @@
     <dimen name="px374">187dp</dimen>
     <dimen name="px382">191dp</dimen>
     <dimen name="px390">195dp</dimen>
+    <dimen name="px400">200dp</dimen>
     <dimen name="px410">205dp</dimen>
     <dimen name="px420">210dp</dimen>
     <dimen name="px422">211dp</dimen>
     <dimen name="px500">250dp</dimen>
     <dimen name="px510">260dp</dimen>
+    <dimen name="px520">260dp</dimen>
     <dimen name="px562">281dp</dimen>
     <dimen name="px590">295dp</dimen>
     <dimen name="px600">300dp</dimen>

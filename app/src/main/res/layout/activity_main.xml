@@ -1,43 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <kr.go.forest.das.UI.LoginView
-        android:id="@+id/loginLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <include
-        layout="@layout/menu_layout"
-        android:id="@+id/menuLayout"
+    <FrameLayout
+        android:id="@+id/framelayout_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="invisible">
-    </include>
+        android:layout_gravity="center">
+        <include layout="@layout/content_login"/>
+    </FrameLayout>
 
-    <include
-        layout="@layout/mission_layout"
-        android:id="@+id/missionLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="invisible">
-    </include>
-
-    <include
-        layout="@layout/flight_layout"
-        android:id="@+id/flightLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="invisible">
-    </include>
-
-    <RelativeLayout
-        android:id="@+id/settingLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="invisible">
-    </RelativeLayout>
-</RelativeLayout>
+</FrameLayout>
