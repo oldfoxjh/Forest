@@ -13,19 +13,20 @@ import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.R;
 
-public class DialogOk extends RelativeLayout implements View.OnClickListener{
+public class DialogConfirm extends RelativeLayout implements View.OnClickListener{
 
     private Context context;
-    Button mBtnOk;
+    Button mBtnYes;
+    Button mBtnNo;
     TextView mTextView;
 
-    public DialogOk(Context context, int contentId){
+    public DialogConfirm(Context context, int contentId){
         super(context);
         this.context = context;
         initUI(contentId);
     }
 
-    public DialogOk(Context context, AttributeSet attrs, int contentId) {
+    public DialogConfirm(Context context, AttributeSet attrs, int contentId) {
         super(context, attrs);
         this.context = context;
         initUI(contentId);
@@ -45,20 +46,23 @@ public class DialogOk extends RelativeLayout implements View.OnClickListener{
     protected void initUI(int contentId){
         //초기화
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Service.LAYOUT_INFLATER_SERVICE);
-        layoutInflater.inflate(R.layout.dialog_ok, this, true);
+        layoutInflater.inflate(R.layout.dialog_confirm, this, true);
 
-        RelativeLayout _layout = (RelativeLayout)findViewById(R.id.dialog_ok_bg);
+        RelativeLayout _layout = (RelativeLayout)findViewById(R.id.dialog_confirm_bg);
         LayoutParams _params = (LayoutParams)_layout.getLayoutParams();
 
-        if(contentId == R.string.check_login_info
-           || contentId == R.string.check_internet) {
+        if(contentId == R.string.check_login_info)
+        {
             _params.height += 50;
         }
 
-        mBtnOk = (Button)findViewById(R.id.btn_dialog_ok);
-        mBtnOk.setOnClickListener(this);
+        mBtnYes = (Button)findViewById(R.id.btn_dialog_confirm_yes);
+        mBtnYes.setOnClickListener(this);
 
-        mTextView = (TextView)findViewById(R.id.dialog_text);
+        mBtnNo = (Button)findViewById(R.id.btn_dialog_confirm_no);
+        mBtnNo.setOnClickListener(this);
+
+        mTextView = (TextView)findViewById(R.id.dialog_confirm_text);
         mTextView.setText(contentId);
     }
 

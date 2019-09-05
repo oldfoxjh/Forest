@@ -3,4 +3,5 @@
     <string name="check_id">아이디를 입력하세요.</string>
     <string name="check_password">비밀번호를 입력하세요.</string>
     <string name="check_login_info">아이디와 비밀번호가 일치하지 않습니다.\n다시한번 입력해 주세요.</string>
+    <string name="check_internet">네트워크에 연결할 수 없습니다.\n인터넷 연결을 확인해주시기 바랍니다.</string>
 </resources>

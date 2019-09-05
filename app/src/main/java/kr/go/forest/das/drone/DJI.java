@@ -1,7 +1,10 @@
 package kr.go.forest.das.drone;
 
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -17,9 +20,15 @@ import dji.common.gimbal.GimbalState;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
+import dji.sdk.products.Aircraft;
 import dji.sdk.sdkmanager.DJISDKInitEvent;
 import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.DroneApplication;
+import kr.go.forest.das.Log.LogWrapper;
+import kr.go.forest.das.MainActivity;
+import kr.go.forest.das.Model.ViewWrapper;
+import kr.go.forest.das.R;
+import kr.go.forest.das.UI.DialogOk;
 
 public class DJI extends Drone{
 
@@ -413,49 +422,35 @@ public class DJI extends Drone{
     }
     //endregion
 
-    public  void startSDKRegistration(){
-        if (isRegistrationInProgress.compareAndSet(false, true)) {
-            AsyncTask.execute(new Runnable() {
-                @Override
-                public void run() {
-                    DJISDKManager.getInstance().registerApp(DroneApplication.getInstance().getApplicationContext(), new DJISDKManager.SDKManagerCallback() {
-                        @Override
-                        public void onRegister(DJIError djiError) {
-                            if (djiError == DJISDKError.REGISTRATION_SUCCESS) {
-                                DJISDKManager.getInstance().startConnectionToProduct();
-                            } else {
-                                //ToastUtils.setResultToToast(MainActivity.this.getString(R.string.sdk_registration_message) + djiError.getDescription());
-                            }
-                        }
+    public static DJISDKManager.SDKManagerCallback registrationCallback = new DJISDKManager.SDKManagerCallback() {
 
-                        @Override
-                        public void onProductDisconnect() {
-                            //Log.d(TAG, "onProductDisconnect");
-                        }
+        @Override
+        public void onRegister(DJIError error) {
+            if (error == DJISDKError.REGISTRATION_SUCCESS) {
+                DJISDKManager.getInstance().startConnectionToProduct();
+            } else {
 
-                        @Override
-                        public void onProductConnect(BaseProduct baseProduct) {
-                            //Log.d(TAG, String.format("onProductConnect newProduct:%s", baseProduct));
-                        }
-
-                        @Override
-                        public void onComponentChange(BaseProduct.ComponentKey componentKey,
-                                                      BaseComponent oldComponent,
-                                                      BaseComponent newComponent) {
-                            if (newComponent != null) {
-                                newComponent.setComponentListener(mDJIComponentListener);
-                            }
-                        }
-
-                        @Override
-                        public void onInitProcess(DJISDKInitEvent djisdkInitEvent, int i) {
-
-                        }
-                    });
-                }
-            });
+            }
         }
-    }
+        @Override
+        public void onProductDisconnect() {
 
+        }
+        @Override
+        public void onProductConnect(BaseProduct product) {
 
+        }
+
+        @Override
+        public void onComponentChange(BaseProduct.ComponentKey key,
+                                      BaseComponent oldComponent,
+                                      BaseComponent newComponent) {
+
+        }
+
+        @Override
+        public void onInitProcess(DJISDKInitEvent event, int totalProcess) {
+
+        }
+    };
 }

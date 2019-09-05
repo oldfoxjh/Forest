@@ -59,6 +59,7 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
+
         switch (v.getId())
         {
             case R.id.missionButton:

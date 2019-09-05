@@ -3,10 +3,12 @@ package kr.go.forest.das;
 import android.app.Application;
 import android.content.Context;
 import android.support.multidex.MultiDex;
+import android.widget.Toast;
 
 import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
 
+import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.drone.DJI;
 import kr.go.forest.das.drone.Drone;
 

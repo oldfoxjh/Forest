@@ -27,7 +27,7 @@ android {
     }
 
     dexOptions {
-        javaMaxHeapSize "4g"
+        javaMaxHeapSize "3g"
     }
 
     packagingOptions{
@@ -57,7 +57,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation name: 'gdal-release', ext: 'aar'
     implementation 'org.osmdroid:osmdroid-android:6.1.0'
-    implementation 'org.osmdroid:osmdroid-wms:6.0.2'
+
     implementation 'com.wowza.gocoder.sdk.android:com.wowza.gocoder.sdk:2.0@aar'
     implementation 'com.android.support:multidex:1.0.2'
 

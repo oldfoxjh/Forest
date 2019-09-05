@@ -146,7 +146,7 @@
             android:layout_gravity="center"
             android:textSize="@dimen/px30"
             android:textColor="#a4a4a4"
-            android:text="온도"/>
+            android:text="풍속"/>
 
         <TextView
             android:layout_width="@dimen/px130"
@@ -156,7 +156,7 @@
             android:textSize="@dimen/px30"
             android:textColor="#ffffff"
             android:textStyle="bold"
-            android:text="28C" />
+            android:text="5.3m/s" />
     </LinearLayout>
 
 </RelativeLayout>

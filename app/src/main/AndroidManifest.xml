@@ -36,10 +36,13 @@
         <meta-data android:name="com.dji.sdk.API_KEY" android:value="521462f0d4464f3b384db674" />
         <!-- DJI SDK end -->
 
-        <activity android:name=".MainActivity" android:windowSoftInputMode="stateHidden" android:screenOrientation="landscape" >
+        <activity android:name=".MainActivity" android:windowSoftInputMode="stateHidden" android:screenOrientation="landscape" android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
             </intent-filter>
             <meta-data
                 android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"

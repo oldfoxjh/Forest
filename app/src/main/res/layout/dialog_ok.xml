@@ -17,19 +17,11 @@
         android:layout_width="@dimen/px590"
         android:layout_height="@dimen/px400">
 
-        <ImageView
-            android:id="@+id/dialog_ok_icon"
-            android:layout_centerHorizontal="true"
-            android:layout_width="@dimen/px110"
-            android:layout_height="@dimen/px110"
-            android:layout_marginTop="@dimen/px50"
-            android:background="@mipmap/ico_connect"/>
         <TextView
             android:id="@+id/dialog_text"
-            android:layout_below="@id/dialog_ok_icon"
+            android:layout_marginTop="@dimen/px50"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/px40"
             android:gravity="center"
             android:textAlignment="center"
             android:textSize="32px"

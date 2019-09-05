@@ -2,13 +2,18 @@ package kr.go.forest.das.UI;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
+import dji.sdk.base.BaseProduct;
+import dji.sdk.products.Aircraft;
+import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.ViewWrapper;
@@ -71,7 +76,7 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
             // ID
 //            if(loginIDEditText.length() == 0)
 //            {
-//                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, R.string.check_id));
+//                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.check_id));
 //                return;
 //            }
 

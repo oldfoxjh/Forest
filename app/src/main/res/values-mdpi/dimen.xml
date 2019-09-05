@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="mission_font">14dp</dimen>
     <dimen name="px2">2dp</dimen>
     <dimen name="px4">4dp</dimen>
     <dimen name="px6">6dp</dimen>
@@ -56,6 +55,7 @@
     <dimen name="px310">310dp</dimen>
     <dimen name="px330">330dp</dimen>
     <dimen name="px340">340dp</dimen>
+    <dimen name="px344">344dp</dimen>
     <dimen name="px370">370dp</dimen>
     <dimen name="px374">374dp</dimen>
     <dimen name="px382">382dp</dimen>
@@ -64,8 +64,10 @@
     <dimen name="px410">410dp</dimen>
     <dimen name="px420">420dp</dimen>
     <dimen name="px422">422dp</dimen>
+    <dimen name="px440">440dp</dimen>
     <dimen name="px500">500dp</dimen>
     <dimen name="px510">510dp</dimen>
+    <dimen name="px516">516dp</dimen>
     <dimen name="px520">520dp</dimen>
     <dimen name="px562">562dp</dimen>
     <dimen name="px590">590dp</dimen>
@@ -77,4 +79,7 @@
     <dimen name="px690">690dp</dimen>
     <dimen name="px1040">1040dp</dimen>
     <dimen name="px1280">1280dp</dimen>
+    <dimen name="dji50">50.6dp</dimen>
+    <dimen name="dji86">87.4dp</dimen>
+    <dimen name="dji100">101.2dp</dimen>
 </resources>

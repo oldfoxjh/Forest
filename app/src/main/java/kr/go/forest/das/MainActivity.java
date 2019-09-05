@@ -5,6 +5,7 @@ import android.animation.AnimatorInflater;
 import android.animation.LayoutTransition;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -41,14 +42,16 @@ import dji.sdk.products.Aircraft;
 import dji.sdk.sdkmanager.DJISDKInitEvent;
 import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.Log.LogWrapper;
-import kr.go.forest.das.Model.MapLayer;
+import kr.go.forest.das.UI.DialogConfirm;
+import kr.go.forest.das.map.MapLayer;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.UI.DialogOk;
 import kr.go.forest.das.Usb.UsbStatus;
-import kr.go.forest.das.geo.GeoManager;
 
-public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStatusCallbacks, LocationListener{
+import static kr.go.forest.das.drone.DJI.registrationCallback;
 
+public class MainActivity extends AppCompatActivity implements  LocationListener //UsbStatus.UsbStatusCallbacks,
+{
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String[] REQUIRED_PERMISSION_LIST = new String[] {
             Manifest.permission.VIBRATE,
@@ -97,13 +100,19 @@ public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStat
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         contentFrameLayout = (FrameLayout) findViewById(R.id.framelayout_content);
-        UsbStatus.getInstance().setUsbStatusCallbacks(this);
+       // UsbStatus.getInstance().setUsbStatusCallbacks(this);
 
         initParams();
-        setLocationManager();
-        //double _t = GeoManager.getInstance().getAreaFromPolygon();
-        MapLayer _t = new MapLayer();
-        _t.getNoFlyZoneFromValue("");
+    }
+
+    @Override
+    protected void onNewIntent(@NonNull Intent intent) {
+        String action = intent.getAction();
+        if (UsbManager.ACTION_USB_ACCESSORY_ATTACHED.equals(action)) {
+            Intent attachedIntent = new Intent();
+            attachedIntent.setAction(DJISDKManager.USB_ACCESSORY_ATTACHED);
+            sendBroadcast(attachedIntent);
+        }
     }
 
     private void initParams() {
@@ -138,7 +147,9 @@ public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStat
         }
         // Request for missing permissions
         if (missingPermission.isEmpty()) {
-
+            setLocationManager();
+            // DJI SDK 등록
+            startSDKRegistration();
         }else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && missingPermission.size() > 0) {
             ActivityCompat.requestPermissions(this,
                     missingPermission.toArray(new String[missingPermission.size()]),
@@ -162,6 +173,10 @@ public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStat
         // If there is enough permission, we will start the registration
         if (!missingPermission.isEmpty()) {
             LogWrapper.i(TAG, "Missing permissions!!!");
+        }else{
+            setLocationManager();
+            // DJI SDK 등록
+            startSDKRegistration();
         }
     }
 //region 위치 관리
@@ -183,7 +198,6 @@ public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStat
 
     @Override
     public void onLocationChanged(Location location) {
-        LogWrapper.i("MainActivity", location.toString());
         if(location != null)
         {
             DroneApplication.getEventBus().post(new LocationUpdate(location.getLatitude(), location.getLongitude()));
@@ -230,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStat
                     wrapper = new ViewWrapper(new DialogOk(MainActivity.this, popup.contentId), false);
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_CONFIRM)
                 {
-                    wrapper = new ViewWrapper(new DialogOk(MainActivity.this, popup.contentId), false);
+                    wrapper = new ViewWrapper(new DialogConfirm(MainActivity.this, popup.contentId), false);
                 }
 
                 pushView(wrapper);
@@ -327,98 +341,16 @@ public class MainActivity extends AppCompatActivity implements UsbStatus.UsbStat
         }
     }
     //endregion
-    @Override
-    public void onReceive(int status, int type) {
-        Toast.makeText(MainActivity.this, "" + status, Toast.LENGTH_SHORT).show();
-
-        if(status == UsbStatus.USB_CONNECTED)
-        {
-            if(type == UsbStatus.USB_ACCESSORY)
-            {
-                // check accessory or device
-                UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
-                UsbAccessory[] accessories = manager.getAccessoryList();
-                UsbAccessory accessory = (accessories == null ? null : accessories[0]);
-
-                if(accessory.getManufacturer().equals("DJI"))
-                {
-                    LogWrapper.i(TAG, "start DJI SDK Registration");
-                    startSDKRegistration();
-                }
-            }
-            else if(type == UsbStatus.USB_DEVICE)
-            {
-
-            }
-        }
-    }
 
     //region DJI SDK
     private void startSDKRegistration() {
-        if (isRegistrationInProgress.compareAndSet(false, true)) {
-            AsyncTask.execute(new Runnable() {
-                @Override
-                public void run() {
-                    Handler mHandler = new Handler(Looper.getMainLooper());
-                    mHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            LogWrapper.i(TAG, "Registering, pls wait...");
-                        }
-                    }, 0);
-                    DJISDKManager.getInstance().registerApp(MainActivity.this.getApplicationContext(), new DJISDKManager.SDKManagerCallback() {
-                        @Override
-                        public void onRegister(DJIError djiError) {
-                            if (djiError == DJISDKError.REGISTRATION_SUCCESS) {
-                                LogWrapper.i(TAG, "App registration");
-                                DJISDKManager.getInstance().startConnectionToProduct();
-                            } else {
-                                LogWrapper.i(TAG, "SDK Registration Failed. Please check the bundle ID and your network");
-
-                                // 팝업 띄워야 됨.
-                            }
-                            LogWrapper.i(TAG, djiError.getDescription());
-                        }
-                        @Override
-                        public void onProductDisconnect() {
-                            LogWrapper.i(TAG, "onProductDisconnect");
-                        }
-                        @Override
-                        public void onProductConnect(BaseProduct baseProduct) {
-                            mProduct = DroneApplication.getDroneInstance().getProductInstance();
-                            if (mProduct.isConnected()) {
-                                Toast.makeText(getApplicationContext(), "Aircraft connected : " + mProduct.getModel().getDisplayName(), Toast.LENGTH_LONG).show();
-
-                            } else if (mProduct instanceof Aircraft){
-                                Aircraft aircraft = (Aircraft) mProduct;
-                                if (aircraft.getRemoteController() != null && aircraft.getRemoteController().isConnected()) {
-                                    Toast.makeText(getApplicationContext(), "Status: Only RC Connected", Toast.LENGTH_LONG).show();
-                                }
-                            }
-                        }
-                        @Override
-                        public void onComponentChange(BaseProduct.ComponentKey componentKey,
-                                                      BaseComponent oldComponent,
-                                                      BaseComponent newComponent) {
-                            if (newComponent != null) {
-                                //newComponent.setComponentListener(mDJIComponentListener);
-                            }
-                            Toast.makeText(getApplicationContext(), "onComponentChange", Toast.LENGTH_LONG).show();
-                        }
-
-                        @Override
-                        public void onInitProcess(DJISDKInitEvent djisdkInitEvent, int i) {
-                            Toast.makeText(getApplicationContext(), "onInitProcess", Toast.LENGTH_LONG).show();
-                        }
-                    });
-                }
-            });
-        }
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                DJISDKManager.getInstance().registerApp(MainActivity.this, registrationCallback);
+            }
+        });
     }
-    //endregion
-
-    //region Wowza SDK
-
     //endregion
 
 }
