@@ -85,14 +85,6 @@
                 android:layout_height="@dimen/px44"
                 custom:excludeView="singleVoltage"/>
         </LinearLayout>
-
-        <ImageView
-            android:layout_width="@dimen/px2"
-            android:layout_height="@dimen/px60"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="@dimen/px90"
-            android:background="@mipmap/top_line"/>
-
         <Button
             android:id="@+id/btn_mission_upload"
             android:layout_width="@dimen/px34"

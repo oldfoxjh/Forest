@@ -3,13 +3,10 @@ package kr.go.forest.das.UI;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Shader;
 import android.util.AttributeSet;
-import android.widget.ImageView;
-
+import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.R;
 
 /**
@@ -22,6 +19,7 @@ public class CustomPreFlightStatusWidget extends dji.ux.widget.PreFlightStatusWi
     private static final int STROKE_WIDTH = 5;
     private int width;
     private int height;
+    private String drone_status = "기기연결끊김";
     //endregion
 
     //region Constructors
@@ -45,7 +43,7 @@ public class CustomPreFlightStatusWidget extends dji.ux.widget.PreFlightStatusWi
 
         status_paint = new Paint();
         status_paint.setStyle(Paint.Style.FILL);
-        status_paint.setColor(Color.RED);
+        status_paint.setColor(Color.WHITE);
         status_paint.setAlpha(255);
         status_paint.setAntiAlias(true);
         int textSize = getResources().getDimensionPixelSize(R.dimen.status_font);
@@ -61,19 +59,35 @@ public class CustomPreFlightStatusWidget extends dji.ux.widget.PreFlightStatusWi
 
     @Override
     protected void onDraw(Canvas canvas) {
-        String text = "테스트";
         Rect bounds = new Rect();
-        status_paint.getTextBounds(text, 0, text.length(), bounds);
-        canvas.drawText(text, 26, height + bounds.top + bounds.bottom, status_paint);
+        status_paint.getTextBounds(drone_status, 0, drone_status.length(), bounds);
+        canvas.drawText(drone_status, 26, height + bounds.top + bounds.bottom, status_paint);
     }
 
     /** Called when connection status changes */
     @Override
     public void onStatusChange(String status, StatusType type, boolean blink) {
-        if (type != StatusType.OFFLINE) {
-            this.setBackgroundResource(R.mipmap.connected_status);
-        } else {
-            this.setBackgroundResource(R.mipmap.top_bg_discon);
+
+        if (type == StatusType.OFFLINE) {
+            this.setBackgroundResource(R.mipmap.top_bg_gray);
+            drone_status = "기기 연결 끊김";
+            LogWrapper.i(TAG, status + " OFFLINE :  " + drone_status );
+        } else if (type == StatusType.GOOD){
+            this.setBackgroundResource(R.mipmap.top_bg_green);
+            if(status.contains("In-Flight")) drone_status = status.replace("In-Flight", "비행중");
+            else if(status.contains("Ready to Go")) drone_status = status.replace("Ready to Go", "비행 준비 완료");
+
+            LogWrapper.i(TAG, status + " GOOD :  " + drone_status );
+        } else if (type == StatusType.WARNING){
+            this.setBackgroundResource(R.mipmap.top_bg_orange);
+            if(status.equals("Image Transmission Signal Weak")) drone_status = "영상전송 신호 약함";
+            LogWrapper.i(TAG, status + " WARNING :  " + drone_status );
+        } else if (type == StatusType.ERROR){
+            this.setBackgroundResource(R.mipmap.top_bg_red);
+            if(status.equals("Aircraft Disconnected")) drone_status = "기체 연결 끊김";
+            else if(status.equals("Remote Controller Signal Weak")) drone_status = "조종기 신호 약함";
+            else drone_status = "기기 연결 끊김";
+            LogWrapper.i(TAG, status + " ERROR :  " + drone_status );
         }
     }
     //endregion

@@ -9,9 +9,15 @@ import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.gimbal.GimbalState;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.base.BaseProduct;
+import kr.go.forest.das.Model.DroneInfo;
 
 public class Px4 extends Drone{
     //region 제품정보
+
+    public DroneInfo getDroneInfo(){return null;};
+
+    public int getDroneStatus(){return drone_status;};
+
     /**
      * 제조사 정보를 반환한다.
      */
@@ -25,8 +31,7 @@ public class Px4 extends Drone{
      * @return
      */
     @Override
-    public String getAircaftModel(){
-        return  null;
+    public void getAircaftModel(){
     }
 
     /**
@@ -34,8 +39,8 @@ public class Px4 extends Drone{
      * @return
      */
     @Override
-    public String getSerialNumber(){
-        return null;
+    public void getSerialNumber(){
+
     }
 
     /**
@@ -45,6 +50,12 @@ public class Px4 extends Drone{
     public BaseProduct getProductInstance(){
         return null;
     }
+
+    /**
+     * 드론의 FlightController 정보를 설정한다.
+     */
+    @Override
+    public boolean setDroneDataListener(){ return false;};
     //endregion
 
     //region 카메라 촬영
@@ -269,22 +280,12 @@ public class Px4 extends Drone{
     //endregion
 
     //region 드론 비행 정보
-
-    /**
-     * 드론의 위도,경도,고도값을 반환한다.
-     * @return
-     */
-    @Override
-    public LocationCoordinate3D getAircraftLocation(){
-        return null;
-    }
-
     /**
      * 드론 수평방향 속도값을 가져온다.
      * @return
      */
     @Override
-    public float getVelocityX(){
+    public float getHorizontalVelocity(){
         return  0.0f;
     }
 
@@ -293,7 +294,7 @@ public class Px4 extends Drone{
      * @return
      */
     @Override
-    public float getVelocityZ(){
+    public float getVerticalVelocity(){
         return 0.0f;
     }
 
@@ -371,7 +372,7 @@ public class Px4 extends Drone{
     }
 
     @Override
-    public void setHomeLocation(){
+    public void setHomeLocation(LocationCoordinate2D home){
 
     }
     //endregion
@@ -381,13 +382,9 @@ public class Px4 extends Drone{
     //endregion
 
     //region 짐벌
-    @Override
-    public void setGimbalStateCallback(GimbalState.Callback callback){
-
-    }
 
     @Override
-    public void setGimbalRotate(float yaw, float pitch, float roll){
+    public void setGimbalRotate(float pitch){
 
     }
     //endregion

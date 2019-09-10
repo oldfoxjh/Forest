@@ -15,7 +15,7 @@
         android:background="#FFF"
         android:orientation="vertical"
         android:layout_width="@dimen/px590"
-        android:layout_height="@dimen/px400">
+        android:layout_height="@dimen/px210">
 
         <TextView
             android:id="@+id/dialog_text"

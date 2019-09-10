@@ -18,6 +18,7 @@ import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
+import kr.go.forest.das.network.NetworkStatus;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
@@ -86,13 +87,17 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
 //                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, R.string.check_password));
 //                return;
 //            }
-            // 로그인 요청
 
-            //DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, R.string.check_login_info));
+            if(NetworkStatus.isInternetConnected(context))
+            {
+                // 로그인 요청
 
-            // 키보드 체크
-            hideSoftInput();
-            DroneApplication.getEventBus().post(menu);
+                // 키보드 체크
+                hideSoftInput();
+                DroneApplication.getEventBus().post(menu);
+            }else{
+                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, R.string.check_internet));
+            }
         }
     }
 

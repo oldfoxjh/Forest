@@ -37,6 +37,7 @@
     <dimen name="px90">45dp</dimen>
     <dimen name="px96">48dp</dimen>
     <dimen name="px100">50dp</dimen>
+    <dimen name="px104">52dp</dimen>
     <dimen name="px110">55dp</dimen>
     <dimen name="px112">56dp</dimen>
     <dimen name="px130">65dp</dimen>

@@ -10,13 +10,10 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -25,28 +22,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import dji.common.error.DJIError;
-import dji.common.error.DJISDKError;
-import dji.sdk.base.BaseComponent;
-import dji.sdk.base.BaseProduct;
-import dji.sdk.products.Aircraft;
-import dji.sdk.sdkmanager.DJISDKInitEvent;
 import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.UI.DialogConfirm;
-import kr.go.forest.das.map.MapLayer;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.UI.DialogOk;
-import kr.go.forest.das.Usb.UsbStatus;
+import kr.go.forest.das.drone.Drone;
 
 import static kr.go.forest.das.drone.DJI.registrationCallback;
 
@@ -67,19 +55,8 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
             Manifest.permission.READ_PHONE_STATE
     };
 
-    private SCREEN_MODE currentScreenMode = SCREEN_MODE.SCREEN_LOGIN;
-    enum SCREEN_MODE{
-        SCREEN_LOGIN,
-        SCREEN_MENU,
-        SCREEN_MISSIION,
-        SCREEN_FLIGHT,
-        SCREEN_SETTING
-    };
-
     private static final int REQUEST_PERMISSION_CODE = 12345;
-    private BaseProduct mProduct;
     private List<String> missingPermission = new ArrayList<>();
-    private AtomicBoolean isRegistrationInProgress = new AtomicBoolean(false);
 
     private Stack<ViewWrapper> stack;
     private FrameLayout contentFrameLayout;
@@ -100,8 +77,6 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         contentFrameLayout = (FrameLayout) findViewById(R.id.framelayout_content);
-       // UsbStatus.getInstance().setUsbStatusCallbacks(this);
-
         initParams();
     }
 
@@ -187,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
         || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // 권한 요청..다시..
+            return;
         }
 
         List<String> providers = mManager.getAllProviders();
@@ -329,6 +305,13 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     }
 
     public static class PopdownView { }
+    public static class DroneStatusionChange{
+        public int status;
+        public DroneStatusionChange(int drone_status)
+        {
+            status = drone_status;
+        }
+    }
 
     public static class LocationUpdate {
         public double latitude;

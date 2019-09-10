@@ -4,18 +4,86 @@ import dji.common.flightcontroller.BatteryThresholdBehavior;
 import dji.common.flightcontroller.FlightMode;
 import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.GoHomeExecutionState;
-import dji.common.flightcontroller.LocationCoordinate3D;
-import dji.common.gimbal.GimbalState;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.base.BaseProduct;
 import dji.common.camera.SettingsDefinitions;
+import kr.go.forest.das.Model.DroneInfo;
 
 public abstract class Drone {
 
     public static final int DRONE_MANUFACTURE_DJI = 0;
     public static final int DRONE_MANUFACTURE_PIXHWAK = 0;
 
+    public static final int DRONE_STATUS_DISCONNECT = 0x00;
+    public static final int DRONE_STATUS_CONNECT = 0x01;
+    public static final int DRONE_STATUS_ARMING = 0x02;
+    public static final int DRONE_STATUS_FLYING = 0x04;
+    public static final int DRONE_STATUS_DISARM = 0x08;
+    public static final int DRONE_STATUS_RETURN_HOME = 0x10;
+    public static final int DRONE_STATUS_MISSION = 0x20;
+
+    int drone_status = DRONE_STATUS_DISCONNECT;
+
+    /**
+     * 드론 Data
+     */
+    double drone_latitude;
+    double drone_longitude;
+    float drone_altitude;
+
+    float velocyty_x = 0.0f;
+    float velocyty_y = 0.0f;
+    float velocyty_z = 0.0f;
+
+    int flight_time;
+
+    double drone_pitch;
+    double drone_roll;
+    double drone_yaw;
+
+    String flight_mode;
+
+    double home_latitude;
+    double home_longitude;
+    boolean home_set = false;
+
+    float heading;
+
+    String seral_number = "";
+    String model = "";
+
+    /**
+     * Gimbal Data
+     */
+    float gimbal_pitch;
+    float gimbal_roll;
+    float gimbal_yaw;
+
+    /**
+     * 배터리 Data
+     */
+    float battery_temperature;
+    int battery_voltage;
+    int battery_remain_percent;
+
+    /**
+     * 조종기 Data
+     */
+    double rc_latitude;
+    double rc_longitude;
+    int left_stick_x;
+    int left_stick_y;
+    int right_stick_x;
+    int right_stick_y;
     //region 제품정보
+
+    /**
+     * 드론 기체 및 비행정보를 반환한다.
+     */
+    public abstract DroneInfo getDroneInfo();
+
+    public abstract int getDroneStatus();
+
     /**
      * 제조사 정보를 반환한다.
      */
@@ -25,18 +93,23 @@ public abstract class Drone {
      * 드롬 모델명을 반환한다.
      * @return
      */
-    public abstract String getAircaftModel();
+    public abstract void getAircaftModel();
 
     /**
      * 드론 시리얼번호를 반환한다.
      * @return
      */
-    public abstract String getSerialNumber();
+    public abstract void getSerialNumber();
 
     /**
      * 드론의 구성정보를 반환한다.
      */
     public abstract BaseProduct getProductInstance();
+
+    /**
+     * 드론정보 수집을위한 Listener 설정한다.
+     */
+    public abstract boolean setDroneDataListener();
     //endregion
 
     //region 카메라 촬영
@@ -187,24 +260,17 @@ public abstract class Drone {
 
 
     //region 드론 비행 정보
-
-    /**
-     * 드론의 위도,경도,고도값을 반환한다.
-     * @return
-     */
-    public abstract LocationCoordinate3D getAircraftLocation();
-
     /**
      * 드론 수평방향 속도값을 가져온다.
      * @return
      */
-    public abstract float getVelocityX();
+    public abstract float getHorizontalVelocity();
 
     /**
      * 드론 수직방향 속도값을 가져온다.
      * @return
      */
-    public abstract float getVelocityZ();
+    public abstract float getVerticalVelocity();
 
     /**
      * 드론 비행시간값을 가져온다.
@@ -244,7 +310,7 @@ public abstract class Drone {
     public abstract GoHomeExecutionState getGoHomeExecutionState();
     public abstract void startGoHome();
     public abstract void cancelGoHome();
-    public abstract void setHomeLocation();
+    public abstract void setHomeLocation(LocationCoordinate2D home);
     //endregion
 
     //region 조종기
@@ -252,7 +318,6 @@ public abstract class Drone {
     //endregion
 
     //region 짐벌
-    public abstract void setGimbalStateCallback(GimbalState.Callback callback);
-    public abstract void setGimbalRotate(float yaw, float pitch, float roll);
+    public abstract void setGimbalRotate(float pitch);
     //endregion
 }

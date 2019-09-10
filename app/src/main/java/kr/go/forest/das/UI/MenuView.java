@@ -60,18 +60,20 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
     @Override
     public void onClick(View v) {
 
+        ViewWrapper wrapper = null;
         switch (v.getId())
         {
             case R.id.missionButton:
-                ViewWrapper wrapper = new ViewWrapper(new MissionView(context), true);
-                DroneApplication.getEventBus().post(wrapper);
+                wrapper = new ViewWrapper(new MissionView(context), true);
                 break;
             case R.id.flightButton:
-
+                wrapper = new ViewWrapper(new FlightView(context), true);
                 break;
             case R.id.settingButton:
-
-                break;
+                wrapper = null; return;
+                //break;
         }
+
+        DroneApplication.getEventBus().post(wrapper);
     }
 }
