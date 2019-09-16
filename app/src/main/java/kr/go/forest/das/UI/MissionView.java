@@ -13,6 +13,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -115,6 +116,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         map_view.getOverlays().clear();
         DroneApplication.getEventBus().unregister(this);
         handler_ui.removeCallbacksAndMessages(null);
+        handler_ui = null;
 
         selected_points.clear();
         selected_points = null;
@@ -165,18 +167,18 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         String _lat = pref.getString("lat", null);
         String _lon = pref.getString("lon", null);
 
-      //  if(_lat == null && _lon == null) {
+        if(_lat == null && _lon == null) {
             my_location = new GeoPoint(36.361481, 127.384841);
-//        }else{
-//            my_location = new GeoPoint(Double.parseDouble(_lat), Double.parseDouble(_lon));
-//        }
+        }else{
+            my_location = new GeoPoint(Double.parseDouble(_lat), Double.parseDouble(_lon));
+        }
 
         mapController.setCenter(my_location);
 
         // 마커 설정
         marker_my_location = new Marker(map_view);
-        marker_my_location.setIcon(context.getResources().getDrawable(R.drawable.map_ico_my));
-        //marker_my_location.setPosition(startPoint);
+        marker_my_location.setIcon(ContextCompat.getDrawable(context, R.mipmap.map_ico_my));
+        //marker_my_location.setPosition(my_location);
         map_view.getOverlays().add(marker_my_location);
 
         // 폴리곤 설정

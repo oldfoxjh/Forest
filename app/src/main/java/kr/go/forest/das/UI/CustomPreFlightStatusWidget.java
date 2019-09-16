@@ -76,6 +76,7 @@ public class CustomPreFlightStatusWidget extends dji.ux.widget.PreFlightStatusWi
             this.setBackgroundResource(R.mipmap.top_bg_green);
             if(status.contains("In-Flight")) drone_status = status.replace("In-Flight", "비행중");
             else if(status.contains("Ready to Go")) drone_status = status.replace("Ready to Go", "비행 준비 완료");
+            else if(status.contains("Ready to GO")) drone_status = status.replace("Ready to GO", "비행 준비 완료");
 
             LogWrapper.i(TAG, status + " GOOD :  " + drone_status );
         } else if (type == StatusType.WARNING){

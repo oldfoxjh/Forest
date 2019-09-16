@@ -545,6 +545,8 @@ public class DJI extends Drone{
         }
         @Override
         public void onProductConnect(BaseProduct product) {
+            if(DroneApplication.getDroneInstance() == null) DroneApplication.setDroneInstance(Drone.DRONE_MANUFACTURE_DJI);
+
             if (!DroneApplication.getDroneInstance().setDroneDataListener()) {
                 DroneApplication.getDroneInstance().getAircaftModel();
                 DroneApplication.getDroneInstance().getSerialNumber();

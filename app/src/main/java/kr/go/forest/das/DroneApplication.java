@@ -33,10 +33,9 @@ public class DroneApplication extends Application{
         return drone;
     }
 
-    public static void setDroneInstance(int type) {
-
-        if(type == Drone.DRONE_MANUFACTURE_DJI)
-        {
+    public static synchronized void setDroneInstance(int type) {
+        if(type == Drone.DRONE_MANUFACTURE_DJI) {
+            if(drone != null) drone = null;
             drone = new DJI();
         }else{
 

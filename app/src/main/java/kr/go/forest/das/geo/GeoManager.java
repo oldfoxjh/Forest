@@ -1,6 +1,7 @@
 package kr.go.forest.das.geo;
 
 import android.graphics.RectF;
+import android.location.Location;
 import android.widget.Toast;
 
 import org.gdal.gdal.Band;
@@ -23,6 +24,7 @@ import org.osmdroid.util.RectL;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import kr.go.forest.das.Model.RectD;
@@ -227,25 +229,22 @@ public class GeoManager {
     /**
      * WGS84 좌표계에서 두 지점 사이의 거리
      */
-    private double distance(double lat1, double lon1, double lat2, double lon2) {
-        if ((lat1 == lat2) && (lon1 == lon2)) {
-            return 0;
+    public double distance(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
+        float[] _distance = new float[2];
+        Arrays.fill(_distance, 0.0F);
+        Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, _distance);
+
+        if (_distance[0] <= 0.0F || _distance[0] > 100000.0F) {
+            _distance[0] = 0.0F;
         }
-        else {
-            double theta = lon1 - lon2;
-            double dist = Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2))
-                         + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(theta));
-            dist = Math.acos(dist);
-            dist = Math.toDegrees(dist);
-            dist = dist * 60 * 1.1515 * 1.609344;
-            return (dist);
-        }
+
+        return _distance[0];
     }
 
     /**
      * ,주어진 점들의 거리 계산
      */
-    public  int getDistanceFromPoints(List<GeoPoint> points) {
+    public int getDistanceFromPoints(List<GeoPoint> points) {
 
         double _distance = 0.0f;
 
@@ -255,7 +254,7 @@ public class GeoManager {
             GeoPoint _point_next = points.get(i+1);
             _distance += distance(_point.getLatitude(), _point.getLongitude(), _point_next.getLatitude(), _point_next.getLongitude());
         }
-        return  (int)(_distance*1000);
+        return  (int)(_distance);
     }
 
     /**

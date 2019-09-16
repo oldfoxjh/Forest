@@ -46,9 +46,6 @@ public class UsbStatus {
                         {
                             DroneApplication.setDroneInstance(Drone.DRONE_MANUFACTURE_DJI);
                             isConnected = USB_CONNECTED;
-
-                            Toast.makeText(context, accessory.getDescription() + " " + accessory.getManufacturer()
-                                    + " " + accessory.getModel() + " " + accessory.getVersion(), Toast.LENGTH_LONG).show();
                         }
                     }
 

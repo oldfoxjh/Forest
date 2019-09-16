@@ -54,6 +54,9 @@
         android:layout_alignParentBottom="true"
         android:layout_marginLeft="@dimen/px30"
         android:layout_marginBottom="@dimen/px30">
+        <org.osmdroid.views.MapView android:id="@+id/flight_map_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
         <ImageView
             android:layout_width="@dimen/px38"
@@ -102,7 +105,7 @@
             android:textSize="@dimen/px24"
             android:textColor="#ffffff"
             android:alpha="0.7"
-            android:text="D"/>
+            android:text="거리"/>
 
         <TextView
             android:id="@+id/tv_flight_distance_from_home"
@@ -129,7 +132,7 @@
             android:textSize="@dimen/px24"
             android:textColor="#ffffff"
             android:alpha="0.7"
-            android:text="H"/>
+            android:text="고도"/>
 
         <TextView
             android:id="@+id/tv_flight_altitude"
@@ -156,7 +159,7 @@
             android:textSize="@dimen/px24"
             android:textColor="#ffffff"
             android:alpha="0.7"
-            android:text="H.S"/>
+            android:text="수평속도"/>
 
         <TextView
             android:id="@+id/tv_flight_horizontal_speed"
@@ -183,7 +186,7 @@
             android:textSize="@dimen/px24"
             android:textColor="#ffffff"
             android:alpha="0.7"
-            android:text="V.S"/>
+            android:text="수직속도"/>
 
         <TextView
             android:id="@+id/tv_flight_vertical_speed"
