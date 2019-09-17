@@ -41,6 +41,7 @@
     <dimen name="px110">110dp</dimen>
     <dimen name="px112">112dp</dimen>
     <dimen name="px130">130dp</dimen>
+    <dimen name="px132">132dp</dimen>
     <dimen name="px148">148dp</dimen>
     <dimen name="px156">156dp</dimen>
     <dimen name="px158">158dp</dimen>

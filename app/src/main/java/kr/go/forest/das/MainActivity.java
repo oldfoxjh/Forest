@@ -305,12 +305,34 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     }
 
     public static class PopdownView { }
-    public static class DroneStatusionChange{
+    public static class DroneStatusChange{
         public int status;
-        public DroneStatusionChange(int drone_status)
+        public DroneStatusChange(int drone_status)
         {
             status = drone_status;
         }
+    }
+
+    public static class DroneCameraStatus{
+        public String iso = null;
+        public String shutter = null;
+        public String ev = null;
+        public String aperture = null;
+        public String wb = null;
+        public int mode = -1;
+
+        public DroneCameraStatus(){}
+
+        public DroneCameraStatus(String _iso, String _shutter, String _ev, String _aperture, String _wb)
+        {
+            iso = _iso;
+            shutter = _shutter;
+            ev = _ev;
+            aperture = _aperture;
+            wb = _wb;
+        }
+
+        public void setMode(int _mode){ mode = _mode; }
     }
 
     public static class LocationUpdate {

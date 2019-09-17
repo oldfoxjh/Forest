@@ -5,12 +5,31 @@
     android:layout_height="match_parent"
     android:background="#a0a0a0">
 
+    <!-- MAP  -->
+    <RelativeLayout
+        android:id="@+id/flightMapLayout"
+        android:layout_width="@dimen/px310"
+        android:layout_height="@dimen/px180"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="@dimen/px30"
+        android:layout_marginBottom="@dimen/px30">
+        <org.osmdroid.views.MapView android:id="@+id/flight_map_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+        <Button
+            android:layout_width="@dimen/px38"
+            android:layout_height="@dimen/px38"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="@dimen/px4"
+            android:layout_marginRight="@dimen/px4"
+            android:background="@drawable/btn_map_location_selector"/>
+    </RelativeLayout>
+
     <include
         layout="@layout/status_top_layout"
-        android:id="@+id/missionTop"
+        android:id="@+id/flight_top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
-
 
     <!--    하단 그래데이션용 -->
     <LinearLayout
@@ -21,6 +40,7 @@
 
     </LinearLayout>
 
+    <!-- RTH  -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -46,51 +66,7 @@
             android:background="@drawable/btn_controller_selector"/>
     </LinearLayout>
 
-    <!-- MAP  -->
-    <RelativeLayout
-        android:id="@+id/flightMapLayout"
-        android:layout_width="@dimen/px310"
-        android:layout_height="@dimen/px180"
-        android:layout_alignParentBottom="true"
-        android:layout_marginLeft="@dimen/px30"
-        android:layout_marginBottom="@dimen/px30">
-        <org.osmdroid.views.MapView android:id="@+id/flight_map_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-
-        <ImageView
-            android:layout_width="@dimen/px38"
-            android:layout_height="@dimen/px38"
-            android:layout_marginLeft="@dimen/px4"
-            android:layout_marginTop="@dimen/px4"
-            android:background="@mipmap/map_ico_compass"/>
-
-        <Button
-            android:layout_width="@dimen/px38"
-            android:layout_height="@dimen/px38"
-            android:layout_alignParentRight="true"
-            android:layout_marginTop="@dimen/px4"
-            android:layout_marginRight="@dimen/px4"
-            android:background="@drawable/btn_map_location_selector"/>
-
-        <Button
-            android:layout_width="@dimen/px38"
-            android:layout_height="@dimen/px38"
-            android:layout_alignParentBottom="true"
-            android:layout_marginLeft="@dimen/px4"
-            android:layout_marginBottom="@dimen/px4"
-            android:background="@drawable/btn_map_zoom_selector"/>
-
-        <Button
-            android:layout_width="@dimen/px38"
-            android:layout_height="@dimen/px38"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="@dimen/px4"
-            android:layout_marginRight="@dimen/px4"
-            android:background="@drawable/btn_map_eraser_selector"/>
-    </RelativeLayout>
-
+    <!-- 드론비행정보  -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -212,7 +188,7 @@
         android:layout_width="@dimen/px66"
         android:layout_height="@dimen/px62"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/missionTop"
+        android:layout_below="@+id/flight_top"
         android:layout_marginTop="@dimen/px10"
         android:layout_marginRight="@dimen/px22"
         android:background="@drawable/setting_bg">
@@ -224,11 +200,13 @@
             android:layout_centerInParent="true" />
     </RelativeLayout>
 
+    <!-- 카메라 정보  -->
     <LinearLayout
+        android:id="@+id/layout_camera_info"
         android:layout_width="@dimen/px610"
         android:layout_height="@dimen/px62"
         android:layout_alignParentRight="true"
-        android:layout_below="@id/missionTop"
+        android:layout_below="@id/flight_top"
         android:layout_marginTop="@dimen/px10"
         android:layout_marginRight="@dimen/px112"
         android:paddingLeft="@dimen/px18"
@@ -246,18 +224,19 @@
                 android:layout_width="@dimen/px70"
                 android:layout_height="wrap_content"
                 android:alpha="0.4"
-                android:text="Auto ISO"
+                android:text="ISO"
                 android:textColor="#ffffff"
                 android:textSize="@dimen/px14"
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/tv_flight_iso"
                 android:layout_width="@dimen/px70"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/px20"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
-                android:text="200"/>
+                android:text="N/A"/>
         </LinearLayout>
 
         <LinearLayout
@@ -276,12 +255,13 @@
                 android:text="SHUTTER"/>
 
             <TextView
+                android:id="@+id/tv_flight_shutter"
                 android:layout_width="@dimen/px70"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/px20"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
-                android:text="1/40"/>
+                android:text="N/A"/>
         </LinearLayout>
 
         <LinearLayout
@@ -300,12 +280,13 @@
                 android:text="F"/>
 
             <TextView
+                android:id="@+id/tv_flight_aperture"
                 android:layout_width="@dimen/px50"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/px20"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
-                android:text="2.8"/>
+                android:text="N/A"/>
         </LinearLayout>
 
         <LinearLayout
@@ -324,12 +305,13 @@
                 android:text="EV"/>
 
             <TextView
+                android:id="@+id/tv_flight_exposure"
                 android:layout_width="@dimen/px50"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/px20"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
-                android:text="+0.0"/>
+                android:text="N/A"/>
         </LinearLayout>
 
         <LinearLayout
@@ -348,12 +330,13 @@
                 android:text="WB"/>
 
             <TextView
+                android:id="@+id/tv_flight_wb"
                 android:layout_width="@dimen/px60"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/px20"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
-                android:text="AUTO"/>
+                android:text="N/A"/>
         </LinearLayout>
 
         <LinearLayout
@@ -373,12 +356,13 @@
                 android:text="CAPACITY"/>
 
             <TextView
+                android:id="@+id/tv_flight_capacity"
                 android:layout_width="@dimen/px70"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/px20"
                 android:textColor="#f94753"
                 android:textStyle="bold"
-                android:text="4K/24"/>
+                android:text="N/A"/>
         </LinearLayout>
 
         <LinearLayout
@@ -397,12 +381,13 @@
                 android:text=""/>
 
             <TextView
+                android:id="@+id/tv_flight_available_info"
                 android:layout_width="@dimen/px60"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/px20"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
-                android:text="00:00"/>
+                android:text="-"/>
         </LinearLayout>
 
         <LinearLayout
@@ -421,15 +406,57 @@
                 android:text=""/>
 
             <TextView
+                android:id="@+id/tv_flight_remain_storage"
                 android:layout_width="@dimen/px70"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/px20"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
-                android:text="1.95GB"/>
+                android:text="-"/>
         </LinearLayout>
     </LinearLayout>
 
+    <!-- 지도 관련 버튼  -->
+    <LinearLayout
+        android:id="@+id/layout_flight_map_top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/flight_top"
+        android:layout_marginTop="@dimen/px12"
+        android:layout_alignParentRight="true"
+        android:orientation="horizontal"
+        android:visibility="invisible">
+
+        <Button
+            android:id="@+id/btn_flight_location"
+            android:layout_width="@dimen/px54"
+            android:layout_height="@dimen/px54"
+            android:layout_marginRight="@dimen/px22"
+            android:background="@drawable/btn_location_selector"/>
+
+        <Button
+            android:id="@+id/btn_flight_nofly"
+            android:layout_width="@dimen/px54"
+            android:layout_height="@dimen/px54"
+            android:layout_marginRight="@dimen/px22"
+            android:background="@drawable/btn_nofly_selector"/>
+
+        <Button
+            android:id="@+id/btn_flight_fires"
+            android:layout_width="@dimen/px54"
+            android:layout_height="@dimen/px54"
+            android:layout_marginRight="@dimen/px22"
+            android:background="@drawable/btn_course_selector"/>
+
+        <Button
+            android:id="@+id/btn_flight_save_path"
+            android:layout_width="@dimen/px54"
+            android:layout_height="@dimen/px54"
+            android:layout_marginRight="@dimen/px22"
+            android:background="@drawable/btn_save_selector"/>
+    </LinearLayout>
+
+    <!-- 촬영버튼  -->
     <RelativeLayout
         android:id="@+id/flightSettingLayout"
         android:layout_width="wrap_content"
@@ -440,22 +467,40 @@
         android:layout_marginBottom="@dimen/px156">
 
         <Button
-            android:id="@+id/flightMovieButton"
+            android:id="@+id/btn_flight_select_movie"
             android:layout_width="@dimen/px76"
             android:layout_height="@dimen/px76"
-            android:background="@drawable/btn_movie_selector"/>
+            android:background="@drawable/btn_movie_selector"
+            android:visibility="invisible"/>
 
         <Button
-            android:id="@+id/flightRecordButton"
-            android:layout_below="@id/flightMovieButton"
+            android:id="@+id/btn_flight_select_shoot"
+            android:layout_width="@dimen/px76"
+            android:layout_height="@dimen/px76"
+            android:background="@drawable/btn_picture_selector"
+            android:visibility="invisible"/>
+
+        <Button
+            android:id="@+id/btn_flight_record"
+            android:layout_below="@id/btn_flight_select_movie"
             android:layout_width="@dimen/px76"
             android:layout_height="@dimen/px76"
             android:layout_marginTop="@dimen/px60"
-            android:background="@drawable/btn_picture_selector"/>
+            android:background="@drawable/btn_record_selector"
+            android:visibility="invisible"/>
+
+        <Button
+            android:id="@+id/btn_flight_shoot"
+            android:layout_below="@id/btn_flight_select_shoot"
+            android:layout_width="@dimen/px76"
+            android:layout_height="@dimen/px76"
+            android:layout_marginTop="@dimen/px60"
+            android:background="@drawable/btn_shoot_selector"
+            android:visibility="invisible"/>
 
         <TextView
-            android:id="@+id/flightRecordText"
-            android:layout_below="@+id/flightRecordButton"
+            android:id="@+id/tv_flight_record_time"
+            android:layout_below="@+id/btn_flight_record"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:drawableStart="@mipmap/ico_recording"
@@ -463,24 +508,16 @@
             android:textSize="@dimen/px18"
             android:textColor="#ffffff"
             android:textStyle="bold"
-            android:text="0:00"/>
-
-        <Button
-            android:id="@+id/flightShootButton"
-            android:layout_below="@id/flightMovieButton"
-            android:layout_width="@dimen/px76"
-            android:layout_height="@dimen/px76"
-            android:layout_marginTop="@dimen/px60"
-            android:background="@drawable/btn_shoot_selector"
+            android:text="0:00"
             android:visibility="invisible"/>
-
         <Button
-            android:id="@+id/flightSettingButton"
-            android:layout_below="@+id/flightRecordButton"
+            android:id="@+id/btn_flight_camera_setting"
+            android:layout_below="@+id/btn_flight_record"
             android:layout_width="@dimen/px76"
             android:layout_height="@dimen/px76"
             android:layout_marginTop="@dimen/px60"
-            android:background="@drawable/btn_csetting_selector"/>
+            android:background="@drawable/btn_csetting_selector"
+            android:visibility="invisible"/>
     </RelativeLayout>
 
     <SeekBar

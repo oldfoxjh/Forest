@@ -87,6 +87,7 @@ public class CustomPreFlightStatusWidget extends dji.ux.widget.PreFlightStatusWi
             this.setBackgroundResource(R.mipmap.top_bg_red);
             if(status.equals("Aircraft Disconnected")) drone_status = "기체 연결 끊김";
             else if(status.equals("Remote Controller Signal Weak")) drone_status = "조종기 신호 약함";
+            else if(status.equals("Cannot take off ERROR")) drone_status = "이륙준비 오류";
             else drone_status = "기기 연결 끊김";
             LogWrapper.i(TAG, status + " ERROR :  " + drone_status );
         }

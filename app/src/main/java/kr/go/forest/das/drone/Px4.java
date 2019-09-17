@@ -64,8 +64,8 @@ public class Px4 extends Drone{
      * @return
      */
     @Override
-    public SettingsDefinitions.CameraMode getCameraMode(){
-        return  null;
+    public void getCameraMode(){
+
     }
 
     /**
@@ -150,8 +150,8 @@ public class Px4 extends Drone{
      * @return Auto, 100, 200, 400, 800, 1600, 3200...
      */
     @Override
-    public SettingsDefinitions.ISO getISO(){
-        return  null;
+    public void getISO(){
+
     }
 
     /**
@@ -168,8 +168,8 @@ public class Px4 extends Drone{
      * @return 1/2, 1/3/ 1/4, 1/5...
      */
     @Override
-    public SettingsDefinitions.ShutterSpeed getShutterSpeed(){
-        return  null;
+    public void getShutterSpeed(){
+
     }
 
     /**
@@ -195,8 +195,8 @@ public class Px4 extends Drone{
      * @return
      */
     @Override
-    public SettingsDefinitions.Aperture getAperture(){
-        return null;
+    public void getAperture(){
+
     }
 
     /**
@@ -212,8 +212,8 @@ public class Px4 extends Drone{
      * @return 0.0ev, -0.3ev, -0.7ev....
      */
     @Override
-    public SettingsDefinitions.ExposureCompensation getExposureCompensation(){
-        return  null;
+    public void getExposureCompensation(){
+
     }
 
     /**
@@ -247,8 +247,8 @@ public class Px4 extends Drone{
      * @return Auto, Cloudy, CustomColorTemperature, Sunny...
      */
     @Override
-    public SettingsDefinitions.WhiteBalancePreset getWhiteBalance(){
-        return null;
+    public void getWhiteBalance(){
+
     }
 
     /**

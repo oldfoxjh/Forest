@@ -22,6 +22,14 @@ public abstract class Drone {
     public static final int DRONE_STATUS_RETURN_HOME = 0x10;
     public static final int DRONE_STATUS_MISSION = 0x20;
 
+    public static final int CAMERA_ISO = 0x00;
+    public static final int CAMERA_SHUTTER_SPEED = 0x01;
+    public static final int CAMERA_APERTURE = 0x02;
+    public static final int CAMERA_EXPOSURE = 0x03;
+    public static final int CAMERA_WHITE_BALANCE = 0x04;
+
+    public static final int CAMERA_ALL = 0xFF;
+
     int drone_status = DRONE_STATUS_DISCONNECT;
 
     /**
@@ -117,7 +125,7 @@ public abstract class Drone {
      * 카메라 동작 설정값을 반환한다.
      * @return
      */
-    public abstract SettingsDefinitions.CameraMode getCameraMode();
+    public abstract void getCameraMode();
 
     /**
      * 카메라 동작을 설정한다.
@@ -173,7 +181,7 @@ public abstract class Drone {
      * 카메라 ISO 설정값을 반환한다.
      * @return Auto, 100, 200, 400, 800, 1600, 3200...
      */
-    public abstract SettingsDefinitions.ISO getISO();
+    public abstract void getISO();
 
     /**
      * 카메라 ISO값을 설정한다.
@@ -185,7 +193,7 @@ public abstract class Drone {
      * 카메라의 셔터 속도값을 반환한다.
      * @return 1/2, 1/3/ 1/4, 1/5...
      */
-    public abstract SettingsDefinitions.ShutterSpeed getShutterSpeed();
+    public abstract void getShutterSpeed();
 
     /**
      * 셔터 속도값을 설정한다.
@@ -203,7 +211,7 @@ public abstract class Drone {
      * 조리개 설정값을 반환한다.
      * @return
      */
-    public abstract SettingsDefinitions.Aperture getAperture();
+    public abstract void getAperture();
 
     /**
      * 조리개값을 설정한다.
@@ -214,7 +222,7 @@ public abstract class Drone {
      * 카메라 노출 보정값을 반환한다.
      * @return 0.0ev, -0.3ev, -0.7ev....
      */
-    public abstract SettingsDefinitions.ExposureCompensation getExposureCompensation();
+    public abstract void getExposureCompensation();
 
     /**
      * 카메라 노출 보정값을 설정한다.
@@ -237,7 +245,7 @@ public abstract class Drone {
      * 카메라 화이트밸런스 설정값을 반환한다.
      * @return Auto, Cloudy, CustomColorTemperature, Sunny...
      */
-    public abstract SettingsDefinitions.WhiteBalancePreset getWhiteBalance();
+    public abstract void getWhiteBalance();
 
     /**
      * 카메라 화이트밸런스를 설정한다.

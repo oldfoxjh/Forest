@@ -3,11 +3,11 @@
 
     <item
         android:state_pressed="true"
-        android:drawable="@mipmap/btn_takeoff_s" />
+        android:drawable="@mipmap/btn_takeoff_n" />
 
 
     <item
         android:state_enabled="true"
-        android:drawable="@mipmap/btn_takeoff_n" />
+        android:drawable="@mipmap/btn_takeoff_s" />
 
 </selector>
