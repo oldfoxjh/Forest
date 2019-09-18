@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#a0a0a0">
+
+    <dji.ux.widget.FPVWidget
+        android:id="@+id/fpv_custom_widget"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        custom:sourceCameraNameVisibility="true"
+        custom:videoSource="primary"/>
 
     <!-- MAP  -->
     <RelativeLayout
@@ -49,17 +58,20 @@
         android:orientation="vertical">
 
         <Button
+            android:id="@+id/btn_flight_takeoff"
             android:layout_width="@dimen/px56"
             android:layout_height="@dimen/px56"
             android:background="@drawable/btn_takeoff_selector"/>
 
         <Button
+            android:id="@+id/btn_flight_return_home"
             android:layout_width="@dimen/px56"
             android:layout_height="@dimen/px56"
             android:layout_marginTop="@dimen/px50"
             android:background="@drawable/btn_return_selector"/>
 
         <Button
+            android:id="@+id/btn_flight_return_my_location"
             android:layout_width="@dimen/px56"
             android:layout_height="@dimen/px56"
             android:layout_marginTop="@dimen/px50"
@@ -347,6 +359,30 @@
             android:layout_gravity="center"
             android:orientation="vertical">
             <TextView
+                android:layout_width="@dimen/px60"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/px14"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:alpha="0.4"
+                android:text="저장형식"/>
+
+            <TextView
+                android:id="@+id/tv_flight_format_info"
+                android:layout_width="@dimen/px112"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/px20"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:text="N/A"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px10"
+            android:layout_gravity="center"
+            android:orientation="vertical">
+            <TextView
                 android:layout_width="@dimen/px70"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/px14"
@@ -364,56 +400,6 @@
                 android:textColor="#f94753"
                 android:textStyle="bold"
                 android:text="N/A"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/px10"
-            android:layout_gravity="center"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="@dimen/px60"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/px14"
-                android:textColor="#ffffff"
-                android:textStyle="bold"
-                android:alpha="0.4"
-                android:text=""/>
-
-            <TextView
-                android:id="@+id/tv_flight_available_info"
-                android:layout_width="@dimen/px60"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/px20"
-                android:textColor="#ffffff"
-                android:textStyle="bold"
-                android:text="-"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/px10"
-            android:layout_gravity="center"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="@dimen/px70"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/px14"
-                android:textColor="#ffffff"
-                android:textStyle="bold"
-                android:alpha="0.4"
-                android:text=""/>
-
-            <TextView
-                android:id="@+id/tv_flight_remain_storage"
-                android:layout_width="@dimen/px70"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/px20"
-                android:textColor="#ffffff"
-                android:textStyle="bold"
-                android:text="-"/>
         </LinearLayout>
     </LinearLayout>
 
@@ -509,7 +495,7 @@
             android:textSize="@dimen/px18"
             android:textColor="#ffffff"
             android:textStyle="bold"
-            android:text="0:00"
+            android:text="00:00"
             android:visibility="invisible"/>
         <Button
             android:id="@+id/btn_flight_camera_setting"

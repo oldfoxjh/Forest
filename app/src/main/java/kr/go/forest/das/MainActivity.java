@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import dji.common.camera.SettingsDefinitions;
 import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.UI.DialogConfirm;
@@ -367,6 +368,15 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         }
 
         public void setMode(int _mode){ mode = _mode; }
+    }
+
+    public static class DroneCameraShootInfo{
+        public SettingsDefinitions.CameraMode mode;
+        public boolean is_record = false;
+        public DroneCameraShootInfo(SettingsDefinitions.CameraMode _mode, boolean isRecord){
+            mode = _mode;
+            is_record = isRecord;
+        }
     }
 
     public static class LocationUpdate {

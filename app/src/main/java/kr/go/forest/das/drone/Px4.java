@@ -10,6 +10,7 @@ import dji.common.gimbal.GimbalState;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.base.BaseProduct;
 import kr.go.forest.das.Model.DroneInfo;
+import kr.go.forest.das.Model.StorageInfo;
 
 public class Px4 extends Drone{
     //region 제품정보
@@ -107,6 +108,11 @@ public class Px4 extends Drone{
     @Override
     public void stopShootPhoto(){
 
+    }
+
+    @Override
+    public StorageInfo getStorageInfo() {
+        return null;
     }
     //endregion
 

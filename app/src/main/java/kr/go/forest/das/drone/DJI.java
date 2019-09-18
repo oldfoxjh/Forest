@@ -5,6 +5,7 @@ import java.util.List;
 
 import dji.common.battery.BatteryState;
 import dji.common.camera.ExposureSettings;
+import dji.common.camera.ResolutionAndFrameRate;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.StorageState;
 import dji.common.camera.SystemState;
@@ -27,6 +28,7 @@ import dji.sdk.battery.Battery;
 import dji.sdk.camera.Camera;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.gimbal.Gimbal;
+import dji.sdk.media.MediaFile;
 import dji.sdk.products.Aircraft;
 import dji.sdk.remotecontroller.RemoteController;
 import dji.sdk.sdkmanager.DJISDKInitEvent;
@@ -35,6 +37,7 @@ import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.DroneInfo;
+import kr.go.forest.das.Model.StorageInfo;
 
 import static dji.common.camera.SettingsDefinitions.ShutterSpeed;
 
@@ -154,8 +157,7 @@ public class DJI extends Drone{
     /**
      * 드론의 FlightController 정보를 설정한다.
      */
-    public boolean setDroneDataListener()
-    {
+    public boolean setDroneDataListener() {
         BaseProduct _product = DJISDKManager.getInstance().getProduct();
         if (_product != null && _product.isConnected()) {
             if (_product instanceof Aircraft) {
@@ -249,7 +251,16 @@ public class DJI extends Drone{
      */
     @Override
     public void startRecordVideo(){
-
+        BaseProduct _product = DJISDKManager.getInstance().getProduct();
+        if (_product != null && _product.isConnected()) {
+            _product.getCamera()
+                    .startRecordVideo(new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
+                            DroneApplication.getEventBus().post(new MainActivity.DroneCameraShootInfo(SettingsDefinitions.CameraMode.RECORD_VIDEO, true));
+                        }
+                    });
+        }
     }
 
     /**
@@ -257,7 +268,16 @@ public class DJI extends Drone{
      */
     @Override
     public void stopRecordVideo(){
-
+        BaseProduct _product = DJISDKManager.getInstance().getProduct();
+        if (_product != null && _product.isConnected()) {
+            _product.getCamera()
+                    .stopRecordVideo(new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
+                            DroneApplication.getEventBus().post(new MainActivity.DroneCameraShootInfo(SettingsDefinitions.CameraMode.RECORD_VIDEO, false));
+                        }
+                    });
+        }
     }
 
     /**
@@ -265,7 +285,16 @@ public class DJI extends Drone{
      */
     @Override
     public void startShootPhoto(){
-
+        BaseProduct _product = DJISDKManager.getInstance().getProduct();
+        if (_product != null && _product.isConnected()) {
+            _product.getCamera()
+                    .startShootPhoto(new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
+                            DroneApplication.getEventBus().post(new MainActivity.DroneCameraShootInfo(SettingsDefinitions.CameraMode.SHOOT_PHOTO, false));
+                        }
+                    });
+        }
     }
 
     /**
@@ -273,7 +302,27 @@ public class DJI extends Drone{
      */
     @Override
     public void stopShootPhoto(){
+        BaseProduct _product = DJISDKManager.getInstance().getProduct();
+        if (_product != null && _product.isConnected()) {
+            _product.getCamera()
+                    .stopShootPhoto(new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
 
+                        }
+                    });
+        }
+    }
+
+    @Override
+    public StorageInfo getStorageInfo() {
+        StorageInfo _storage_info = new StorageInfo();
+        _storage_info.video_resolution_framerate = video_resolution_framerate;
+        _storage_info.capture_count = capture_count;
+        _storage_info.photo_file_format = photo_file_format;
+        _storage_info.recording_remain_time = recording_remain_time;
+        _storage_info.recording_time = (recording_time == null) ? "00:00" : recording_time;
+        return _storage_info;
     }
     //endregion
 
@@ -338,8 +387,7 @@ public class DJI extends Drone{
         }
     }
 
-    private String getISOString(int iso)
-    {
+    private String getISOString(int iso) {
         return (iso == 0) ? "AUTO" : (iso == 100) ? "100" : (iso == 200) ? "200" : (iso == 400) ? "400" : (iso == 800) ? "800" : (iso == 1600) ? "1600"
                 : (iso == 3200) ? "3200" : (iso == 6400) ? "6400" :(iso == 12800) ? "12800" : (iso == 25600) ? "25600" : (iso == 255) ? "FIXED" : "UNKNOWN";
     }
@@ -378,8 +426,7 @@ public class DJI extends Drone{
         }
     }
 
-    private String getShutterSpeedString(SettingsDefinitions.ShutterSpeed speed)
-    {
+    private String getShutterSpeedString(SettingsDefinitions.ShutterSpeed speed) {
         return (speed == ShutterSpeed.SHUTTER_SPEED_1_8000) ? "1/8000" : (speed == ShutterSpeed.SHUTTER_SPEED_1_6400) ? "1/6400" : (speed == ShutterSpeed.SHUTTER_SPEED_1_6000) ? "1/6000"
                 : (speed == ShutterSpeed.SHUTTER_SPEED_1_5000) ? "1/5000" : (speed == ShutterSpeed.SHUTTER_SPEED_1_4000) ? "1/4000" : (speed == ShutterSpeed.SHUTTER_SPEED_1_3200) ? "1/3200"
                 : (speed == ShutterSpeed.SHUTTER_SPEED_1_3000) ? "1/3000" : (speed == ShutterSpeed.SHUTTER_SPEED_1_2500) ? "1/2500" : (speed == ShutterSpeed.SHUTTER_SPEED_1_2000) ? "1/2000"
@@ -442,8 +489,7 @@ public class DJI extends Drone{
         }
     }
 
-    private String getApertureString(int aperture)
-    {
+    private String getApertureString(int aperture) {
         return (aperture == 255) ? "UNKNOWN" : String.format("%.1f", (float)aperture/100);
     }
 
@@ -480,8 +526,7 @@ public class DJI extends Drone{
         }
     }
 
-    private String getExposureString(int exposure)
-    {
+    private String getExposureString(int exposure) {
         double _result= -5.0 + 1*(exposure/3) + ((exposure%3 == 2) ? 0.3 : (exposure%3 == 0) ? 0.7 : 0.0f);
         return (exposure == 65535) ? "UNKNOWN" : (exposure < 16 ) ? String.format("-%.1f", _result) : String.format("+%.1f", _result);
     }
@@ -547,8 +592,7 @@ public class DJI extends Drone{
 
     }
 
-    private String getWhiteBalanceString(WhiteBalance whiteBalance)
-    {
+    private String getWhiteBalanceString(WhiteBalance whiteBalance) {
         SettingsDefinitions.WhiteBalancePreset _preset =  whiteBalance.getWhiteBalancePreset();
 
         return (_preset == SettingsDefinitions.WhiteBalancePreset.AUTO) ? "자동" : (_preset == SettingsDefinitions.WhiteBalancePreset.SUNNY) ? "맑음"
@@ -709,6 +753,9 @@ public class DJI extends Drone{
     }
     //endregion
 
+    /**
+     * DJI SDK 등록
+     */
     public static DJISDKManager.SDKManagerCallback registrationCallback = new DJISDKManager.SDKManagerCallback() {
         @Override
         public void onRegister(DJIError error) {
@@ -882,7 +929,21 @@ public class DJI extends Drone{
 
         @Override
         public void onUpdate(@NonNull SystemState systemState) {
-
+            if(systemState.isRecording()) {
+                recording_time = getRemainTime(systemState.getCurrentVideoRecordingTimeInSeconds());
+                MainActivity.DroneCameraStatus _status = new MainActivity.DroneCameraStatus();
+                _status.setMode(1);
+                DroneApplication.getEventBus().post(_status);
+            }else if(systemState.isStoringPhoto()){
+                MainActivity.DroneCameraStatus _status = new MainActivity.DroneCameraStatus();
+                _status.setMode(0);
+                DroneApplication.getEventBus().post(_status);
+            }else if(!systemState.isRecording() && recording_time != null) {
+                recording_time = null;
+                MainActivity.DroneCameraStatus _status = new MainActivity.DroneCameraStatus();
+                _status.setMode(1);
+                DroneApplication.getEventBus().post(_status);
+            }
         }
     };
 
@@ -890,13 +951,67 @@ public class DJI extends Drone{
      * 카메라 저장정보 Callback
      */
     public StorageState.Callback camera_storage_callback= new StorageState.Callback() {
-
         @Override
         public void onUpdate(@NonNull StorageState storageState) {
-            boolean _inserted = storageState.isInserted();
-            int _remain_storage = storageState.getRemainingSpaceInMB();
-            long _capture_count = storageState.getAvailableCaptureCount();
-            int _recording_time = storageState.getAvailableRecordingTimeInSeconds();
+            inserted = storageState.isInserted();
+            remain_storage = storageState.getRemainingSpaceInMB();
+            capture_count = String.format("%d", storageState.getAvailableCaptureCount());
+            recording_remain_time = getRemainTime(storageState.getAvailableRecordingTimeInSeconds());
+
+            BaseProduct _product = DJISDKManager.getInstance().getProduct();
+
+            if(photo_file_format == null) {
+                _product.getCamera().getPhotoFileFormat(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.PhotoFileFormat>() {
+                    @Override
+                    public void onSuccess(SettingsDefinitions.PhotoFileFormat photoFileFormat) {
+
+                        int _value = photoFileFormat.value();
+                        photo_file_format = (_value == 0) ? "RAW" : (_value == 1) ? "JPEG" : "JEPG+RAW";
+                    }
+
+                    @Override
+                    public void onFailure(DJIError djiError) {
+                        photo_file_format = "N/A";
+                    }
+                });
+            }
+
+            if(video_resolution_framerate == null){
+                _product.getCamera().getVideoResolutionAndFrameRate(new CommonCallbacks.CompletionCallbackWith<ResolutionAndFrameRate>() {
+                    @Override
+                    public void onSuccess(ResolutionAndFrameRate resolutionAndFrameRate) {
+                        int _frame_rate = resolutionAndFrameRate.getFrameRate().value();
+                        int _resolution = resolutionAndFrameRate.getResolution().value();
+
+                        video_resolution_framerate = getResolution(_resolution) + "/" + getFrameRate(_frame_rate);
+                    }
+
+                    @Override
+                    public void onFailure(DJIError djiError) {
+                        video_resolution_framerate = "N/A";
+                    }
+                });
+            }
         }
     };
+
+    private String getResolution(int resolution) {
+        return (resolution == 2) ? "720p" : (resolution == 3) ? "1080p" : (resolution == 2) ? "720p" : (resolution == 4 || resolution == 5) ? "2.7K" : (resolution == 4 || resolution == 5) ? "2.7K"
+                : (resolution > 5 && resolution < 12) ? "4K" : "UNKNOWN";
+    }
+
+    private String getFrameRate(int frame_rate) {
+        return (frame_rate == 0) ? "23" : (frame_rate == 1) ? "24" : (frame_rate == 2) ? "25" : (frame_rate == 3) ? "29" : (frame_rate == 4) ? "30" : (frame_rate == 5) ? "47" : (frame_rate == 6) ? "48"
+                : (frame_rate == 7) ? "50" : (frame_rate == 8) ? "59" : (frame_rate == 9) ? "60" : (frame_rate == 10) ? "96" : (frame_rate == 11) ? "100" : (frame_rate == 12) ? "120" : (frame_rate == 13) ? "240"
+                : (frame_rate == 14) ? "7" : (frame_rate == 15) ? "90" :(frame_rate == 16) ? "8" : "UNKNOWN";
+    }
+
+    private String getRemainTime(int second) {
+        int min = (second / 60);
+        int hour = min / 60;
+        int sec = second % 60;
+        min = min % 60;
+
+        return (hour > 0) ? String.format("%02d:%02d:%02d", hour, min, sec): String.format("%02d:%02d", min, sec);
+    }
 }

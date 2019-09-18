@@ -8,6 +8,7 @@ import dji.common.model.LocationCoordinate2D;
 import dji.sdk.base.BaseProduct;
 import dji.common.camera.SettingsDefinitions;
 import kr.go.forest.das.Model.DroneInfo;
+import kr.go.forest.das.Model.StorageInfo;
 
 public abstract class Drone {
 
@@ -83,6 +84,17 @@ public abstract class Drone {
     int left_stick_y;
     int right_stick_x;
     int right_stick_y;
+
+    /**
+     * 드론 저장장치 정보
+     */
+    boolean inserted;
+    int remain_storage;
+    String capture_count;
+    String recording_time;
+    String recording_remain_time;
+    String photo_file_format;
+    String video_resolution_framerate;
     //region 제품정보
 
     /**
@@ -152,6 +164,11 @@ public abstract class Drone {
      * 사진 촬영을 멈춘다.
      */
     public abstract void stopShootPhoto();
+
+    /**
+     * 카메라 동작 설정값을 반환한다.
+     */
+    public abstract StorageInfo getStorageInfo();
     //endregion
 
     //region 카메라 정보
