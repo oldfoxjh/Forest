@@ -19,6 +19,7 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
     Button mBtnYes;
     Button mBtnNo;
     TextView mTextView;
+    int contentId;
 
     public DialogConfirm(Context context, int contentId){
         super(context);
@@ -43,7 +44,7 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
         super.onDetachedFromWindow();
     }
 
-    protected void initUI(int contentId){
+    protected void initUI(int content_id){
         //초기화
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Service.LAYOUT_INFLATER_SERVICE);
         layoutInflater.inflate(R.layout.dialog_confirm, this, true);
@@ -51,7 +52,7 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
         RelativeLayout _layout = (RelativeLayout)findViewById(R.id.dialog_confirm_bg);
         LayoutParams _params = (LayoutParams)_layout.getLayoutParams();
 
-        if(contentId == R.string.check_login_info)
+        if(content_id == R.string.clear_mission)
         {
             _params.height += 50;
         }
@@ -63,11 +64,15 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
         mBtnNo.setOnClickListener(this);
 
         mTextView = (TextView)findViewById(R.id.dialog_confirm_text);
-        mTextView.setText(contentId);
+        mTextView.setText(content_id);
+
+        contentId = content_id;
     }
 
     @Override
     public void onClick(View v) {
-        DroneApplication.getEventBus().post(new MainActivity.PopdownView());
+        if(contentId == R.string.clear_mission) {
+            DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.Mission.MISSION_CLEAR, null));
+        }
     }
 }

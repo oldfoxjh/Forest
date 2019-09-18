@@ -1,8 +1,7 @@
 package kr.go.forest.das.geo;
 
-import android.graphics.RectF;
 import android.location.Location;
-import android.widget.Toast;
+import android.os.Environment;
 
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
@@ -19,17 +18,24 @@ import org.gdal.ogr.ogr;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
 import org.gdal.osr.osr;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.osmdroid.util.GeoPoint;
-import org.osmdroid.util.RectL;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import kr.go.forest.das.Model.RectD;
 
 public class GeoManager {
+    private static final String LOG_DIRECTORY = "DroneAppService/Flight_Log";
+
     private static final GeoManager ourInstance = new GeoManager();
 
     public static GeoManager getInstance() {
@@ -37,7 +43,7 @@ public class GeoManager {
     }
     private SpatialReference merc = new SpatialReference();
     private SpatialReference wgs84 = new SpatialReference();
-    private CoordinateTransformation trsform;
+    private CoordinateTransformation transform;
 
     private GeoManager() {
         // for Elevation Info(geotiff file)
@@ -48,7 +54,7 @@ public class GeoManager {
 
         merc.ImportFromProj4("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs ");
         wgs84.SetWellKnownGeogCS("WGS84");
-        trsform = osr.CreateCoordinateTransformation(merc, wgs84);
+        transform = osr.CreateCoordinateTransformation(merc, wgs84);
     }
 
     private boolean CheckFile(String filepath) {
@@ -60,7 +66,7 @@ public class GeoManager {
     // filepath : geotiff file path
     // positions : positions for elevation
     // return : Elevations (m)
-    public int[] GetElevations(String filepath, ArrayList<Position> positions) {
+    public int[] GetElevations(String filepath, ArrayList<GeoPoint> positions) {
         boolean _complete = true;
         int[] _return;
 
@@ -87,9 +93,9 @@ public class GeoManager {
         _return = new int[_count];
 
         for (int i = 0; i < _count; i++) {
-            Position _position = positions.get(i);
-            double _latitude = _position.latitude;
-            double _longitude = _position.longitude;
+            GeoPoint _position = positions.get(i);
+            double _latitude = _position.getLatitude();
+            double _longitude = _position.getLongitude();
             double[] _xy = _ct.TransformPoint(_longitude, _latitude);
             int _x = (int) (((_xy[0] - _geoTransformsInDoubles[0]) / _geoTransformsInDoubles[1]));
             int _y = (int) (((_xy[1] - _geoTransformsInDoubles[3]) / _geoTransformsInDoubles[5]));
@@ -113,24 +119,28 @@ public class GeoManager {
         return _return;
     }
 
-    public ArrayList<Position> getPositionsFromShapeFile(String filepath) {
-        ArrayList<Position> _return = new ArrayList<Position>();
+    public int getPositionsFromShapeFile(String filepath, List<GeoPoint> waypoints) {
+        ArrayList<GeoPoint> _return = new ArrayList<GeoPoint>();
 
-        if (!CheckFile(filepath)) return null;
+        if (!CheckFile(filepath)) return -1;
 
         DataSource _ds = ogr.Open(filepath, true);
 
-        if (_ds == null) {
-            return null;
+        if (_ds == null) {                      // 파일 분석 안됨
+            return -2;
         }
 
         int _ds_count = _ds.GetLayerCount();
+
+        if(_ds_count > 1) {
+            return -3;                          // 레이어 1개 이상이면 안됨
+        }
 
         for (int iLayer = 0; iLayer < _ds_count; iLayer++) {
             Layer _poLayer = _ds.GetLayer(iLayer);
 
             if (_poLayer == null) {
-                return null;
+                return -4;                      // 정상적인 레이어 아님
             }
 
             long _featureCount = _poLayer.GetFeatureCount();
@@ -138,24 +148,44 @@ public class GeoManager {
             for (int iFeature = 0; iFeature < _featureCount; iFeature++) {
                 Feature _feature = _poLayer.GetFeature(iFeature);
                 Geometry _geometry = _feature.GetGeometryRef();
-                int srcType = _geometry.GetGeometryType();
 
-                if (srcType == ogr.wkbPolygon) {
-                    String _json = _geometry.ExportToJson();
-                } else if (srcType == ogr.wkbMultiPoint) {
-
+                String _json = _geometry.ExportToJson();
+                JSONArray _object = null;
+                try {
+                    _object = new JSONObject(_json).getJSONArray("coordinates");
+                    for(int i = 0; i < _object.length() ; i++)
+                    {
+                        JSONArray _point = _object.getJSONArray(i);
+                        GeoPoint _geo = new GeoPoint(_point.getDouble(0), _point.getDouble(1), _point.getDouble(2));
+                        waypoints.add(_geo);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
             }
         }
 
         _ds.delete();
-        return _return;
+        return 0;
     }
 
     /**
      * 생성된 좌표를 Shape 파일로 변환
      */
-    public int saveShapeFile(String filepath, List<GeoPoint> positions) {
+    public int saveShapeFile(String file_name, List<GeoPoint> positions) {
+
+        // 저장할  Directory 체크 - 오늘 날짜
+        Date _date = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
+        _date.setTime(System.currentTimeMillis());
+        StringBuilder ret = new StringBuilder(80);
+        ret.append(formatter.format(_date));
+        String _folder_path = Environment.getExternalStorageDirectory() + File.separator + LOG_DIRECTORY + File.separator + ret.toString();
+        File _folder = new File(_folder_path);
+        if(!_folder.exists()) {
+            _folder.mkdirs();
+        }
+
         // save file using ogr driver
         Driver drv = ogr.GetDriverByName("ESRI Shapefile");
 
@@ -164,11 +194,13 @@ public class GeoManager {
             return -99;
         }
 
-        File file = new File(filepath);
-        if (file.exists())
-            drv.DeleteDataSource(filepath);
+        String _file_path = _folder_path + File.separator + file_name;
 
-        DataSource outputDs = drv.CreateDataSource(filepath);
+        File file = new File(_file_path);
+        if (file.exists())
+            drv.DeleteDataSource(_file_path);
+
+        DataSource outputDs = drv.CreateDataSource(_file_path);
 
         if (outputDs == null) {
             //System.err.println( pszFormat + " driver failed to create "+ pszDestDataSource );
@@ -177,7 +209,7 @@ public class GeoManager {
 
         SpatialReference _dst = new SpatialReference();
         _dst.SetWellKnownGeogCS("WGS84");
-        Layer _outLayer = outputDs.CreateLayer(filepath, _dst);
+        Layer _outLayer = outputDs.CreateLayer(_file_path, _dst);
 
         FieldDefn field_def = new FieldDefn("DN", ogr.OFTInteger);
         _outLayer.CreateField(field_def);
@@ -186,10 +218,7 @@ public class GeoManager {
         Geometry _saveInfo = new Geometry(ogr.wkbLineString);
 
         for (GeoPoint position : positions) {
-           // Geometry _point = new Geometry(ogr.wkbPoint);
-           // _point.AddPoint_2D(, );
-            _saveInfo.AddPoint(position.getLatitude(), position.getLongitude());
-           // _point.delete();
+            _saveInfo.AddPoint(position.getLatitude(), position.getLongitude(), position.getAltitude());
         }
 
         String wkt = _saveInfo.ExportToJson();
@@ -220,7 +249,7 @@ public class GeoManager {
      * merc 좌표계를 WGS84 좌표계로 변환
      */
     public GeoPoint getWGS84Points(double x, double y) {
-            double[] _result = trsform.TransformPoint(x, y);
+            double[] _result = transform.TransformPoint(x, y);
             GeoPoint _point = new GeoPoint(_result[1], _result[0]);
 
             return _point;

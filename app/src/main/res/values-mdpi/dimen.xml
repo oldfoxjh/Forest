@@ -55,6 +55,7 @@
     <dimen name="px290">290dp</dimen>
     <dimen name="px300">300dp</dimen>
     <dimen name="px310">310dp</dimen>
+    <dimen name="px320">320dp</dimen>
     <dimen name="px330">330dp</dimen>
     <dimen name="px340">340dp</dimen>
     <dimen name="px344">344dp</dimen>

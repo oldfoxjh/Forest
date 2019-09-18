@@ -33,6 +33,7 @@ import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.UI.DialogConfirm;
 import kr.go.forest.das.Model.ViewWrapper;
+import kr.go.forest.das.UI.DialogLoadShape;
 import kr.go.forest.das.UI.DialogOk;
 import kr.go.forest.das.drone.Drone;
 
@@ -221,6 +222,12 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_CONFIRM)
                 {
                     wrapper = new ViewWrapper(new DialogConfirm(MainActivity.this, popup.contentId), false);
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_SHAPE)
+                {
+                    wrapper = new ViewWrapper(new DialogLoadShape(MainActivity.this), false);
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_MISSION)
+                {
+                    wrapper = new ViewWrapper(new DialogConfirm(MainActivity.this, popup.contentId), false);
                 }
 
                 pushView(wrapper);
@@ -234,6 +241,16 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
             @Override
             public void run() {
                 popView();
+
+                if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_SHAPE) {
+                    DroneApplication.getEventBus().post(new Mission(Mission.MISSION_FROM_FILE, popup.data));
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_MISSION){
+                    DroneApplication.getEventBus().post(new Mission(Mission.MISSION_FROM_ONLINE, popup.data));
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_CONFIRM){
+                    if(popup.command == Mission.MISSION_CLEAR) {
+                        DroneApplication.getEventBus().post(new Mission(Mission.MISSION_CLEAR, null));
+                    }
+                }
             }
         });
     }
@@ -288,12 +305,15 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         }
     }
 
-    public static class PopView{ }
+    public static class PopView{
+    }
 
     public static class PopupDialog {
 
-        public final static int DIALOG_TYPE_OK = 0;
-        public final static int DIALOG_TYPE_CONFIRM = 1;
+        public final static int DIALOG_TYPE_OK = 0x10;
+        public final static int DIALOG_TYPE_CONFIRM = 0x11;
+        public final static int DIALOG_TYPE_LOAD_SHAPE = 0x12;
+        public final static int DIALOG_TYPE_LOAD_MISSION = 0x13;
 
         public int type;
         public int contentId;
@@ -304,7 +324,21 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         }
     }
 
-    public static class PopdownView { }
+    public static class PopdownView {
+        public int type = 0;
+        public int command = 0;
+        public String data = null;
+
+        public PopdownView(){
+        }
+
+        public PopdownView(int _type, int _cmd, String _data){
+            type = _type;
+            data = _data;
+            command = _cmd;
+        }
+    }
+
     public static class DroneStatusChange{
         public int status;
         public DroneStatusChange(int drone_status)
@@ -343,6 +377,21 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         {
             latitude = lat;
             longitude = lng;
+        }
+    }
+
+    public static class Mission{
+        public final static int MISSION_CLEAR = 0x20;
+        public final static int MISSION_FROM_FILE = 0x21;
+        public final static int MISSION_FROM_ONLINE = 0x22;
+
+        public int command = 0;
+        public String data = null;
+
+        public Mission(int cmd, String _data)
+        {
+            command = cmd;
+            data = _data;
         }
     }
     //endregion

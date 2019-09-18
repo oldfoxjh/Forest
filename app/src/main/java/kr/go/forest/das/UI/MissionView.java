@@ -34,6 +34,8 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Polygon;
 import org.osmdroid.views.overlay.Polyline;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +67,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
     List<GeoPoint> mListPolyline = new ArrayList<GeoPoint>();
 
 
-    Polygon mFlightArea = new Polygon();
+    Polygon flight_area = new Polygon();
     Polyline mFlightPath = new Polyline();
 
     Button btn_location;;
@@ -164,8 +166,8 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         map_view.getOverlays().add(_events);
 
         // 현재 GPS 좌표 불러오기
-        String _lat = pref.getString("lat", null);
-        String _lon = pref.getString("lon", null);
+        String _lat = null;//pref.getString("lat", null);
+        String _lon = null;//pref.getString("lon", null);
 
         if(_lat == null && _lon == null) {
             my_location = new GeoPoint(36.361481, 127.384841);
@@ -182,13 +184,13 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         map_view.getOverlays().add(marker_my_location);
 
         // 폴리곤 설정
-        mFlightArea.setFillColor(Color.argb(60, 0, 255, 0));
-        mFlightArea.setStrokeWidth(1.0f);
+        flight_area.setFillColor(Color.argb(60, 0, 255, 0));
+        flight_area.setStrokeWidth(1.0f);
 
         mFlightPath.setColor(Color.WHITE);
         mFlightPath.setWidth(2.0f);
 
-        map_view.getOverlayManager().add(mFlightArea);
+        map_view.getOverlayManager().add(flight_area);
         map_view.getOverlayManager().add(mFlightPath);
 
 //        HashMap<String, Polygon> _noFlyZone = MapLayer.getInstance().getNoFlyZoneFromValue("");
@@ -281,6 +283,25 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         }
     }
 
+    @Subscribe
+    public void onMissionLoad(final MainActivity.Mission mission) {
+        // 임무정보 초기화
+        clearMission();
+
+        if(mission.command != MainActivity.Mission.MISSION_CLEAR){
+            // 불러온 정보로 Polygon 만들기
+            int _ret = GeoManager.getInstance().getPositionsFromShapeFile(mission.data, area_points);
+
+            // 파일이 잘못되었을 경우 팝업
+
+            // 마커 포함 임무 그리기
+            setMissionPolygon(area_points);
+            flight_area.setPoints(area_points);
+        }
+
+        map_view.invalidate();
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -305,18 +326,14 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 //                }
                 break;
             case R.id.btn_new_course:
+                // 현재 임무를 초기화 하겠냐는 팝업
+                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.clear_mission));
                 // clear waypoints
-                for(int i = 0; i < selected_points.size(); i++)
-                {
-                    map_view.getOverlays().remove(selected_points.get(i));
-                }
-                selected_points.clear();
-
-                mWaypoints.clear();
-                mFlightArea.getPoints().clear();
-                map_view.invalidate();
+                clearMission();
                 break;
             case R.id.btn_load_shape:
+                // Mission 파일 목록 팝업
+                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_LOAD_SHAPE, 0));
                 break;
             case R.id.btn_mission_upload:
                 break;
@@ -325,7 +342,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
         String _progress;
         switch (seekBar.getId())
         {
@@ -376,7 +392,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
             mWaypoints.add(p);
             if(selected_points.size() > 2) {
-                setPolygonInfo();
+                setMissionPolygon();
             }
 
             map_view.invalidate();
@@ -410,6 +426,9 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
 
     //region 마커 이벤트
+    /**
+     * 마커 드래그 이벤트
+     */
     class OnMarkerDragListenerDrawer implements Marker.OnMarkerDragListener {
 
         @Override public void onMarkerDrag(Marker marker) {
@@ -419,8 +438,8 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
             int _marker_index = Integer.parseInt(marker.getTitle()) - 1;
             area_points.get(_marker_index).setLatitude(marker.getPosition().getLatitude());
             area_points.get(_marker_index).setLongitude(marker.getPosition().getLongitude());
-            mFlightArea.setPoints(area_points);
-            setPolygonInfo();
+            flight_area.setPoints(area_points);
+            setMissionPolygon();
         }
 
         @Override public void onMarkerDragEnd(Marker marker) {
@@ -434,6 +453,9 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         }
     }
 
+    /**
+     * 마커 선택시 아이콘 변경
+     */
     @Override
     public boolean onMarkerClick(Marker marker, MapView mapView) {
         clearMarkerIcon();
@@ -442,32 +464,54 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         return true;
     }
 
-    private void clearMarkerIcon()
-    {
+    /**
+     * 마커 초기화
+     */
+    private void clearMarkerIcon() {
         for(int i = 0; i < selected_points.size(); i++) {
             selected_points.get(i).setIcon(writeOnDrawable(selected_points.get(i).getTitle(), R.drawable.waypoint));
         }
     }
     //endregion
 
-    private void setPolygonInfo()
-    {
+
+    /**
+     * 임무 Polygon 세팅
+     */
+    private void setMissionPolygon() {
         area_points.clear();
         area_points.addAll(mWaypoints);
         area_points.add(area_points.get(0));
-        mFlightArea.setPoints(area_points);
+        flight_area.setPoints(area_points);
+        setMissionInfo();
+    }
 
+    /**
+     * 임무 Polygon 세팅
+     */
+    private void setMissionPolygon(List<GeoPoint> waypoints) {
+
+        for(GeoPoint _point : waypoints)
+        {
+            Marker _waypoint = getDefaultMarker(_point);
+            map_view.getOverlays().add(_waypoint);
+            // Add List
+            selected_points.add(_waypoint);
+            mWaypoints.add(_point);
+        }
+
+        setMissionInfo();
+    }
+
+    /**
+     * 선택한 좌표의 거리, 총거리등을 계산
+     */
+    private void setMissionInfo() {
         // 면적 계산
         double _area = GeoManager.getInstance().getAreaFromPoints(area_points, "ha");
         tv_mission_area.setText(String.format("%.2f ha", _area));
 
         RectD _rect = GeoManager.getInstance().getPolygonBoundRect(area_points);
-
-//                mFlightPath.setPoints(_rect.getPoints());
-//                Date _t = new Date(System.currentTimeMillis());
-//                String _tt = new SimpleDateFormat("yyyyMMdd_HHmmss").format(_t);
-//                String path = Environment.getExternalStorageDirectory() + "/" + Environment.DIRECTORY_DOWNLOADS + "/" + _tt + ".shp";
-//                GeoManager.getInstance().saveShapeFile(path,_rect.getPoints());
 
         //거리계산
         List<GeoPoint> _pp = _rect.getPoints();
@@ -480,6 +524,19 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
         tv_mission_distance.setText(String.format("%d m/%d m", _dist_mission, _dist_total) );
     }
+
+    private void clearMission() {
+        for(int i = 0; i < selected_points.size(); i++)
+        {
+            map_view.getOverlays().remove(selected_points.get(i));
+        }
+        selected_points.clear();
+        mWaypoints.clear();
+        flight_area.getPoints().clear();
+        area_points.clear();
+        map_view.invalidate();
+    }
+
 
     /**
      * 마커에 숫자 적용

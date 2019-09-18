@@ -194,6 +194,7 @@
         android:background="@drawable/setting_bg">
 
         <Button
+            android:id="@+id/btn_flight_ae"
             android:layout_width="@dimen/px42"
             android:layout_height="@dimen/px20"
             android:background="@drawable/btn_ae_selector"
@@ -446,7 +447,7 @@
             android:layout_width="@dimen/px54"
             android:layout_height="@dimen/px54"
             android:layout_marginRight="@dimen/px22"
-            android:background="@drawable/btn_course_selector"/>
+            android:background="@drawable/btn_fires_selector"/>
 
         <Button
             android:id="@+id/btn_flight_save_path"
@@ -521,6 +522,7 @@
     </RelativeLayout>
 
     <SeekBar
+        android:id="@+id/sb_flight_gimbal_pitch"
         android:layout_width="@dimen/px310"
         android:layout_height="@dimen/px14"
         android:layout_alignParentRight="true"

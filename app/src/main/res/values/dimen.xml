@@ -2,4 +2,5 @@
 <resources>
     <dimen name="mission_font">14dp</dimen>
     <dimen name="status_font">16dp</dimen>
+    <dimen name="radio_font">6dp</dimen>
 </resources>

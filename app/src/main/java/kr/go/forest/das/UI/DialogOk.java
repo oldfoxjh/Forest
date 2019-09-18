@@ -51,7 +51,9 @@ public class DialogOk extends RelativeLayout implements View.OnClickListener{
         LayoutParams _params = (LayoutParams)_layout.getLayoutParams();
 
         if(contentId == R.string.check_login_info
-           || contentId == R.string.check_internet) {
+           || contentId == R.string.check_internet
+           || contentId == R.string.save_fail
+        ) {
             _params.height += 50;
         }
 

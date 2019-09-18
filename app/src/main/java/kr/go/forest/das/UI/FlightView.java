@@ -2,9 +2,11 @@ package kr.go.forest.das.UI;
 
 import android.app.Service;
 import android.content.Context;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -14,6 +16,7 @@ import android.view.animation.Transformation;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.squareup.otto.Subscribe;
@@ -24,7 +27,14 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
+import org.osmdroid.views.overlay.Polygon;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -37,6 +47,7 @@ import kr.go.forest.das.Model.DroneInfo;
 import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.geo.GeoManager;
+import kr.go.forest.das.map.MapLayer;
 
 import static kr.go.forest.das.map.MapManager.VWorldStreet;
 
@@ -60,6 +71,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     Marker marker_home_location = null;
     Marker marker_my_location = null;
     boolean is_map_mini = true;
+    HashMap<String, Polygon> no_fly_zone = null;
+    List<Marker> forest_fires = new ArrayList<Marker>();
 
     Button btn_flight_location;
     Button btn_flight_nofly;
@@ -83,13 +96,15 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     TextView tv_exposure;
     TextView tv_wb;
 
-    // 카메라 버튼
+    SeekBar sb_flight_gimbal_pitch;
+    Button btn_flight_ae;
     Button btn_select_movie;
     Button btn_select_shoot;
     Button btn_record;
     Button btn_shoot;
     Button btn_camera_setting;
     TextView tv_record_time;
+
 
     public FlightView(Context context){
         super(context);
@@ -131,6 +146,15 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         handler_ui.removeCallbacksAndMessages(null);
         handler_ui = null;
         timer = null;
+
+        if(no_fly_zone != null)
+        {
+            no_fly_zone.clear();
+            no_fly_zone = null;
+        }
+
+        forest_fires.clear();
+        forest_fires = null;
 
         map_view.getOverlays().clear();
         map_view = null;
@@ -228,18 +252,27 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         btn_camera_setting = (Button) findViewById(R.id.btn_flight_camera_setting);
         btn_camera_setting.setOnClickListener(this);
         tv_record_time = (TextView) findViewById(R.id.tv_flight_record_time);
+        sb_flight_gimbal_pitch = (SeekBar) findViewById(R.id.sb_flight_gimbal_pitch);
+        btn_flight_ae = (Button) findViewById(R.id.btn_flight_ae);
 
         // Map Top
         btn_flight_location = (Button) findViewById(R.id.btn_flight_location);
+        btn_flight_location.setOnClickListener(this);
         btn_flight_nofly = (Button) findViewById(R.id.btn_flight_nofly);
+        btn_flight_nofly.setOnClickListener(this);
         btn_flight_fires = (Button) findViewById(R.id.btn_flight_fires);
+        btn_flight_fires.setOnClickListener(this);
         btn_flight_save_path = (Button) findViewById(R.id.btn_flight_save_path);
+        btn_flight_save_path.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId())
         {
+            case R.id.btn_mission_back:
+                DroneApplication.getEventBus().post(new MainActivity.PopdownView());
+                break;
             case R.id.btn_flight_select_shoot:
                 DroneApplication.getDroneInstance().setCameraMode(SettingsDefinitions.CameraMode.RECORD_VIDEO);
                 break;
@@ -257,12 +290,76 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                 break;
             case R.id.btn_flight_nofly:
                 // 비행금지 제한구역 불러오기
+                if(no_fly_zone == null) {
+                    no_fly_zone = MapLayer.getInstance().getNoFlyZoneFromValue("");
+                }
+
+                for(String key: no_fly_zone.keySet())
+                {
+                    Polygon _zone = no_fly_zone.get(key);
+                    if(map_view.getOverlayManager().contains(_zone)) map_view.getOverlayManager().remove(_zone);
+                    else map_view.getOverlayManager().add(_zone);
+                }
+
+                map_view.invalidate();
                 break;
             case R.id.btn_flight_fires:
                 // 산불발생현황 불러오기
+                // 요청 다이얼로그
+
+                // 기존에 있는 마커 삭제
+                for (Marker _marker : forest_fires) {
+                    map_view.getOverlays().remove(_marker);
+                }
+                forest_fires.clear();
+
+                // 마커 생성
+                // request api
+                List<GeoPoint> _response = new ArrayList<GeoPoint>();
+                _response.add(new GeoPoint(36.361481, 127.384841));
+                for( GeoPoint _point : _response){
+                    Marker _marker = new Marker(map_view);
+                    _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.forest_fire, null));
+                    _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+                    _marker.setPosition(_point);
+                    map_view.getOverlays().add(_marker);
+                    forest_fires.add(_marker);
+                }
+                map_view.invalidate();
+
                 break;
             case R.id.btn_flight_save_path:
                 // 비행경로 저장하기
+                Date _date = new Date();
+                SimpleDateFormat formatter = new SimpleDateFormat("HHmmss", Locale.getDefault());
+                _date.setTime(System.currentTimeMillis());
+                StringBuilder ret = new StringBuilder(80);
+                ret.append(formatter.format(_date));
+
+                String _file_name = ret.toString() + ".shp";
+
+                List<GeoPoint> _lines = new ArrayList<GeoPoint>();
+                _lines.add(new GeoPoint(36.361481, 127.384841, 1.1));
+                _lines.add(new GeoPoint(36.362235, 127.383603, 1.2));
+                _lines.add(new GeoPoint(36.362252, 127.382052, 1.3));
+                _lines.add(new GeoPoint(36.362200, 127.379499, 1.4));
+                _lines.add(new GeoPoint(36.364714, 127.379553, 1.5));
+                _lines.add(new GeoPoint(36.364662, 127.382064, 1.6));
+                _lines.add(new GeoPoint(36.364705, 127.384907, 1.7));
+                _lines.add(new GeoPoint(36.364800, 127.387654, 1.8));
+                _lines.add(new GeoPoint(36.364800, 127.390347, 1.9));
+
+                _lines.add(new GeoPoint(36.362225, 127.390207, 2.9));
+                _lines.add(new GeoPoint(36.359788, 127.390143, 1.9));
+                _lines.add(new GeoPoint(36.359823, 127.387697, 1.8));
+                _lines.add(new GeoPoint(36.362173, 127.387686, 2.9));
+                _lines.add(new GeoPoint(36.362225, 127.386173, 11));
+
+                if(GeoManager.getInstance().saveShapeFile(_file_name, _lines) == 0){
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, R.string.save_complete));
+                }else{
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, R.string.save_fail));
+                }
                 break;
         }
     }
@@ -272,12 +369,16 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         RelativeLayout _layout =  (RelativeLayout) findViewById(R.id.flightMapLayout);
         LinearLayout _camera = (LinearLayout) findViewById(R.id.layout_camera_info);
         LinearLayout _map = (LinearLayout) findViewById(R.id.layout_flight_map_top);
+        RelativeLayout _ae_layout = (RelativeLayout) findViewById(R.id.aeLayout);
+
         if(is_map_mini == true)
         {
             ResizeAnimation mapViewAnimation = new ResizeAnimation(_layout, width, height, device_width, device_height, 0);
             _layout.startAnimation(mapViewAnimation);
 
             _camera.setVisibility(INVISIBLE);
+            _ae_layout.setVisibility(INVISIBLE);
+            sb_flight_gimbal_pitch.setVisibility(INVISIBLE);
             _map.setVisibility(VISIBLE);
             is_map_mini = false;
         }else{
@@ -285,10 +386,12 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             _layout.startAnimation(mapViewAnimation);
 
             _camera.setVisibility(VISIBLE);
+            _ae_layout.setVisibility(VISIBLE);
+            sb_flight_gimbal_pitch.setVisibility(VISIBLE);
             _map.setVisibility(INVISIBLE);
             is_map_mini = true;
         }
-        return false;
+        return true;
     }
 
     @Override
