@@ -21,6 +21,8 @@ public abstract class Drone {
     public static final int DRONE_STATUS_FLYING = 0x04;
     public static final int DRONE_STATUS_DISARM = 0x08;
     public static final int DRONE_STATUS_RETURN_HOME = 0x10;
+    public static final int DRONE_STATUS_CANCEL_RETURN_HOME = 0x11;
+
     public static final int DRONE_STATUS_MISSION = 0x20;
 
     public static final int CAMERA_ISO = 0x00;
@@ -95,6 +97,18 @@ public abstract class Drone {
     String recording_remain_time;
     String photo_file_format;
     String video_resolution_framerate;
+
+    /**
+     * 드론 카메라 데이터
+     */
+    String camera_aperture;
+    String camera_shutter;
+    String camera_iso;
+    String camera_exposure;
+    String camera_whitebalance;
+    Boolean camera_ae_lock;
+    Boolean is_camera_auto_exposure_unlock_enabled = false;
+
     //region 제품정보
 
     /**
@@ -189,6 +203,10 @@ public abstract class Drone {
      */
     public abstract SettingsDefinitions.ExposureMode getExposureMode();
 
+    /**
+     * 카메라 자동노출 정보를 확인한다.
+     */
+    public abstract void getAutoAEUnlockEnabled();
     /**
      * 카메라 노출값을 설정한다.
      */
@@ -285,15 +303,34 @@ public abstract class Drone {
 
 
     //region 드론 비행 정보
+
+    /**
+     * 자동이륙 고도
+     */
+    public abstract String getTakeoffAltitude();
+
+    /**
+     * 자동이륙 명령
+     */
+    public abstract void startTakeoff();
+
+    /**
+     * 자동착륙 명령
+     */
+    public abstract void startLanding();
+
+    /**
+     * 자동착륙 명령 취소
+     */
+    public abstract void cancelLanding();
+
     /**
      * 드론 수평방향 속도값을 가져온다.
-     * @return
      */
     public abstract float getHorizontalVelocity();
 
     /**
      * 드론 수직방향 속도값을 가져온다.
-     * @return
      */
     public abstract float getVerticalVelocity();
 

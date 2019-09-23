@@ -19,16 +19,16 @@ public class DialogOk extends RelativeLayout implements View.OnClickListener{
     Button mBtnOk;
     TextView mTextView;
 
-    public DialogOk(Context context, int contentId){
+    public DialogOk(Context context, int contentId, String msg){
         super(context);
         this.context = context;
-        initUI(contentId);
+        initUI(contentId, msg);
     }
 
-    public DialogOk(Context context, AttributeSet attrs, int contentId) {
+    public DialogOk(Context context, AttributeSet attrs, int contentId, String msg) {
         super(context, attrs);
         this.context = context;
-        initUI(contentId);
+        initUI(contentId, msg);
     }
 
     @Override
@@ -42,7 +42,7 @@ public class DialogOk extends RelativeLayout implements View.OnClickListener{
         super.onDetachedFromWindow();
     }
 
-    protected void initUI(int contentId){
+    protected void initUI(int contentId, String msg){
         //초기화
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Service.LAYOUT_INFLATER_SERVICE);
         layoutInflater.inflate(R.layout.dialog_ok, this, true);
@@ -53,6 +53,8 @@ public class DialogOk extends RelativeLayout implements View.OnClickListener{
         if(contentId == R.string.check_login_info
            || contentId == R.string.check_internet
            || contentId == R.string.save_fail
+           || contentId == R.string.check_drone_connection
+           || msg != null
         ) {
             _params.height += 50;
         }
@@ -61,7 +63,12 @@ public class DialogOk extends RelativeLayout implements View.OnClickListener{
         mBtnOk.setOnClickListener(this);
 
         mTextView = (TextView)findViewById(R.id.dialog_text);
-        mTextView.setText(contentId);
+
+        if(msg == null) mTextView.setText(contentId);
+        else {
+            String _content = context.getResources().getText(contentId).toString() + msg;
+            mTextView.setText(_content);
+        }
     }
 
     @Override

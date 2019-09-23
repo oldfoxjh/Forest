@@ -143,6 +143,10 @@ public class Px4 extends Drone{
         return  null;
     }
 
+    public void getAutoAEUnlockEnabled(){
+
+    }
+
     /**
      * 카메라 노출값을 설정한다.
      */
@@ -286,6 +290,33 @@ public class Px4 extends Drone{
     //endregion
 
     //region 드론 비행 정보
+    /**
+     * 자동이륙 고도
+     */
+    public String getTakeoffAltitude(){
+        return  null;
+    }
+
+    /**
+     * 자동이륙 명령
+     */
+    public void startTakeoff(){
+
+    }
+
+    /**
+     * 자동착륙 명령
+     */
+    public void startLanding(){
+    }
+
+    /**
+     * 자동착륙 명령 취소
+     */
+    public void cancelLanding(){
+
+    }
+
     /**
      * 드론 수평방향 속도값을 가져온다.
      * @return

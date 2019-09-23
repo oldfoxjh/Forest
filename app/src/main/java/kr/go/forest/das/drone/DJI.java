@@ -38,6 +38,7 @@ import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.DroneInfo;
 import kr.go.forest.das.Model.StorageInfo;
+import kr.go.forest.das.R;
 
 import static dji.common.camera.SettingsDefinitions.ShutterSpeed;
 
@@ -219,7 +220,7 @@ public class DJI extends Drone{
 
                         @Override
                         public void onFailure(DJIError djiError) {
-                            LogWrapper.i(TAG, "getCameraMode : " + djiError);
+                            LogWrapper.i(TAG, "getCameraMode : " + djiError.getDescription());
                         }
                     });
         }
@@ -322,6 +323,15 @@ public class DJI extends Drone{
         _storage_info.photo_file_format = photo_file_format;
         _storage_info.recording_remain_time = recording_remain_time;
         _storage_info.recording_time = (recording_time == null) ? "00:00" : recording_time;
+
+        _storage_info.camera_aperture = camera_aperture;
+        _storage_info.camera_shutter = camera_shutter;
+        _storage_info.camera_iso = camera_iso;
+        _storage_info.camera_exposure = camera_exposure;
+        _storage_info.camera_whitebalance = camera_whitebalance;
+        _storage_info.camera_ae_lock = camera_ae_lock;
+        _storage_info.is_camera_auto_exposure_unlock_enabled = is_camera_auto_exposure_unlock_enabled;
+
         return _storage_info;
     }
     //endregion
@@ -353,6 +363,24 @@ public class DJI extends Drone{
         return  null;
     }
 
+    public void getAutoAEUnlockEnabled(){
+        BaseProduct _product = DJISDKManager.getInstance().getProduct();
+        if (_product != null && _product.isConnected()) {
+            _product.getCamera()
+                    .getAutoAEUnlockEnabled(new CommonCallbacks.CompletionCallbackWith<Boolean>() {
+                        @Override
+                        public void onSuccess(Boolean aBoolean) {
+                            is_camera_auto_exposure_unlock_enabled = aBoolean;
+                        }
+
+                        @Override
+                        public void onFailure(DJIError djiError) {
+                            LogWrapper.i(TAG, "CAMERA_AUTO : " + djiError.getDescription());
+                        }
+                    });
+        }
+    }
+
     /**
      * 카메라 노출값을 설정한다.
      */
@@ -373,17 +401,16 @@ public class DJI extends Drone{
                     .getISO(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ISO>() {
                         @Override
                         public void onSuccess(SettingsDefinitions.ISO cameraISO) {
-                            DroneApplication.getEventBus().post(new MainActivity.DroneCameraStatus(getISOString(cameraISO.value()), null, null, null, null));
+                            camera_iso = getISOString(cameraISO.value());
                         }
 
                         @Override
                         public void onFailure(DJIError djiError) {
-                            LogWrapper.i(TAG, "CAMERA_ISO : " + djiError);
-                            //mHandler.sendMessage(mHandler.obtainMessage(SHOW_GET_RESULT, "GetResultFail"));
+                            LogWrapper.i(TAG, "CAMERA_ISO : " + djiError.getDescription());
                         }
                     });
         }else{
-            DroneApplication.getEventBus().post(new MainActivity.DroneCameraStatus("N/A", null, null, null, null));
+            camera_iso = "N/A";
         }
     }
 
@@ -413,7 +440,7 @@ public class DJI extends Drone{
                     .getShutterSpeed(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ShutterSpeed>() {
                         @Override
                         public void onSuccess(SettingsDefinitions.ShutterSpeed speed) {
-                            DroneApplication.getEventBus().post(new MainActivity.DroneCameraStatus(null, getShutterSpeedString(speed), null, null, null));
+                            camera_shutter = getShutterSpeedString(speed);
                         }
 
                         @Override
@@ -422,7 +449,7 @@ public class DJI extends Drone{
                         }
                     });
         }else{
-            DroneApplication.getEventBus().post(new MainActivity.DroneCameraStatus(null, "N/A", null, null, null));
+            camera_shutter = "N/A";
         }
     }
 
@@ -476,7 +503,7 @@ public class DJI extends Drone{
                     .getAperture(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.Aperture>() {
                         @Override
                         public void onSuccess(SettingsDefinitions.Aperture aperture) {
-                            DroneApplication.getEventBus().post(new MainActivity.DroneCameraStatus(null, null, null, getApertureString(aperture.value()), null));
+                            camera_aperture = getApertureString(aperture.value());
                         }
 
                         @Override
@@ -485,7 +512,7 @@ public class DJI extends Drone{
                         }
                     });
         }else{
-            DroneApplication.getEventBus().post(new MainActivity.DroneCameraStatus(null, null, null, "N/A", null));
+            camera_aperture = "N/A";
         }
     }
 
@@ -513,16 +540,16 @@ public class DJI extends Drone{
                     .getExposureCompensation(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ExposureCompensation>() {
                         @Override
                         public void onSuccess(SettingsDefinitions.ExposureCompensation exposure) {
-                            DroneApplication.getEventBus().post(new MainActivity.DroneCameraStatus(null, null, getExposureString(exposure.value()), null, null));
+                            camera_exposure = getExposureString(exposure.value());
                         }
 
                         @Override
                         public void onFailure(DJIError djiError) {
-                            LogWrapper.i(TAG, "CAMERA_EXPOSURE : " + djiError);
+                            LogWrapper.i(TAG, "CAMERA_EXPOSURE : " + djiError.getDescription());
                         }
                     });
         }else{
-            DroneApplication.getEventBus().post(new MainActivity.DroneCameraStatus(null, null, "N/A", null, null));
+            camera_exposure = "N/A";
         }
     }
 
@@ -545,7 +572,25 @@ public class DJI extends Drone{
      */
     @Override
     public boolean getAELock(){
-        return  false;
+        BaseProduct _product = DJISDKManager.getInstance().getProduct();
+        if (_product != null && _product.isConnected()) {
+            _product.getCamera()
+                    .getAELock(new CommonCallbacks.CompletionCallbackWith<Boolean>() {
+                        @Override
+                        public void onSuccess(Boolean is_lock) {
+                            camera_ae_lock = is_lock;
+                        }
+
+                        @Override
+                        public void onFailure(DJIError djiError) {
+                            LogWrapper.i(TAG, "CAMERA_AE_LOCK : " + djiError.getDescription());
+                        }
+                    });
+        }else{
+            camera_ae_lock = false;
+        }
+
+        return  true;
     }
 
     /**
@@ -570,16 +615,16 @@ public class DJI extends Drone{
 
                         @Override
                         public void onSuccess(WhiteBalance whiteBalance) {
-                            DroneApplication.getEventBus().post(new MainActivity.DroneCameraStatus(null, null, null, null, getWhiteBalanceString(whiteBalance)));
+                            camera_whitebalance = getWhiteBalanceString(whiteBalance);
                         }
 
                         @Override
                         public void onFailure(DJIError djiError) {
-                            LogWrapper.i(TAG, "CAMERA_WHITE_BALANCE : " + djiError);
+                            LogWrapper.i(TAG, "CAMERA_WHITE_BALANCE : " + djiError.getDescription());
                         }
                     });
         }else{
-            DroneApplication.getEventBus().post(new MainActivity.DroneCameraStatus(null, null, null, null, "N/A"));
+            camera_whitebalance = "N/A";
         }
     }
 
@@ -621,6 +666,77 @@ public class DJI extends Drone{
     //endregion
 
     //region 드론 비행 정보
+    /**
+     * 자동이륙 고도
+     */
+    public String getTakeoffAltitude(){
+        return "1.2m";
+    }
+
+    /**
+     * 자동이륙 명령
+     */
+    public void startTakeoff(){
+        BaseProduct _product = DJISDKManager.getInstance().getProduct();
+        if (_product != null && _product.isConnected()) {
+            flight_controller = ((Aircraft) _product).getFlightController();
+            flight_controller.startTakeoff(new CommonCallbacks.CompletionCallback() {
+                @Override
+                public void onResult(DJIError djiError) {
+                    if(djiError != null){
+                        LogWrapper.e(TAG, "start Takeoff Fail : " + djiError.getDescription());
+                        // 모터가 켜있을 경우 실패 팝업
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.takeoff_fail, djiError.getDescription()));
+                    }else{
+                        // UI 변경을 위한 메세지
+                        DroneApplication.getEventBus().post(new MainActivity.ReturnHome(MainActivity.ReturnHome.REQUEST_TAKEOFF_SUCCESS, null));
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * 자동착륙 명령
+     */
+    public void startLanding(){
+        BaseProduct _product = DJISDKManager.getInstance().getProduct();
+        if (_product != null && _product.isConnected()) {
+            flight_controller = ((Aircraft) _product).getFlightController();
+            flight_controller.startLanding(new CommonCallbacks.CompletionCallback() {
+                @Override
+                public void onResult(DJIError djiError) {
+                    if(djiError != null){
+                        LogWrapper.e(TAG, "start Landing Fail : " + djiError.getDescription());
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.landing_fail, djiError.getDescription()));
+                    }else{
+                        // UI 변경을 위한 메세지
+                        DroneApplication.getEventBus().post(new MainActivity.ReturnHome(MainActivity.ReturnHome.REQUEST_LANDING_SUCCESS, null));
+                    }
+                }
+            });
+        }
+    }
+
+    public void cancelLanding(){
+        BaseProduct _product = DJISDKManager.getInstance().getProduct();
+        if (_product != null && _product.isConnected()) {
+            flight_controller = ((Aircraft) _product).getFlightController();
+            flight_controller.cancelLanding(new CommonCallbacks.CompletionCallback() {
+                @Override
+                public void onResult(DJIError djiError) {
+                    if(djiError != null){
+                        LogWrapper.e(TAG, "cancel Landing Fail : " + djiError.getDescription());
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.landing_cancel_fail, djiError.getDescription()));
+                    }else{
+                        // UI 변경을 위한 메세지
+                        DroneApplication.getEventBus().post(new MainActivity.ReturnHome(MainActivity.ReturnHome.CANCEL_LANDING_SUCCESS, null));
+                    }
+                }
+            });
+        }
+    }
+
     /**
      * 드론 수평방향 속도값을 가져온다.
      * @return
@@ -709,12 +825,21 @@ public class DJI extends Drone{
             flight_controller.startGoHome(new CommonCallbacks.CompletionCallback() {
                 @Override
                 public void onResult(DJIError djiError) {
-                    // 자동복귀 완료
+                    if(djiError != null){
+                        LogWrapper.e(TAG, "start go home Fail : " + djiError.getDescription());
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.return_home_fail, djiError.getDescription()));
+                    }else{
+                        // UI 변경을 위한 메세지
+                        DroneApplication.getEventBus().post(new MainActivity.ReturnHome(MainActivity.ReturnHome.REQUEST_RETURN_HOME_SUCCESS, null));
+                    }
                 }
             });
         }
     }
 
+    /**
+     * RTH 취소
+     */
     @Override
     public void cancelGoHome(){
         if(flight_controller != null)
@@ -723,6 +848,13 @@ public class DJI extends Drone{
                 @Override
                 public void onResult(DJIError djiError) {
                     // 자동복귀 취소
+                    if(djiError != null){
+                        LogWrapper.e(TAG, "cancel go home Fail : " + djiError.getDescription());
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.cancel_return_home_fail, djiError.getDescription()));
+                    }else{
+                        // UI 변경을 위한 메세지
+                        DroneApplication.getEventBus().post(new MainActivity.ReturnHome(MainActivity.ReturnHome.CANCEL_RETURN_HOME_SUCCESS, null));
+                    }
                 }
             });
         }
@@ -735,7 +867,14 @@ public class DJI extends Drone{
             flight_controller.setHomeLocation(home, new CommonCallbacks.CompletionCallback() {
                 @Override
                 public void onResult(DJIError djiError) {
-                    // 자동복귀 위치 설정완료
+                    if(djiError != null){
+                        // 자동복귀 위치 설정 실패
+                        LogWrapper.e(TAG, "start go home Fail : " + djiError.getDescription());
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.set_home_location_fail, djiError.getDescription()));
+                    }else{
+                        // UI 변경을 위한 메세지
+                        DroneApplication.getEventBus().post(new MainActivity.ReturnHome(MainActivity.ReturnHome.REQUEST_RETURN_HOME_SUCCESS, null));
+                    }
                 }
             });
         }
@@ -849,8 +988,9 @@ public class DJI extends Drone{
                     drone_status |= DRONE_STATUS_RETURN_HOME;
                     DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_RETURN_HOME));
                 }
-                else if(!current_state.isGoingHome()) {
+                else if(!current_state.isGoingHome() && (drone_status & DRONE_STATUS_RETURN_HOME) != 0) {
                     drone_status -= (drone_status & DRONE_STATUS_RETURN_HOME);
+                    DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_CANCEL_RETURN_HOME));
                 }
 
                 heading = flight_controller.getCompass().getHeading();
@@ -912,13 +1052,11 @@ public class DJI extends Drone{
 
         @Override
         public void onUpdate(@NonNull ExposureSettings exposureSettings) {
-            String _aperture = getApertureString(exposureSettings.getAperture().value());
-            String _speed = getShutterSpeedString(exposureSettings.getShutterSpeed());
-            String _iso = getISOString(exposureSettings.getISO());
-            String _exposure = getExposureString(exposureSettings.getExposureCompensation().value());
+            camera_aperture = getApertureString(exposureSettings.getAperture().value());
+            camera_shutter = getShutterSpeedString(exposureSettings.getShutterSpeed());
+            camera_iso = getISOString(exposureSettings.getISO());
+            camera_exposure = getExposureString(exposureSettings.getExposureCompensation().value());
             getWhiteBalance();
-
-            DroneApplication.getEventBus().post(new MainActivity.DroneCameraStatus(_iso, _speed, _exposure, _aperture, "N/A"));
         }
     };
 

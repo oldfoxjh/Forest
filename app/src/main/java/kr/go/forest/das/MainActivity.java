@@ -217,18 +217,14 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
             public void run() {
 
                 ViewWrapper wrapper = null;
-                if(popup.type == PopupDialog.DIALOG_TYPE_OK)
-                {
-                    wrapper = new ViewWrapper(new DialogOk(MainActivity.this, popup.contentId), false);
-                }else if(popup.type == PopupDialog.DIALOG_TYPE_CONFIRM)
-                {
-                    wrapper = new ViewWrapper(new DialogConfirm(MainActivity.this, popup.contentId), false);
-                }else if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_SHAPE)
-                {
+                if(popup.type == PopupDialog.DIALOG_TYPE_OK) {
+                    wrapper = new ViewWrapper(new DialogOk(MainActivity.this, popup.contentId, popup.message), false);
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_CONFIRM) {
+                    wrapper = new ViewWrapper(new DialogConfirm(MainActivity.this, popup.titleId, popup.contentId), false);
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_SHAPE) {
                     wrapper = new ViewWrapper(new DialogLoadShape(MainActivity.this), false);
-                }else if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_MISSION)
-                {
-                    wrapper = new ViewWrapper(new DialogConfirm(MainActivity.this, popup.contentId), false);
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_MISSION) {
+                    wrapper = new ViewWrapper(new DialogConfirm(MainActivity.this, 0, popup.contentId), false);
                 }
 
                 pushView(wrapper);
@@ -250,6 +246,18 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_CONFIRM){
                     if(popup.command == Mission.MISSION_CLEAR) {
                         DroneApplication.getEventBus().post(new Mission(Mission.MISSION_CLEAR, null));
+                    }else if(popup.command == PopupDialog.DIALOG_TYPE_REQUEST_TAKEOFF) {
+                        DroneApplication.getEventBus().post(new ReturnHome(ReturnHome.REQUEST_TAKEOFF, null));
+                    }else if(popup.command == PopupDialog.DIALOG_TYPE_REQUEST_LANDING) {
+                        DroneApplication.getEventBus().post(new ReturnHome(ReturnHome.REQUEST_LANDING, null));
+                    }else if(popup.command == PopupDialog.DIALOG_TYPE_CANCEL_LANDING) {
+                        DroneApplication.getEventBus().post(new ReturnHome(ReturnHome.CANCEL_LANDING, null));
+                    } else if(popup.command == PopupDialog.DIALOG_TYPE_START_RETURN_HOME) {
+                        DroneApplication.getEventBus().post(new ReturnHome(ReturnHome.REQUEST_RETURN_HOME, null));
+                    }else if(popup.command == PopupDialog.DIALOG_TYPE_CANCEL_RETURN_HOME) {
+                        DroneApplication.getEventBus().post(new ReturnHome(ReturnHome.CANCEL_RETURN_HOME, null));
+                    }else if(popup.command == PopupDialog.DIALOG_TYPE_SET_RETURN_HOME_LOCATION) {
+                        DroneApplication.getEventBus().post(new ReturnHome(ReturnHome.SET_RETURN_HOME_LOCATION, null));
                     }
                 }
             }
@@ -315,13 +323,30 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         public final static int DIALOG_TYPE_CONFIRM = 0x11;
         public final static int DIALOG_TYPE_LOAD_SHAPE = 0x12;
         public final static int DIALOG_TYPE_LOAD_MISSION = 0x13;
+        public final static int DIALOG_TYPE_REQUEST_TAKEOFF = 0x14;
+        public final static int DIALOG_TYPE_REQUEST_LANDING = 0x15;
+        public final static int DIALOG_TYPE_CANCEL_LANDING = 0x16;
+        public final static int DIALOG_TYPE_CONFIRM_LANDING = 0x17;
+        public final static int DIALOG_TYPE_START_RETURN_HOME = 0x18;
+        public final static int DIALOG_TYPE_CANCEL_RETURN_HOME = 0x19;
+        public final static int DIALOG_TYPE_SET_RETURN_HOME_LOCATION = 0x20;
 
         public int type;
         public int contentId;
+        public int titleId;
+        public String message;
 
-        public PopupDialog(int type, int contentId){
+        public PopupDialog(int type, int titleId, int contentId){
             this.type = type;
+            this.titleId = titleId;
             this.contentId = contentId;
+        }
+
+        public PopupDialog(int type, int titleId, int contentId, String msg){
+            this.type = type;
+            this.titleId = titleId;
+            this.contentId = contentId;
+            message = msg;
         }
     }
 
@@ -349,23 +374,9 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     }
 
     public static class DroneCameraStatus{
-        public String iso = null;
-        public String shutter = null;
-        public String ev = null;
-        public String aperture = null;
-        public String wb = null;
         public int mode = -1;
 
         public DroneCameraStatus(){}
-
-        public DroneCameraStatus(String _iso, String _shutter, String _ev, String _aperture, String _wb)
-        {
-            iso = _iso;
-            shutter = _shutter;
-            ev = _ev;
-            aperture = _aperture;
-            wb = _wb;
-        }
 
         public void setMode(int _mode){ mode = _mode; }
     }
@@ -402,6 +413,47 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         {
             command = cmd;
             data = _data;
+        }
+    }
+
+    public static class ReturnHome{
+
+        public final static int REQUEST_TAKEOFF = 0x30;
+        public final static int REQUEST_TAKEOFF_FAIL = 0x31;
+        public final static int REQUEST_TAKEOFF_SUCCESS = 0x32;
+
+        public final static int REQUEST_LANDING = 0x33;
+        public final static int REQUEST_LANDING_FAIL = 0x34;
+        public final static int REQUEST_LANDING_SUCCESS = 0x35;
+
+        public final static int CANCEL_LANDING = 0x36;
+        public final static int CANCEL_LANDING_FAIL = 0x37;
+        public final static int CANCEL_LANDING_SUCCESS = 0x38;
+
+        public final static int CONFIRM_LANDING = 0x39;
+        public final static int CONFIRM_LANDING_FAIL = 0x40;
+        public final static int CONFIRM_LANDING_SUCCESS = 0x41;
+
+        public final static int LANDING_SUCCESS = 0x38;
+
+        public final static int REQUEST_RETURN_HOME = 0x50;
+        public final static int REQUEST_RETURN_HOME_FAIL = 0x51;
+        public final static int REQUEST_RETURN_HOME_SUCCESS = 0x52;
+
+        public final static int CANCEL_RETURN_HOME = 0x53;
+        public final static int CANCEL_RETURN_HOME_FAIL = 0x54;
+        public final static int CANCEL_RETURN_HOME_SUCCESS = 0x55;
+
+        public final static int SET_RETURN_HOME_LOCATION = 0x56;
+        public final static int SET_RETURN_HOME_LOCATION_FAIL = 0x57;
+        public final static int SET_RETURN_HOME_LOCATION_SUCCESS = 0x58;
+
+        public int mode;
+        public String message;
+
+        public ReturnHome(int mode, String msg){
+            this.mode = mode;
+            message = msg;
         }
     }
     //endregion

@@ -1,6 +1,14 @@
 package kr.go.forest.das.map;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,8 +31,10 @@ public class MapLayer {
         return ourInstance;
     }
 
-    private String loadResFromRaw(int rawId)
-    {
+    /**
+     * Raw 폴더 파일에서 데이터 추출
+     */
+    private String loadResFromRaw(int rawId) {
         String _result = null;
         try
         {
@@ -39,8 +49,10 @@ public class MapLayer {
         return  _result;
     }
 
-    public HashMap<String, Polygon> getNoFlyZoneFromValue(String json)
-    {
+    /**
+     * 비행금지구역 정보 가져오기
+     */
+    public HashMap<String, Polygon> getNoFlyZoneFromValue(String json) {
         HashMap<String, Polygon> _result = null;
 
        try
@@ -79,5 +91,46 @@ public class MapLayer {
        }
 
         return  _result;
+    }
+
+    /**
+     * 마커 아이콘 회전
+     */
+    public BitmapDrawable getRotateDrawable(Context context, int drawableId, final float degree) {
+
+        final Bitmap bm = BitmapFactory.decodeResource(context.getResources(), drawableId).copy(Bitmap.Config.ARGB_8888, true);
+
+        Matrix m = new Matrix();
+        m.setRotate(degree, (float) bm.getWidth() / 2, (float) bm.getHeight() / 2);
+
+        return new BitmapDrawable(context.getResources(), Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), m, true));
+    }
+
+    /**
+     * 마커에 숫자 적용
+     */
+    public BitmapDrawable writeOnDrawable(Context context, String text, int drawableId) {
+        Bitmap bm = BitmapFactory.decodeResource(context.getResources(), drawableId).copy(Bitmap.Config.ARGB_8888, true);
+
+        Paint paint = new Paint();
+        paint.setStyle(Paint.Style.FILL);
+
+        if(drawableId == R.drawable.waypoint_s) {
+            paint.setColor(Color.WHITE);
+        }else{
+            paint.setColor(Color.BLACK);
+        }
+
+        int textSize = context.getResources().getDimensionPixelSize(R.dimen.mission_font);
+        paint.setTextSize(textSize);
+
+        Rect bounds = new Rect();
+        paint.getTextBounds(text, 0, text.length(), bounds);
+
+        Canvas canvas = new Canvas(bm);
+        canvas.drawText(text, bm.getWidth()/2- bounds.right/2 - (text.equals("1") ? 2 : 0), bm.getHeight()/2-bounds.top/2, paint);
+
+
+        return new BitmapDrawable(context.getResources(), bm);
     }
 }

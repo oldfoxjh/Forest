@@ -4,14 +4,15 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#a0a0a0">
+    android:background="#a0a0a0"
+    android:id="@+id/root_view">
 
     <dji.ux.widget.FPVWidget
-        android:id="@+id/fpv_custom_widget"
+        android:id="@+id/dji_primary_widget"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true"
-        custom:sourceCameraNameVisibility="true"
+        custom:sourceCameraNameVisibility="false"
         custom:videoSource="primary"/>
 
     <!-- MAP  -->
@@ -51,6 +52,7 @@
 
     <!-- RTH  -->
     <LinearLayout
+        android:id="@+id/layout_flight_rth"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="@dimen/px30"
@@ -72,6 +74,22 @@
 
         <Button
             android:id="@+id/btn_flight_return_my_location"
+            android:layout_width="@dimen/px56"
+            android:layout_height="@dimen/px56"
+            android:layout_marginTop="@dimen/px50"
+            android:background="@drawable/btn_controller_selector"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_flight_cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/px30"
+        android:layout_marginTop="@dimen/px270"
+        android:orientation="vertical"
+        android:visibility="invisible">
+        <Button
+            android:id="@+id/btn_flight_cancel"
             android:layout_width="@dimen/px56"
             android:layout_height="@dimen/px56"
             android:layout_marginTop="@dimen/px50"
@@ -521,5 +539,6 @@
         android:splitTrack="false"
         android:rotation="90"
         android:thumb="@mipmap/csetting_handle"
-        android:progressDrawable="@drawable/csetting_progress"/>
+        android:progressDrawable="@drawable/csetting_progress"
+        android:visibility="invisible"/>
 </RelativeLayout>

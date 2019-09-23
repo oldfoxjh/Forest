@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import kr.go.forest.das.DroneApplication;
+import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
 
@@ -59,7 +60,11 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-
+        //연결된 드론이 없을 경우 연결 요청
+//        if(DroneApplication.getDroneInstance() == null){
+//            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_drone_connection));
+//            return;
+//        }
         ViewWrapper wrapper = null;
         switch (v.getId())
         {

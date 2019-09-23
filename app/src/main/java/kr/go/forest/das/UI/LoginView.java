@@ -96,7 +96,7 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                 hideSoftInput();
                 DroneApplication.getEventBus().post(menu);
             }else{
-                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, R.string.check_internet));
+                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_internet));
             }
         }
     }

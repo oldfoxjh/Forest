@@ -46,6 +46,7 @@ import kr.go.forest.das.R;
 
 import static kr.go.forest.das.map.MapManager.VWorldStreet;
 import kr.go.forest.das.geo.GeoManager;
+import kr.go.forest.das.map.MapLayer;
 
 public class MissionView extends RelativeLayout implements View.OnClickListener, MapEventsReceiver, Marker.OnMarkerClickListener, SeekBar.OnSeekBarChangeListener {
 
@@ -321,19 +322,19 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 //                    _editor.commit();
 //                }else{
                     // 위치 확인 팝업
-                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, R.string.search_location));
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.search_location));
                     mission_status = mission_status | MISSION_SEARCH_LOCATION;
 //                }
                 break;
             case R.id.btn_new_course:
                 // 현재 임무를 초기화 하겠냐는 팝업
-                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.clear_mission));
+                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, 0, R.string.clear_mission));
                 // clear waypoints
                 clearMission();
                 break;
             case R.id.btn_load_shape:
                 // Mission 파일 목록 팝업
-                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_LOAD_SHAPE, 0));
+                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_LOAD_SHAPE, 0,0));
                 break;
             case R.id.btn_mission_upload:
                 break;
@@ -412,7 +413,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
     private Marker getDefaultMarker(GeoPoint p) {
         Marker _marker = new Marker(map_view);
         String _title = String.valueOf(selected_points.size() + 1);
-        _marker.setIcon(writeOnDrawable(_title, R.drawable.waypoint));
+        _marker.setIcon(MapLayer.getInstance().writeOnDrawable(context, _title, R.drawable.waypoint));
         _marker.setPosition(p);
         _marker.setTitle(_title);
         _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
@@ -449,7 +450,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
         @Override public void onMarkerDragStart(Marker marker) {
             clearMarkerIcon();
-            marker.setIcon(writeOnDrawable(marker.getTitle(), R.drawable.waypoint_s));
+            marker.setIcon(MapLayer.getInstance().writeOnDrawable(context, marker.getTitle(), R.drawable.waypoint_s));
         }
     }
 
@@ -459,7 +460,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
     @Override
     public boolean onMarkerClick(Marker marker, MapView mapView) {
         clearMarkerIcon();
-        marker.setIcon(writeOnDrawable(marker.getTitle(), R.drawable.waypoint_s));
+        marker.setIcon(MapLayer.getInstance().writeOnDrawable(context, marker.getTitle(), R.drawable.waypoint_s));
         map_view.invalidate();
         return true;
     }
@@ -469,7 +470,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
      */
     private void clearMarkerIcon() {
         for(int i = 0; i < selected_points.size(); i++) {
-            selected_points.get(i).setIcon(writeOnDrawable(selected_points.get(i).getTitle(), R.drawable.waypoint));
+            selected_points.get(i).setIcon(MapLayer.getInstance().writeOnDrawable(context, selected_points.get(i).getTitle(), R.drawable.waypoint));
         }
     }
     //endregion
@@ -537,32 +538,4 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         map_view.invalidate();
     }
 
-
-    /**
-     * 마커에 숫자 적용
-     */
-    private BitmapDrawable writeOnDrawable(String text, int drawableId) {
-        Bitmap bm = BitmapFactory.decodeResource(getResources(), drawableId).copy(Bitmap.Config.ARGB_8888, true);
-
-        Paint paint = new Paint();
-        paint.setStyle(Paint.Style.FILL);
-
-        if(drawableId == R.drawable.waypoint_s) {
-            paint.setColor(Color.WHITE);
-        }else{
-            paint.setColor(Color.BLACK);
-        }
-
-        int textSize = getResources().getDimensionPixelSize(R.dimen.mission_font);
-        paint.setTextSize(textSize);
-
-        Rect bounds = new Rect();
-        paint.getTextBounds(text, 0, text.length(), bounds);
-
-        Canvas canvas = new Canvas(bm);
-        canvas.drawText(text, bm.getWidth()/2- bounds.right/2 - (text.equals("1") ? 2 : 0), bm.getHeight()/2-bounds.top/2, paint);
-
-
-        return new BitmapDrawable(getResources(), bm);
-    }
 }
