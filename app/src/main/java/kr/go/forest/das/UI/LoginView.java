@@ -1,19 +1,13 @@
 package kr.go.forest.das.UI;
 
-
 import android.content.Context;
-import android.content.Intent;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
-import dji.sdk.base.BaseProduct;
-import dji.sdk.products.Aircraft;
-import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.ViewWrapper;
@@ -22,13 +16,16 @@ import kr.go.forest.das.network.NetworkStatus;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
+/**
+ * 로그인화면
+ */
 public class LoginView extends RelativeLayout implements View.OnClickListener {
     private Context context;
-    private Button mBtnLogin;
-    private ViewWrapper menu;
-    private InputMethodManager imm;
-    private EditText loginIDEditText;
-    private EditText loginPWEditText;
+    private Button mBtnLogin;                       // 로그인 요청 버튼
+    private ViewWrapper menu;                       // 메뉴화면 View 인스턴스
+    private InputMethodManager imm;                 // 입력방법 관리 인스턴스
+    private EditText loginIDEditText;               // 텍스트 입력 : ID
+    private EditText loginPWEditText;               // 텍스트 입력 : 비밀번호
 
     public LoginView(Context context){
         super(context);
@@ -40,6 +37,9 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
         this.context = context;
     }
 
+    /**
+     * View가 정상적으로 화면에 추가 되었을 때
+     */
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
@@ -50,7 +50,6 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
 
     @Override
     protected void onAttachedToWindow() {
-
         super.onAttachedToWindow();
     }
 
@@ -59,6 +58,9 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
         super.onDetachedFromWindow();
     }
 
+    /**
+     * 초기 화면 설정
+     */
     protected void initUI(){
 
         imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
@@ -70,6 +72,9 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
         mBtnLogin.setOnClickListener(this);
     }
 
+    /**
+     * 위젯 클릭 이벤트 처리
+     */
     @Override
     public void onClick(View v) {
         if(v.getId() == R.id.loginProcessButton)
@@ -101,6 +106,9 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
         }
     }
 
+    /**
+     * 터치 키보드 제어
+     */
     private void hideSoftInput()
     {
         if(loginIDEditText.hasFocus())

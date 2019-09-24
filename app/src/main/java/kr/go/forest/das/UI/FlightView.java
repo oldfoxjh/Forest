@@ -185,8 +185,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         handler_ui = null;
         timer = null;
 
-        if(no_fly_zone != null)
-        {
+        if(no_fly_zone != null) {
             no_fly_zone.clear();
             no_fly_zone = null;
         }

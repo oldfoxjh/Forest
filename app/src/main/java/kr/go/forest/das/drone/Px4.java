@@ -5,8 +5,6 @@ import dji.common.flightcontroller.BatteryThresholdBehavior;
 import dji.common.flightcontroller.FlightMode;
 import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.GoHomeExecutionState;
-import dji.common.flightcontroller.LocationCoordinate3D;
-import dji.common.gimbal.GimbalState;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.base.BaseProduct;
 import kr.go.forest.das.Model.DroneInfo;
@@ -57,6 +55,10 @@ public class Px4 extends Drone{
      */
     @Override
     public boolean setDroneDataListener(){ return false;};
+
+    public boolean removeDroneDataListener(){
+        return false;
+    }
     //endregion
 
     //region 카메라 촬영
@@ -380,6 +382,33 @@ public class Px4 extends Drone{
     //endregion
 
     //region 임무비행
+    /**
+     * 임무를 업로드 가능한지 체크
+     */
+    public boolean isMissionUploadAvailable(){
+        return  false;
+    }
+
+    /**
+     * 설정된 임무를 드론에 업로드
+     */
+    public void uploadMission(){
+
+    }
+
+    /**
+     * 설정된 임무를 시작
+     */
+    public void startMission(){
+
+    }
+
+    /**
+     * 설정된 임무를 멈춤
+     */
+    public void stopMission(){
+
+    }
     //endregion
 
     //region RTL

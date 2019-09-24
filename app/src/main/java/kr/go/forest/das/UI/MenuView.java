@@ -9,7 +9,6 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import kr.go.forest.das.DroneApplication;
-import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
 

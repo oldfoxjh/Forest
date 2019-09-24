@@ -42,6 +42,7 @@ import java.util.List;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.RectD;
+import kr.go.forest.das.Model.WaypointMission;
 import kr.go.forest.das.R;
 
 import static kr.go.forest.das.map.MapManager.VWorldStreet;
@@ -337,6 +338,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_LOAD_SHAPE, 0,0));
                 break;
             case R.id.btn_mission_upload:
+                WaypointMission _waypoint = new WaypointMission(mWaypoints, 5.0f);
                 break;
         }
     }

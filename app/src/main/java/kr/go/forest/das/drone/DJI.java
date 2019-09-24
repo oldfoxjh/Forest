@@ -1,6 +1,8 @@
 package kr.go.forest.das.drone;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.util.List;
 
 import dji.common.battery.BatteryState;
@@ -18,6 +20,10 @@ import dji.common.flightcontroller.FlightMode;
 import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.GoHomeExecutionState;
 import dji.common.gimbal.GimbalState;
+import dji.common.mission.waypoint.WaypointMissionDownloadEvent;
+import dji.common.mission.waypoint.WaypointMissionExecutionEvent;
+import dji.common.mission.waypoint.WaypointMissionState;
+import dji.common.mission.waypoint.WaypointMissionUploadEvent;
 import dji.common.remotecontroller.GPSData;
 import 	dji.common.remotecontroller.HardwareState;
 import dji.common.model.LocationCoordinate2D;
@@ -29,6 +35,9 @@ import dji.sdk.camera.Camera;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.gimbal.Gimbal;
 import dji.sdk.media.MediaFile;
+import dji.sdk.mission.MissionControl;
+import dji.sdk.mission.waypoint.WaypointMissionOperator;
+import dji.sdk.mission.waypoint.WaypointMissionOperatorListener;
 import dji.sdk.products.Aircraft;
 import dji.sdk.remotecontroller.RemoteController;
 import dji.sdk.sdkmanager.DJISDKInitEvent;
@@ -197,6 +206,44 @@ public class DJI extends Drone{
         flight_controller = null;
         return false;
     }
+
+    public boolean removeDroneDataListener(){
+        BaseProduct _product = DJISDKManager.getInstance().getProduct();
+        if (_product != null && _product.isConnected()) {
+            if (_product instanceof Aircraft) {
+                // 드론 정보 callback
+                flight_controller.setStateCallback(null);
+
+                // 조종기 callback
+                remote_controller.setHardwareStateCallback(null);
+                remote_controller.setGPSDataCallback(null);
+
+                // 짐벌 callback
+                gimbals = ((Aircraft) _product).getGimbals();
+                for (Gimbal gimbal:gimbals) {
+                    gimbal.setStateCallback(null);
+                }
+
+                // 배터리 callback
+                batteries = _product.getBatteries();
+                for (Battery battery:batteries) {
+                    battery.setStateCallback(null);
+                }
+
+                // 카메라 callback
+                cameras = ((Aircraft) _product).getCameras();
+                for (Camera camera:cameras) {
+                    camera.setSystemStateCallback(null);
+                    camera.setExposureSettingsCallback(null);
+                    camera.setStorageStateCallBack(null);
+                }
+                return true;
+            }
+        }
+
+        flight_controller = null;
+        return false;
+    }
     //endregion
 
     //region 카메라 촬영
@@ -315,6 +362,9 @@ public class DJI extends Drone{
         }
     }
 
+    /**
+     * 카메라 및 저장장치의 정보값을 얻는다.
+     */
     @Override
     public StorageInfo getStorageInfo() {
         StorageInfo _storage_info = new StorageInfo();
@@ -637,6 +687,9 @@ public class DJI extends Drone{
 
     }
 
+    /**
+     * 화이트밸런스 설정값을 한글로 변환한다.
+     */
     private String getWhiteBalanceString(WhiteBalance whiteBalance) {
         SettingsDefinitions.WhiteBalancePreset _preset =  whiteBalance.getWhiteBalancePreset();
 
@@ -718,6 +771,9 @@ public class DJI extends Drone{
         }
     }
 
+    /**
+     * 자동착륙 취소
+     */
     public void cancelLanding(){
         BaseProduct _product = DJISDKManager.getInstance().getProduct();
         if (_product != null && _product.isConnected()) {
@@ -800,6 +856,61 @@ public class DJI extends Drone{
     //endregion
 
     //region 임무비행
+    /**
+     * 임무를 업로드 가능한지 체크
+     */
+    public boolean isMissionUploadAvailable(){
+        WaypointMissionOperator mission_operator = MissionControl.getInstance().getWaypointMissionOperator();
+
+        return WaypointMissionState.READY_TO_RETRY_UPLOAD.equals(mission_operator.getCurrentState())
+                || WaypointMissionState.READY_TO_UPLOAD.equals(mission_operator.getCurrentState());
+    }
+
+    /**
+     * 설정된 임무를 드론에 업로드
+     */
+    public void uploadMission(){
+        WaypointMissionOperator mission_operator = MissionControl.getInstance().getWaypointMissionOperator();
+        mission_operator.uploadMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                if(djiError != null) {
+                    LogWrapper.i("WaypointMission", "uploadMission Fail : " + djiError.getDescription());
+                }
+            }
+        });
+    }
+
+    /**
+     * 설정된 임무를 시작
+     */
+    public void startMission(){
+        WaypointMissionOperator mission_operator = MissionControl.getInstance().getWaypointMissionOperator();
+        mission_operator.addListener(mission_notification_listener);
+        mission_operator.startMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                if(djiError != null) {
+                    LogWrapper.i("WaypointMission", "startMission Fail : " + djiError.getDescription());
+                }
+            }
+        });
+    }
+
+    public void stopMission(){
+        WaypointMissionOperator mission_operator = MissionControl.getInstance().getWaypointMissionOperator();
+        mission_operator.startMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                if(djiError != null) {
+                    LogWrapper.i("WaypointMission", "stopMission Fail : " + djiError.getDescription());
+                }else{
+                    MissionControl.getInstance().getWaypointMissionOperator().removeListener(mission_notification_listener);
+                }
+            }
+        });
+    }
+
     //endregion
 
     //region RTL
@@ -808,6 +919,9 @@ public class DJI extends Drone{
         return false;
     }
 
+    /**
+     * 자동복귀 위치 불러오기
+     */
     @Override
     public LocationCoordinate2D getHomeLocation(){
         LocationCoordinate2D _location = new LocationCoordinate2D(home_latitude, home_longitude);
@@ -819,6 +933,9 @@ public class DJI extends Drone{
         return  null;
     }
 
+    /**
+     * 자동복귀 시작
+     */
     @Override
     public void startGoHome(){
         if(flight_controller != null){
@@ -838,7 +955,7 @@ public class DJI extends Drone{
     }
 
     /**
-     * RTH 취소
+     * 자동복귀 취소
      */
     @Override
     public void cancelGoHome(){
@@ -860,6 +977,9 @@ public class DJI extends Drone{
         }
     }
 
+    /**
+     * 자동복귀 위치 설정
+     */
     @Override
     public void setHomeLocation(LocationCoordinate2D home){
         if(flight_controller != null)
@@ -896,6 +1016,10 @@ public class DJI extends Drone{
      * DJI SDK 등록
      */
     public static DJISDKManager.SDKManagerCallback registrationCallback = new DJISDKManager.SDKManagerCallback() {
+
+        /**
+         * DJI API 등록 이벤트
+         */
         @Override
         public void onRegister(DJIError error) {
             if (error == DJISDKError.REGISTRATION_SUCCESS) {
@@ -904,10 +1028,19 @@ public class DJI extends Drone{
 
             }
         }
+
+        /**
+         * 드론과 끊겼을 때 이벤트
+         */
         @Override
         public void onProductDisconnect() {
+            DroneApplication.getDroneInstance().removeDroneDataListener();
             DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_DISCONNECT));
         }
+
+        /**
+         * 드론과 연결되었을 때 이벤트
+         */
         @Override
         public void onProductConnect(BaseProduct product) {
             if(DroneApplication.getDroneInstance() == null) DroneApplication.setDroneInstance(Drone.DRONE_MANUFACTURE_DJI);
@@ -927,8 +1060,6 @@ public class DJI extends Drone{
                 newComponent.setComponentListener(new BaseComponent.ComponentListener() {
                     @Override
                     public void onConnectivityChange(boolean isConnected) {
-
-
                     }
                 });
             }
@@ -1130,6 +1261,49 @@ public class DJI extends Drone{
                     }
                 });
             }
+        }
+    };
+
+    private WaypointMissionOperatorListener mission_notification_listener = new WaypointMissionOperatorListener() {
+        @Override
+        public void onDownloadUpdate(WaypointMissionDownloadEvent downloadEvent) {
+
+        }
+
+        @Override
+        public void onUploadUpdate(WaypointMissionUploadEvent uploadEvent) {
+            if (uploadEvent.getProgress() != null){
+                if(uploadEvent.getProgress().isSummaryUploaded
+                        && uploadEvent.getProgress().uploadedWaypointIndex == (waypoints.size() - 1)) {
+                    LogWrapper.i("WaypointMission", "Upload successful!");
+                }else{
+                    LogWrapper.i("WaypointMission", "Upload Index : " + uploadEvent.getProgress().uploadedWaypointIndex);
+                }
+            }
+        }
+
+        @Override
+        public void onExecutionUpdate(WaypointMissionExecutionEvent executionEvent) {
+            LogWrapper.i("WaypointMission",
+                    (executionEvent.getPreviousState() == null
+                            ? ""
+                            : executionEvent.getPreviousState().getName())
+                            + ", "
+                            + executionEvent.getCurrentState().getName()
+                            + (executionEvent.getProgress() == null
+                            ? ""
+                            : executionEvent.getProgress().targetWaypointIndex));
+        }
+
+        @Override
+        public void onExecutionStart() {
+            LogWrapper.e("WaypointMission", "Execution started!");
+        }
+
+        @Override
+        public void onExecutionFinish(@Nullable final DJIError error) {
+            String _error = (error != null) ? error.getDescription() : "null";
+            LogWrapper.e("WaypointMission", "Execution Finish!" + _error);
         }
     };
 

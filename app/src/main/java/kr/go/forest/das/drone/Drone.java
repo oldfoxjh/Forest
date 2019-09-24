@@ -1,9 +1,12 @@
 package kr.go.forest.das.drone;
 
+import java.util.List;
+
 import dji.common.flightcontroller.BatteryThresholdBehavior;
 import dji.common.flightcontroller.FlightMode;
 import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.GoHomeExecutionState;
+import dji.common.mission.waypoint.Waypoint;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.base.BaseProduct;
 import dji.common.camera.SettingsDefinitions;
@@ -109,6 +112,10 @@ public abstract class Drone {
     Boolean camera_ae_lock;
     Boolean is_camera_auto_exposure_unlock_enabled = false;
 
+    /**
+     * 임무 데이터
+     */
+    List<Waypoint> waypoints = null;
     //region 제품정보
 
     /**
@@ -144,6 +151,11 @@ public abstract class Drone {
      * 드론정보 수집을위한 Listener 설정한다.
      */
     public abstract boolean setDroneDataListener();
+
+    /**
+     * 드론정보 수집을위한 Listener를 해제한다.
+     */
+    public abstract boolean removeDroneDataListener();
     //endregion
 
     //region 카메라 촬영
@@ -364,6 +376,25 @@ public abstract class Drone {
     //endregion
 
     //region 임무비행
+    /**
+     * 임무를 업로드 가능한지 체크
+     */
+    public abstract boolean isMissionUploadAvailable();
+
+    /**
+     * 설정된 임무를 드론에 업로드
+     */
+    public abstract void uploadMission();
+
+    /**
+     * 설정된 임무를 시작
+     */
+    public abstract void startMission();
+
+    /**
+     * 설정된 임무를 멈춤
+     */
+    public abstract void stopMission();
     //endregion
 
     //region RTL

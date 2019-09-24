@@ -31,11 +31,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import dji.common.mission.waypoint.Waypoint;
 import kr.go.forest.das.Model.RectD;
 
 public class GeoManager {
     private static final String LOG_DIRECTORY = "DroneAppService/Flight_Log";
-
     private static final GeoManager ourInstance = new GeoManager();
 
     public static GeoManager getInstance() {
@@ -62,21 +62,26 @@ public class GeoManager {
         return _file.exists();
     }
 
+    /**
+     *  표고(Elevation) 정보를 가져온다.
+     */
     // Get Elevation Info
     // filepath : geotiff file path
     // positions : positions for elevation
     // return : Elevations (m)
-    public int[] GetElevations(String filepath, ArrayList<GeoPoint> positions) {
+    public int getElevations(String filepath, List<GeoPoint> positions, int type) {
         boolean _complete = true;
-        int[] _return;
+        int _result;
 
-        if (!CheckFile(filepath)) return null;
+        // 해당 파일이 존재하지 않음
+        if (!CheckFile(filepath)) return -1;
 
         // geotiff file load and get Raster
         Dataset _elevationDataSet = gdal.Open(filepath, gdalconst.GA_ReadOnly);
 
+        // 정상적인 파일이 아님
         if (_elevationDataSet == null) {
-            return null;
+            return -2;
         }
 
         double[] _geoTransformsInDoubles = _elevationDataSet.GetGeoTransform();
@@ -90,12 +95,12 @@ public class GeoManager {
         CoordinateTransformation _ct = new CoordinateTransformation(_src, _dst);
 
         int _count = positions.size();
-        _return = new int[_count];
 
         for (int i = 0; i < _count; i++) {
             GeoPoint _position = positions.get(i);
             double _latitude = _position.getLatitude();
             double _longitude = _position.getLongitude();
+
             double[] _xy = _ct.TransformPoint(_longitude, _latitude);
             int _x = (int) (((_xy[0] - _geoTransformsInDoubles[0]) / _geoTransformsInDoubles[1]));
             int _y = (int) (((_xy[1] - _geoTransformsInDoubles[3]) / _geoTransformsInDoubles[5]));
@@ -105,7 +110,8 @@ public class GeoManager {
 
             if (_readResult != 0) {
                 _complete = false;
-                break;
+            }else{
+                _position.setAltitude(_position.getAltitude() + flt[0]);
             }
         }
 
@@ -114,9 +120,63 @@ public class GeoManager {
         _rasterBand.delete();
         _elevationDataSet.delete();
 
-        if (!_complete) return null;
+        if (!_complete) return -3;          // 일부 좌표에 문제가 있음.
 
-        return _return;
+        return 0;
+    }
+
+    public int getElevations(List<GeoPoint> points) {
+        boolean _complete = true;
+        int _result;
+
+        String file_path = Environment.getExternalStorageDirectory() + File.separator + "DroneAppService/DEM"+ File.separator + "Dem.tif";
+        // 해당 파일이 존재하지 않음
+        if (!CheckFile(file_path)) return -1;
+
+        // geotiff file load and get Raster
+        Dataset _elevationDataSet = gdal.Open(file_path, gdalconst.GA_ReadOnly);
+
+        // 정상적인 파일이 아님
+        if (_elevationDataSet == null) {
+            return -2;
+        }
+
+        double[] _geoTransformsInDoubles = _elevationDataSet.GetGeoTransform();
+        Band _rasterBand = _elevationDataSet.GetRasterBand(1);
+
+        SpatialReference _src = new SpatialReference();
+        _src.SetWellKnownGeogCS("WGS84");
+        String _projection = _elevationDataSet.GetProjection();
+        SpatialReference _dst = new SpatialReference(_projection);
+
+        CoordinateTransformation _ct = new CoordinateTransformation(_src, _dst);
+
+        for (GeoPoint point : points) {
+            double _latitude = point.getLatitude();
+            double _longitude = point.getLongitude();
+
+            double[] _xy = _ct.TransformPoint(_longitude, _latitude);
+            int _x = (int) (((_xy[0] - _geoTransformsInDoubles[0]) / _geoTransformsInDoubles[1]));
+            int _y = (int) (((_xy[1] - _geoTransformsInDoubles[3]) / _geoTransformsInDoubles[5]));
+
+            int[] flt = new int[2];
+            int _readResult = _rasterBand.ReadRaster(_x, _y, 1, 1, flt);
+
+            if (_readResult != 0) {
+                _complete = false;
+            }else{
+                point.setAltitude(point.getAltitude() + flt[0]);
+            }
+        }
+
+        _dst.delete();
+        _ct.delete();
+        _rasterBand.delete();
+        _elevationDataSet.delete();
+
+        if (!_complete) return -3;          // 일부 좌표에 문제가 있음.
+
+        return 0;
     }
 
     public int getPositionsFromShapeFile(String filepath, List<GeoPoint> waypoints) {
