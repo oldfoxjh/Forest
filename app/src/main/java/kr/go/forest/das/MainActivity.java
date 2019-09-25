@@ -36,6 +36,7 @@ import kr.go.forest.das.UI.DialogConfirm;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.UI.DialogLoadShape;
 import kr.go.forest.das.UI.DialogOk;
+import kr.go.forest.das.UI.DialogUploadMission;
 import kr.go.forest.das.drone.Drone;
 
 import static kr.go.forest.das.drone.DJI.registrationCallback;
@@ -225,6 +226,8 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                     wrapper = new ViewWrapper(new DialogLoadShape(MainActivity.this), false);
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_MISSION) {
                     wrapper = new ViewWrapper(new DialogConfirm(MainActivity.this, 0, popup.contentId), false);
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_UPLOAD_MISSION){
+                    wrapper = new ViewWrapper(new DialogUploadMission(MainActivity.this), false);
                 }
 
                 pushView(wrapper);
@@ -243,6 +246,8 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                     DroneApplication.getEventBus().post(new Mission(Mission.MISSION_FROM_FILE, popup.data));
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_MISSION){
                     DroneApplication.getEventBus().post(new Mission(Mission.MISSION_FROM_ONLINE, popup.data));
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_UPLOAD_MISSION){
+                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD, null));
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_CONFIRM){
                     if(popup.command == Mission.MISSION_CLEAR) {
                         DroneApplication.getEventBus().post(new Mission(Mission.MISSION_CLEAR, null));
@@ -258,6 +263,8 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                         DroneApplication.getEventBus().post(new ReturnHome(ReturnHome.CANCEL_RETURN_HOME, null));
                     }else if(popup.command == PopupDialog.DIALOG_TYPE_SET_RETURN_HOME_LOCATION) {
                         DroneApplication.getEventBus().post(new ReturnHome(ReturnHome.SET_RETURN_HOME_LOCATION, null));
+                    }else if(popup.command == PopupDialog.DIALOG_TYPE_MAX_FLIGHT_HEIGHT_LOW) {
+                        DroneApplication.getDroneInstance().setMaxFlightHeight(500);
                     }
                 }
             }
@@ -330,6 +337,8 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         public final static int DIALOG_TYPE_START_RETURN_HOME = 0x18;
         public final static int DIALOG_TYPE_CANCEL_RETURN_HOME = 0x19;
         public final static int DIALOG_TYPE_SET_RETURN_HOME_LOCATION = 0x20;
+        public final static int DIALOG_TYPE_UPLOAD_MISSION = 0x21;
+        public final static int DIALOG_TYPE_MAX_FLIGHT_HEIGHT_LOW = 0x22;
 
         public int type;
         public int contentId;
@@ -405,6 +414,14 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         public final static int MISSION_CLEAR = 0x20;
         public final static int MISSION_FROM_FILE = 0x21;
         public final static int MISSION_FROM_ONLINE = 0x22;
+
+        public final static int MISSION_UPLOAD = 0x23;
+        public final static int MISSION_UPLOAD_FAIL = 0x24;
+        public final static int MISSION_UPLOAD_SUCCESS = 0x25;
+
+        public final static int MISSION_START_FAIL = 0x26;
+        public final static int MISSION_START_SUCCESS = 0x27;
+        public final static int MAX_FLIGHT_HEIGHT_SET_SUCCESS = 0x28;
 
         public int command = 0;
         public String data = null;

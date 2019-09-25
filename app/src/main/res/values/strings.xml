@@ -27,4 +27,18 @@
     <string name="cancel_return_home_fail">자동복귀 취소에 실패하였습니다.\n</string>
     <string name="set_home_location_fail">홈포인트 설정에 실패하였습니다.\n</string>
     <string name="check_drone_connection">기능을 사용하기 위해서는 드론 연결이 필요합니다.\n드론이 연결되었는지 확인해주세요.</string>
+    <string name="mission_upload_fail">임무전송에 실패하였습니다.\n</string>
+    <string name="mission_start_fail">임무시작에 실패하였습니다.\n</string>
+    <string name="mission_create_fail">비행경로를 선택해주세요.</string>
+    <string name="max_flight_height_low_title">드론 최대비행고도 설정</string>
+    <string name="max_flight_height_low">현재 드론 최대비행고도가 임무비행고도보다 낮습니다.\n드론 최대비행고도를 다시 설정하시겠습니까?</string>
+    <string name="max_flight_height_fail">드론 최대비행고도 설정에 실패하였습니다.\n</string>
+    <string name="max_flight_height_success">드론 최대비행고도가 500m로 재설정 되었습니다.</string>
+    <string name="mission_upload_title">임무 전송</string>
+    <string name="mission_upload_content">고도 기준 임무를 생성하시겠습니까?\n임무 생성 후 모든 설정은 비활성화 됩니다.</string>
+    <string name="mission_rc_disconnect_title">신호가 끊겼을 때 동작</string>
+    <string name="mission_stop_and_rth">임무 중지 후 Home 귀환(기본)</string>
+    <string name="mission_continue">임무 계속 진행(위험)</string>
+    <string name="mission_start_title">임무 시작</string>
+    <string name="mission_start_content">임무를 수행합니다. 임무를 중지하려면 임무 중지 버튼을 사용하시기 바랍니다.</string>
 </resources>

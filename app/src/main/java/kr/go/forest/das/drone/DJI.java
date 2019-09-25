@@ -15,11 +15,13 @@ import dji.common.camera.WhiteBalance;
 import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
 import dji.common.flightcontroller.BatteryThresholdBehavior;
+import dji.common.flightcontroller.ConnectionFailSafeBehavior;
 import dji.common.flightcontroller.FlightControllerState;
 import dji.common.flightcontroller.FlightMode;
 import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.GoHomeExecutionState;
 import dji.common.gimbal.GimbalState;
+import dji.common.mission.waypoint.WaypointMission;
 import dji.common.mission.waypoint.WaypointMissionDownloadEvent;
 import dji.common.mission.waypoint.WaypointMissionExecutionEvent;
 import dji.common.mission.waypoint.WaypointMissionState;
@@ -853,6 +855,11 @@ public class DJI extends Drone{
     public int getRemainingFlightTime(){
         return  0;
     }
+
+    @Override
+    public ConnectionFailSafeBehavior getConnectionFailSafeBehavior(){
+        return connection_failsafe_behavior;
+    }
     //endregion
 
     //region 임무비행
@@ -869,16 +876,33 @@ public class DJI extends Drone{
     /**
      * 설정된 임무를 드론에 업로드
      */
-    public void uploadMission(){
+    public String uploadMission(WaypointMission mission){
         WaypointMissionOperator mission_operator = MissionControl.getInstance().getWaypointMissionOperator();
+
+        // 설정된 임무에 대한 확인
+        DJIError  _error = MissionControl.getInstance().getWaypointMissionOperator().loadMission(mission);
+        if(_error != null){
+            LogWrapper.i("WaypointMission", "uploadMission Fail : " + _error.getDescription());
+            return _error.getDescription();
+        }
+
+        // 임무 업로드
         mission_operator.uploadMission(new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(DJIError djiError) {
                 if(djiError != null) {
-                    LogWrapper.i("WaypointMission", "uploadMission Fail : " + djiError.getDescription());
+                    // 임무 업로드 실패
+                    LogWrapper.i("DJI", "uploadMission Fail : " + djiError.getDescription());
+                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD_FAIL, djiError.getDescription()));
+                }else{
+                    // 임무 업로드 성공
+                    LogWrapper.i("DJI", "uploadMission Sucess");
+                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD_SUCCESS, null));
                 }
             }
         });
+
+        return null;
     }
 
     /**
@@ -892,6 +916,10 @@ public class DJI extends Drone{
             public void onResult(DJIError djiError) {
                 if(djiError != null) {
                     LogWrapper.i("WaypointMission", "startMission Fail : " + djiError.getDescription());
+                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_START_FAIL, djiError.getDescription()));
+                }else{
+                    // 임무 업로드 성공
+                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_START_SUCCESS, null));
                 }
             }
         });
@@ -909,6 +937,25 @@ public class DJI extends Drone{
                 }
             }
         });
+    }
+
+    /**
+     * 드론 최대비행고도를 설정한다.
+     */
+    public void setMaxFlightHeight(int height){
+        if(flight_controller != null){
+            flight_controller.setMaxFlightHeight(height, new CommonCallbacks.CompletionCallback() {
+                @Override
+                public void onResult(DJIError djiError) {
+                    if(djiError != null){
+                        LogWrapper.e(TAG, "setMaxFlightHeight Fail : " + djiError.getDescription());
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.max_flight_height_fail, djiError.getDescription()));
+                    }else{
+                        DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MAX_FLIGHT_HEIGHT_SET_SUCCESS, null));
+                    }
+                }
+            });
+        }
     }
 
     //endregion
@@ -1077,54 +1124,86 @@ public class DJI extends Drone{
     public FlightControllerState.Callback status_callback = new FlightControllerState.Callback() {
         @Override
         public void onUpdate(FlightControllerState current_state) {
-                drone_latitude = current_state.getAircraftLocation().getLatitude();
-                drone_longitude = current_state.getAircraftLocation().getLongitude();
-                drone_altitude = current_state.getAircraftLocation().getAltitude();
+            drone_latitude = current_state.getAircraftLocation().getLatitude();
+            drone_longitude = current_state.getAircraftLocation().getLongitude();
+            drone_altitude = current_state.getAircraftLocation().getAltitude();
 
-                velocyty_x = current_state.getVelocityX();
-                velocyty_y = current_state.getVelocityY();
-                velocyty_z = current_state.getVelocityZ();
+            velocyty_x = current_state.getVelocityX();
+            velocyty_y = current_state.getVelocityY();
+            velocyty_z = current_state.getVelocityZ();
 
-                flight_time = current_state.getFlightTimeInSeconds();
+            flight_time = current_state.getFlightTimeInSeconds();
 
-                drone_pitch = current_state.getAttitude().pitch;
-                drone_roll = current_state.getAttitude().roll;
-                drone_yaw = current_state.getAttitude().yaw;
+            drone_pitch = current_state.getAttitude().pitch;
+            drone_roll = current_state.getAttitude().roll;
+            drone_yaw = current_state.getAttitude().yaw;
 
-                flight_mode = current_state.getFlightModeString();
+            flight_mode = current_state.getFlightModeString();
 
-                home_latitude = current_state.getHomeLocation().getLatitude();
-                home_longitude = current_state.getHomeLocation().getLongitude();
-                home_set = current_state.isHomeLocationSet();
+            home_latitude = current_state.getHomeLocation().getLatitude();
+            home_longitude = current_state.getHomeLocation().getLongitude();
+            home_set = current_state.isHomeLocationSet();
 
-                if((drone_status & DRONE_STATUS_ARMING) == 0 && current_state.areMotorsOn()) {
-                    drone_status |= DRONE_STATUS_ARMING;
-                    // 드론 시동 켬
-                    DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_ARMING));
-                }
-                else if(!current_state.areMotorsOn() && (drone_status & DRONE_STATUS_ARMING) == 1){
-                    drone_status -= (drone_status & DRONE_STATUS_ARMING);
-                    // 드론 시동 끔
-                    DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_DISARM));
-                }
+            if((drone_status & DRONE_STATUS_ARMING) == 0 && current_state.areMotorsOn()) {
+                drone_status |= DRONE_STATUS_ARMING;
+                // 드론 시동 켬
+                DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_ARMING));
+            }
+            else if(!current_state.areMotorsOn() && (drone_status & DRONE_STATUS_ARMING) == 1){
+                drone_status -= (drone_status & DRONE_STATUS_ARMING);
+                // 드론 시동 끔
+                DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_DISARM));
+            }
 
-                if((drone_status & DRONE_STATUS_FLYING) == 0 && current_state.isFlying()) {
-                    drone_status |= DRONE_STATUS_FLYING;
-                    // 드론 Takeoff 드론정보 전송 시작
-                    DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_FLYING));
-                }
+            if((drone_status & DRONE_STATUS_FLYING) == 0 && current_state.isFlying()) {
+                drone_status |= DRONE_STATUS_FLYING;
+                // 드론 Takeoff 드론정보 전송 시작
+                DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_FLYING));
+            }
 
-                // 자동복귀 중
-                if((drone_status & DRONE_STATUS_RETURN_HOME) == 0 && current_state.isGoingHome()){
-                    drone_status |= DRONE_STATUS_RETURN_HOME;
-                    DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_RETURN_HOME));
-                }
-                else if(!current_state.isGoingHome() && (drone_status & DRONE_STATUS_RETURN_HOME) != 0) {
-                    drone_status -= (drone_status & DRONE_STATUS_RETURN_HOME);
-                    DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_CANCEL_RETURN_HOME));
-                }
+            // 자동복귀 중
+            if((drone_status & DRONE_STATUS_RETURN_HOME) == 0 && current_state.isGoingHome()){
+                drone_status |= DRONE_STATUS_RETURN_HOME;
+                DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_RETURN_HOME));
+            }
+            else if(!current_state.isGoingHome() && (drone_status & DRONE_STATUS_RETURN_HOME) != 0) {
+                drone_status -= (drone_status & DRONE_STATUS_RETURN_HOME);
+                DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_CANCEL_RETURN_HOME));
+            }
 
+            if(flight_controller.getCompass() != null) {
                 heading = flight_controller.getCompass().getHeading();
+            }
+
+            // 드론 최대비행고도값 받아오기
+            if(max_flight_height < 20) {
+                flight_controller.getMaxFlightHeight(new CommonCallbacks.CompletionCallbackWith<Integer>() {
+                    @Override
+                    public void onSuccess(Integer integer) {
+                        max_flight_height = integer;
+                    }
+
+                    @Override
+                    public void onFailure(DJIError djiError) {
+                        LogWrapper.i("DJI", "getMaxFlightHeight Fail : " + djiError.getDescription());
+                    }
+                });
+            }
+
+            // 드론 Connection FailSafe 처리 정보
+            if(connection_failsafe_behavior == ConnectionFailSafeBehavior.UNKNOWN) {
+                flight_controller.getConnectionFailSafeBehavior(new CommonCallbacks.CompletionCallbackWith<ConnectionFailSafeBehavior>() {
+                    @Override
+                    public void onSuccess(ConnectionFailSafeBehavior connectionFailSafeBehavior) {
+                        connection_failsafe_behavior = connectionFailSafeBehavior;
+                    }
+
+                    @Override
+                    public void onFailure(DJIError djiError) {
+                        LogWrapper.i("DJI", "getConnectionFailSafeBehavior Fail : " + djiError.getDescription());
+                    }
+                });
+            }
         }
     };
 

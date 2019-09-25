@@ -3,10 +3,12 @@ package kr.go.forest.das.drone;
 import java.util.List;
 
 import dji.common.flightcontroller.BatteryThresholdBehavior;
+import dji.common.flightcontroller.ConnectionFailSafeBehavior;
 import dji.common.flightcontroller.FlightMode;
 import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.GoHomeExecutionState;
 import dji.common.mission.waypoint.Waypoint;
+import dji.common.mission.waypoint.WaypointMission;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.base.BaseProduct;
 import dji.common.camera.SettingsDefinitions;
@@ -38,6 +40,11 @@ public abstract class Drone {
 
     int drone_status = DRONE_STATUS_DISCONNECT;
 
+    /**
+     * 드론 설정 값
+     */
+    public int max_flight_height = 0;
+    public ConnectionFailSafeBehavior connection_failsafe_behavior = ConnectionFailSafeBehavior.UNKNOWN;
     /**
      * 드론 Data
      */
@@ -373,6 +380,7 @@ public abstract class Drone {
 
     //region 드론 기체 정보
     public abstract int getRemainingFlightTime();
+    public abstract ConnectionFailSafeBehavior getConnectionFailSafeBehavior();
     //endregion
 
     //region 임무비행
@@ -384,7 +392,7 @@ public abstract class Drone {
     /**
      * 설정된 임무를 드론에 업로드
      */
-    public abstract void uploadMission();
+    public abstract String uploadMission(WaypointMission mission);
 
     /**
      * 설정된 임무를 시작
@@ -395,6 +403,11 @@ public abstract class Drone {
      * 설정된 임무를 멈춤
      */
     public abstract void stopMission();
+
+    /**
+     * 드론 최대비행고도를 설정한다.
+     */
+    public abstract void setMaxFlightHeight(int height);
     //endregion
 
     //region RTL

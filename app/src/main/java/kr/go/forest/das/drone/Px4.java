@@ -2,9 +2,11 @@ package kr.go.forest.das.drone;
 
 import dji.common.camera.SettingsDefinitions;
 import dji.common.flightcontroller.BatteryThresholdBehavior;
+import dji.common.flightcontroller.ConnectionFailSafeBehavior;
 import dji.common.flightcontroller.FlightMode;
 import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.GoHomeExecutionState;
+import dji.common.mission.waypoint.WaypointMission;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.base.BaseProduct;
 import kr.go.forest.das.Model.DroneInfo;
@@ -379,6 +381,11 @@ public class Px4 extends Drone{
     public int getRemainingFlightTime(){
         return  0;
     }
+
+    @Override
+    public ConnectionFailSafeBehavior getConnectionFailSafeBehavior() {
+        return null;
+    }
     //endregion
 
     //region 임무비행
@@ -392,8 +399,8 @@ public class Px4 extends Drone{
     /**
      * 설정된 임무를 드론에 업로드
      */
-    public void uploadMission(){
-
+    public String uploadMission(WaypointMission mission){
+        return null;
     }
 
     /**
@@ -408,6 +415,12 @@ public class Px4 extends Drone{
      */
     public void stopMission(){
 
+    }
+
+    /**
+     * 드론 최대비행고도를 설정한다.
+     */
+    public void setMaxFlightHeight(int height){
     }
     //endregion
 

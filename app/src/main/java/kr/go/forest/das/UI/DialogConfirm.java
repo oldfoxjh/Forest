@@ -60,19 +60,20 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
         LayoutParams _params = (LayoutParams)_layout.getLayoutParams();
 
         if(title_id == R.string.takeoff_title
-           || title_id == R.string.landing_title
-           || title_id == R.string.return_home_title
-           || title_id == R.string.return_home_cancel_title
-           || title_id == R.string.set_home_location_title
-           || title_id == R.string.landing_cancel_title
+            || title_id == R.string.landing_title
+            || title_id == R.string.return_home_title
+            || title_id == R.string.return_home_cancel_title
+            || title_id == R.string.set_home_location_title
+            || title_id == R.string.landing_cancel_title
+            || title_id == R.string.max_flight_height_low_title
         ){
             TextView _title = (TextView) findViewById(R.id.dialog_confirm_title);
             _title.setText(title_id);
             _title.setVisibility(VISIBLE);
 
-            if(title_id == R.string.takeoff_title)  _params.height += 150;
+            if(title_id == R.string.takeoff_title || title_id == R.string.max_flight_height_low_title)  _params.height += 150;
             else if(title_id == R.string.landing_title || title_id == R.string.return_home_title)  _params.height += 200;
-        }else if(content_id == R.string.clear_mission) {
+        }else if(content_id == R.string.clear_mission || content_id == R.string.max_flight_height_low) {
             _params.height += 50;
         }
 
@@ -109,6 +110,8 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
             DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_CANCEL_RETURN_HOME, null));
         }else if(title_id == R.string.set_home_location_title) {
             DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_SET_RETURN_HOME_LOCATION, null));
+        }else if(title_id == R.string.max_flight_height_low_title) {
+            DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_MAX_FLIGHT_HEIGHT_LOW, null));
         }
     }
 }

@@ -40,11 +40,11 @@
             android:layout_marginRight="@dimen/px22"
             android:background="@drawable/btn_course_selector"/>
 
-        <Button
-            android:layout_width="@dimen/px54"
-            android:layout_height="@dimen/px54"
-            android:layout_marginRight="@dimen/px22"
-            android:background="@drawable/btn_setting_selector"/>
+        <!--<Button-->
+            <!--android:layout_width="@dimen/px54"-->
+            <!--android:layout_height="@dimen/px54"-->
+            <!--android:layout_marginRight="@dimen/px22"-->
+            <!--android:background="@drawable/btn_setting_selector"/>-->
     </LinearLayout>
 
     <include

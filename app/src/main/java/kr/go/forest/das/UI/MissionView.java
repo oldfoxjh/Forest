@@ -3,14 +3,7 @@ package kr.go.forest.das.UI;
 import android.app.Service;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.ContextCompat;
@@ -34,18 +27,18 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Polygon;
 import org.osmdroid.views.overlay.Polyline;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
 
 import kr.go.forest.das.DroneApplication;
+import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.RectD;
 import kr.go.forest.das.Model.WaypointMission;
 import kr.go.forest.das.R;
 
 import static kr.go.forest.das.map.MapManager.VWorldStreet;
+
 import kr.go.forest.das.geo.GeoManager;
 import kr.go.forest.das.map.MapLayer;
 
@@ -59,12 +52,16 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
     private Handler handler_ui;
     private SharedPreferences pref;
 
+    private float mission_altitude = 0.0f;
+    private float mission_flight_speed = 0.0f;
+
     Marker marker_my_location = null;
     GeoPoint my_location;
     int mission_status = 0;
+    WaypointMission waypoint_mission = null;
 
     List<Marker> selected_points = new ArrayList<Marker>();
-    List<GeoPoint> mWaypoints = new ArrayList<GeoPoint>();
+    List<GeoPoint> waypoints = new ArrayList<GeoPoint>();
     List<GeoPoint> area_points = new ArrayList<GeoPoint>();
     List<GeoPoint> mListPolyline = new ArrayList<GeoPoint>();
 
@@ -75,8 +72,9 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
     Button btn_location;;
     Button mBtnLoadShape;
     Button mBtnNew;
-    Button mBtnUpload;
+    Button btn_upload;
 	Button mBtnBack;
+	Button btn_mission_start;
 
 	TextView tv_mission_area;
 	TextView tv_mission_distance;
@@ -125,8 +123,8 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         selected_points.clear();
         selected_points = null;
 
-        mWaypoints.clear();
-        mWaypoints = null;
+        waypoints.clear();
+        waypoints = null;
 
         area_points.clear();
         area_points = null;
@@ -229,8 +227,11 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         mBtnLoadShape = (Button)findViewById(R.id.btn_load_shape);
         mBtnLoadShape.setOnClickListener(this);
 
-        mBtnUpload = (Button)findViewById(R.id.btn_mission_upload);
-        mBtnUpload.setOnClickListener(this);
+        btn_upload = (Button)findViewById(R.id.btn_mission_upload);
+        btn_upload.setOnClickListener(this);
+
+        btn_mission_start = (Button)findViewById(R.id.btn_mission_start);
+        btn_mission_start.setOnClickListener(this);
 
         // TextView
         tv_mission_area = (TextView)findViewById(R.id.mission_area);
@@ -278,8 +279,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                         map_view.invalidate();
                         mission_status -= MISSION_SEARCH_LOCATION;
                     }
-
-                    mission_status = mission_status | MISSION_LOCATION_UPDATED;
                 }
             });
         }
@@ -287,21 +286,59 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
     @Subscribe
     public void onMissionLoad(final MainActivity.Mission mission) {
-        // 임무정보 초기화
-        clearMission();
+        if(mission.command == MainActivity.Mission.MISSION_FROM_FILE || mission.command == MainActivity.Mission.MISSION_FROM_ONLINE){
+            // 임무정보 초기화
+            clearMission();
 
-        if(mission.command != MainActivity.Mission.MISSION_CLEAR){
             // 불러온 정보로 Polygon 만들기
             int _ret = GeoManager.getInstance().getPositionsFromShapeFile(mission.data, area_points);
 
+            if (handler_ui != null) {
+                handler_ui.post(new Runnable() {
+                    @Override
+                    public void run() {
+                    // 마커 포함 임무 그리기
+                    setMissionPolygon(area_points);
+                    flight_area.setPoints(area_points);
+                    map_view.invalidate();
+                    }
+                });
+            }
             // 파일이 잘못되었을 경우 팝업
+        }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD){
+            LogWrapper.i("WaypointMission", "MISSION_UPLOAD");
+            String _result = DroneApplication.getDroneInstance().uploadMission(waypoint_mission.getMission());
 
-            // 마커 포함 임무 그리기
-            setMissionPolygon(area_points);
-            flight_area.setPoints(area_points);
+            if(_result != null){
+                // 오류 팝업
+                LogWrapper.i("WaypointMission", "uploadMission Fail : " +_result);
+                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_upload_fail, _result));
+            }
+        }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD_FAIL){
+            // 미션 업로드 실패
+            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_upload_fail, mission.data));
+        }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD_SUCCESS){
+            // 미션 업로드 성공
+            if (handler_ui != null) {
+                handler_ui.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        btn_mission_start.setVisibility(VISIBLE);
+                        btn_upload.setVisibility(INVISIBLE);
+                    }
+                });
+            }
+        }else if(mission.command == MainActivity.Mission.MISSION_START_FAIL){
+            // 미션 시작 실패
+            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_start_fail, mission.data));
+        }else if(mission.command == MainActivity.Mission.MISSION_START_SUCCESS){
+            // 미션 시작 성공
+
+            // 비행화면으로 전환
+        }else if(mission.command == MainActivity.Mission.MAX_FLIGHT_HEIGHT_SET_SUCCESS){
+            // 드론 최대비행고도 변경 성공
+            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.max_flight_height_success, null));
         }
-
-        map_view.invalidate();
     }
 
     @Override
@@ -311,21 +348,21 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 DroneApplication.getEventBus().post(new MainActivity.PopdownView());
                 break;
             case R.id.btn_mission_location: // 현재 위치로 이동
-//                if ((mission_status & MISSION_LOCATION_UPDATED) == MISSION_LOCATION_UPDATED)
-//                {
-//                    marker_my_location.setPosition(my_location);
-//                    map_view.getController().setCenter(my_location);
-//                    map_view.invalidate();
-//
-//                    SharedPreferences.Editor _editor = pref.edit();
-//                    _editor.putString("lat", String.valueOf(my_location.getLatitude()));
-//                    _editor.putString("lon", String.valueOf(my_location.getLongitude()));
-//                    _editor.commit();
-//                }else{
+                if ((mission_status & MISSION_LOCATION_UPDATED) == MISSION_LOCATION_UPDATED)
+                {
+                    marker_my_location.setPosition(my_location);
+                    map_view.getController().setCenter(my_location);
+                    map_view.invalidate();
+
+                    SharedPreferences.Editor _editor = pref.edit();
+                    _editor.putString("lat", String.valueOf(my_location.getLatitude()));
+                    _editor.putString("lon", String.valueOf(my_location.getLongitude()));
+                    _editor.commit();
+                }else{
                     // 위치 확인 팝업
                     DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.search_location));
-                    mission_status = mission_status | MISSION_SEARCH_LOCATION;
-//                }
+                    mission_status += MISSION_SEARCH_LOCATION;
+                }
                 break;
             case R.id.btn_new_course:
                 // 현재 임무를 초기화 하겠냐는 팝업
@@ -335,10 +372,30 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 break;
             case R.id.btn_load_shape:
                 // Mission 파일 목록 팝업
-                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_LOAD_SHAPE, 0,0));
+               DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_LOAD_SHAPE, 0,0));
                 break;
             case R.id.btn_mission_upload:
-                WaypointMission _waypoint = new WaypointMission(mWaypoints, 5.0f);
+                // 웨이 포인트 3개 이상...확인
+                if(waypoints.size() < 2) {
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_create_fail, null));
+                    return;
+                }
+                // 비행고도 적용
+                for(GeoPoint point : waypoints){
+                    point.setAltitude(mission_altitude);
+                }
+
+                // 웨이포인트 생성
+                waypoint_mission = new WaypointMission(waypoints, mission_flight_speed);
+
+                if(waypoint_mission.max_flight_altitude > DroneApplication.getDroneInstance().max_flight_height){
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.max_flight_height_low_title, R.string.max_flight_height_low, ""));
+                }else {
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_UPLOAD_MISSION, 0, 0));
+               }
+                break;
+            case R.id.btn_mission_start:
+                DroneApplication.getDroneInstance().startMission();
                 break;
         }
     }
@@ -350,8 +407,8 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         {
             case R.id.seekbar_mission_flight_speed:         // 비행속도
 
-                double _convert = ((double)progress)/10;
-                _progress = String.format("%.1f m/s", _convert);
+                mission_flight_speed = ((float)progress)/10;
+                _progress = String.format("%.1f m/s", mission_flight_speed);
                 tv_mission_flight_speed.setText(_progress);
                 break;
             case R.id.seekbar_mission_angle:                // 영역회전
@@ -359,6 +416,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 tv_mission_angle.setText(_progress + "°");
                 break;
             case R.id.seekbar_mission_flight_altitude:      // 비행고도
+                mission_altitude = ((float)progress);
                 _progress = String.format("%d", progress);
                 tv_mission_flight_altitude.setText(_progress + "m");
                 break;
@@ -393,7 +451,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
             // Add List
             selected_points.add(_waypoint);
 
-            mWaypoints.add(p);
+            waypoints.add(p);
             if(selected_points.size() > 2) {
                 setMissionPolygon();
             }
@@ -483,7 +541,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
      */
     private void setMissionPolygon() {
         area_points.clear();
-        area_points.addAll(mWaypoints);
+        area_points.addAll(waypoints);
         area_points.add(area_points.get(0));
         flight_area.setPoints(area_points);
         setMissionInfo();
@@ -500,7 +558,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
             map_view.getOverlays().add(_waypoint);
             // Add List
             selected_points.add(_waypoint);
-            mWaypoints.add(_point);
+            waypoints.add(_point);
         }
 
         setMissionInfo();
@@ -534,7 +592,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
             map_view.getOverlays().remove(selected_points.get(i));
         }
         selected_points.clear();
-        mWaypoints.clear();
+        waypoints.clear();
         flight_area.getPoints().clear();
         area_points.clear();
         map_view.invalidate();

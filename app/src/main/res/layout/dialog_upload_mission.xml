@@ -15,9 +15,10 @@
         android:background="#FFF"
         android:orientation="vertical"
         android:layout_width="@dimen/px590"
-        android:layout_height="@dimen/px210">
+        android:layout_height="@dimen/px440">
+
         <TextView
-            android:id="@+id/dialog_confirm_title"
+            android:id="@+id/upload_mission_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/px40"
@@ -26,30 +27,41 @@
             android:textSize="46px"
             android:textFontWeight=""
             android:textColor="#000"
-            android:text=""
-            android:visibility="invisible"/>
+            android:text="신호가 끊겼을 때 동작 선택" />
+        <ScrollView
+            android:id="@+id/upload_mission_radio_group_container"
+            android:layout_width="@dimen/px590"
+            android:layout_below="@+id/upload_mission_title"
+            android:layout_height="@dimen/px158"
+            android:layout_marginTop="@dimen/px20"
+            android:padding="@dimen/px20"
+            >
+            <RadioGroup
+                android:id="@+id/dialog_mission_upload_radio_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+            </RadioGroup>
+        </ScrollView>
         <TextView
-            android:id="@+id/dialog_confirm_text"
+            android:layout_below="@+id/upload_mission_radio_group_container"
+            android:layout_marginTop="@dimen/px20"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/px40"
-            android:paddingLeft="@dimen/px20"
-            android:paddingRight="@dimen/px20"
-            android:layout_above="@+id/layout_dialog_confirm_btn"
             android:gravity="center"
             android:textAlignment="center"
             android:textSize="32px"
             android:textColor="#000"
-            android:text="" />
+            android:text="임무 생성 및 전송에 시간이 걸릴 수 있습니다." />
         <LinearLayout
-            android:id="@+id/layout_dialog_confirm_btn"
             android:layout_width="match_parent"
             android:layout_height="@dimen/px80"
             android:layout_alignParentBottom="true"
             android:orientation="horizontal"
             >
             <Button
-                android:id="@+id/btn_dialog_confirm_yes"
+                android:id="@+id/btn_dialog_mission_upload_confirm"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.5"
@@ -60,7 +72,7 @@
                 android:textColor="#FFF"
                 />
             <Button
-                android:id="@+id/btn_dialog_confirm_no"
+                android:id="@+id/btn_dialog_mission_upload_cancel"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.5"

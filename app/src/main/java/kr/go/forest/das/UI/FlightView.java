@@ -794,7 +794,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         DroneApplication.getDroneInstance().startTakeoff();
                     }else if(rtl.mode == MainActivity.ReturnHome.REQUEST_TAKEOFF_SUCCESS){
                         // 이륙성공 - 이륙버튼 아이콘 변경
-                        btn_flight_takeoff.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_return_selector));
+                        btn_flight_takeoff.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_landing_selector));
                         btn_flight_takeoff.setTag("landing");
                     }else if(rtl.mode == MainActivity.ReturnHome.REQUEST_LANDING){
                         // 착륙요청
