@@ -34,11 +34,13 @@
     <string name="max_flight_height_low">현재 드론 최대비행고도가 임무비행고도보다 낮습니다.\n드론 최대비행고도를 다시 설정하시겠습니까?</string>
     <string name="max_flight_height_fail">드론 최대비행고도 설정에 실패하였습니다.\n</string>
     <string name="max_flight_height_success">드론 최대비행고도가 500m로 재설정 되었습니다.</string>
-    <string name="mission_upload_title">임무 전송</string>
-    <string name="mission_upload_content">고도 기준 임무를 생성하시겠습니까?\n임무 생성 후 모든 설정은 비활성화 됩니다.</string>
+    <string name="mission_upload_success_content">임무가 정상적으로 업로드 되었습니다.\n오른쪽 상단의 임무시작버튼을 누르면 시작됩니다.</string>
     <string name="mission_rc_disconnect_title">신호가 끊겼을 때 동작</string>
     <string name="mission_stop_and_rth">임무 중지 후 Home 귀환(기본)</string>
     <string name="mission_continue">임무 계속 진행(위험)</string>
     <string name="mission_start_title">임무 시작</string>
-    <string name="mission_start_content">임무를 수행합니다. 임무를 중지하려면 임무 중지 버튼을 사용하시기 바랍니다.</string>
+    <string name="mission_start_content">임무를 수행합니다. 임무를 중지하려면 자동복귀 버튼을 사용하시기 바랍니다.</string>
+    <string name="aircraft_disconnected">드론과의 연결이 끊겼습니다.</string>
+
+
 </resources>

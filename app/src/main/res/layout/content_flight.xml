@@ -7,14 +7,19 @@
     android:background="#a0a0a0"
     android:id="@+id/root_view">
 
-    <dji.ux.widget.FPVWidget
-        android:id="@+id/dji_primary_widget"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <RelativeLayout
+        android:id="@+id/flight_fpv_layout"
         android:layout_centerInParent="true"
-        custom:sourceCameraNameVisibility="false"
-        custom:videoSource="primary"/>
-
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <dji.ux.widget.FPVWidget
+            android:id="@+id/dji_primary_widget"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            custom:sourceCameraNameVisibility="false"
+            custom:videoSource="primary"/>
+    </RelativeLayout>
     <!-- MAP  -->
     <RelativeLayout
         android:id="@+id/flightMapLayout"
@@ -26,13 +31,6 @@
         <org.osmdroid.views.MapView android:id="@+id/flight_map_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
-        <Button
-            android:layout_width="@dimen/px38"
-            android:layout_height="@dimen/px38"
-            android:layout_alignParentRight="true"
-            android:layout_marginTop="@dimen/px4"
-            android:layout_marginRight="@dimen/px4"
-            android:background="@drawable/btn_map_location_selector"/>
     </RelativeLayout>
 
     <include

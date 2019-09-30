@@ -1,3 +1,14 @@
+/**
+ Class Name : Drone.java
+ Description : 드론 정보 관리 추상 클래스
+ 드론 앱서비스
+ 수정일     수정자     수정내용
+ ------- -------- ---------------------------
+ 2019.09.01 정호   최초 생성
+
+ author : 이노드(연구소) 정호
+ since : 2019.09.01
+ */
 package kr.go.forest.das.drone;
 
 import java.util.List;
@@ -24,11 +35,10 @@ public abstract class Drone {
     public static final int DRONE_STATUS_CONNECT = 0x01;
     public static final int DRONE_STATUS_ARMING = 0x02;
     public static final int DRONE_STATUS_FLYING = 0x04;
-    public static final int DRONE_STATUS_DISARM = 0x08;
-    public static final int DRONE_STATUS_RETURN_HOME = 0x10;
-    public static final int DRONE_STATUS_CANCEL_RETURN_HOME = 0x11;
-
+    public static final int DRONE_STATUS_RETURN_HOME = 0x08;
+    public static final int DRONE_STATUS_CANCEL_RETURN_HOME = 0x10;
     public static final int DRONE_STATUS_MISSION = 0x20;
+    public static final int DRONE_STATUS_DISARM = 0x40;
 
     public static final int CAMERA_ISO = 0x00;
     public static final int CAMERA_SHUTTER_SPEED = 0x01;
@@ -39,21 +49,25 @@ public abstract class Drone {
     public static final int CAMERA_ALL = 0xFF;
 
     int drone_status = DRONE_STATUS_DISCONNECT;
-
+    boolean is_flying = false;
+    int ready_start_mission = -1;
+    SettingsDefinitions.ShootPhotoMode shoot_photo_mode = SettingsDefinitions.ShootPhotoMode.UNKNOWN;
     /**
      * 드론 설정 값
      */
     public int max_flight_height = 0;
     public ConnectionFailSafeBehavior connection_failsafe_behavior = ConnectionFailSafeBehavior.UNKNOWN;
-    /**
-     * 드론 Data
-     */
+    /** 드론 위도 */
     double drone_latitude;
+    /** 드론 경도 */
     double drone_longitude;
+    /** 드론 고도 */
     float drone_altitude;
-
+    /** 드론 x축 속도 */
     float velocyty_x = 0.0f;
+    /** 드론 y축 속도 */
     float velocyty_y = 0.0f;
+    /** 드론 z축 속도 */
     float velocyty_z = 0.0f;
 
     int flight_time;
@@ -122,15 +136,23 @@ public abstract class Drone {
     /**
      * 임무 데이터
      */
-    List<Waypoint> waypoints = null;
+    int waypoint_count = 0;
     //region 제품정보
-
     /**
      * 드론 기체 및 비행정보를 반환한다.
+     * @return 드론기체 및 비행정보
      */
     public abstract DroneInfo getDroneInfo();
 
+    /*=============================================================*
+     *  현재 드론 상태를 반환한다.
+     *==============================================================*/
     public abstract int getDroneStatus();
+
+    /*=============================================================*
+     *  현재 드론 비행여부를 확인한다.
+     *==============================================================*/
+    public abstract boolean isFlying();
 
     /**
      * 제조사 정보를 반환한다.
@@ -215,6 +237,12 @@ public abstract class Drone {
      * 카메라 타입을 반환한다.
      */
     public abstract String getCameraDisplayName();
+
+    /**
+     * 카메라 촬영 모드를 반환한다.
+     * @return SettingsDefinitions.ShootPhotoMode
+     */
+    public abstract SettingsDefinitions.ShootPhotoMode getShootPhotoMode();
 
     /**
      * 카메라 노출 설정값을 반환한다.
@@ -329,6 +357,12 @@ public abstract class Drone {
     public abstract String getTakeoffAltitude();
 
     /**
+     * 조종기와 연결이 끊어졌을 때의 동작을 설정한다.
+     * @param behavior : 연결이 끊어졌을 때의 행동
+     */
+    public abstract void setConnectionFailSafeBehavior(ConnectionFailSafeBehavior behavior);
+
+    /**
      * 자동이륙 명령
      */
     public abstract void startTakeoff();
@@ -393,6 +427,11 @@ public abstract class Drone {
      * 설정된 임무를 드론에 업로드
      */
     public abstract String uploadMission(WaypointMission mission);
+
+    /**
+     * 설정된 임무를 시작하기 위한 조건 설정
+     */
+    public abstract void setMissionCondition(int captureCount, int timeIntervalInSeconds);
 
     /**
      * 설정된 임무를 시작

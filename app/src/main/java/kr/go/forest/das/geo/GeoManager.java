@@ -35,6 +35,9 @@ import dji.common.mission.waypoint.Waypoint;
 import kr.go.forest.das.Model.RectD;
 
 public class GeoManager {
+    private static final double WGS84_RADIUS = 6370997.0;
+    private static double EarthCircumFence = 2* WGS84_RADIUS * Math.PI;
+
     private static final String LOG_DIRECTORY = "DroneAppService/Flight_Log";
     private static final GeoManager ourInstance = new GeoManager();
 
@@ -63,68 +66,10 @@ public class GeoManager {
     }
 
     /**
-     *  표고(Elevation) 정보를 가져온다.
+     * 표고(Elevation) 정보를 DEM 파일에서 검색하여 가져온다.
+     * @param points : 표고정보를 받아올 좌표
+     * @return : 표고값이 반영된 좌표
      */
-    // Get Elevation Info
-    // filepath : geotiff file path
-    // positions : positions for elevation
-    // return : Elevations (m)
-    public int getElevations(String filepath, List<GeoPoint> positions, int type) {
-        boolean _complete = true;
-        int _result;
-
-        // 해당 파일이 존재하지 않음
-        if (!CheckFile(filepath)) return -1;
-
-        // geotiff file load and get Raster
-        Dataset _elevationDataSet = gdal.Open(filepath, gdalconst.GA_ReadOnly);
-
-        // 정상적인 파일이 아님
-        if (_elevationDataSet == null) {
-            return -2;
-        }
-
-        double[] _geoTransformsInDoubles = _elevationDataSet.GetGeoTransform();
-        Band _rasterBand = _elevationDataSet.GetRasterBand(1);
-
-        SpatialReference _src = new SpatialReference();
-        _src.SetWellKnownGeogCS("WGS84");
-        String _projection = _elevationDataSet.GetProjection();
-        SpatialReference _dst = new SpatialReference(_projection);
-
-        CoordinateTransformation _ct = new CoordinateTransformation(_src, _dst);
-
-        int _count = positions.size();
-
-        for (int i = 0; i < _count; i++) {
-            GeoPoint _position = positions.get(i);
-            double _latitude = _position.getLatitude();
-            double _longitude = _position.getLongitude();
-
-            double[] _xy = _ct.TransformPoint(_longitude, _latitude);
-            int _x = (int) (((_xy[0] - _geoTransformsInDoubles[0]) / _geoTransformsInDoubles[1]));
-            int _y = (int) (((_xy[1] - _geoTransformsInDoubles[3]) / _geoTransformsInDoubles[5]));
-
-            int[] flt = new int[2];
-            int _readResult = _rasterBand.ReadRaster(_x, _y, 1, 1, flt);
-
-            if (_readResult != 0) {
-                _complete = false;
-            }else{
-                _position.setAltitude(_position.getAltitude() + flt[0]);
-            }
-        }
-
-        _dst.delete();
-        _ct.delete();
-        _rasterBand.delete();
-        _elevationDataSet.delete();
-
-        if (!_complete) return -3;          // 일부 좌표에 문제가 있음.
-
-        return 0;
-    }
-
     public int getElevations(List<GeoPoint> points) {
         boolean _complete = true;
         int _result;
@@ -316,7 +261,12 @@ public class GeoManager {
     }
 
     /**
-     * WGS84 좌표계에서 두 지점 사이의 거리
+     *  WGS84 좌표계에서 두 지점 사이의 거리
+     * @param startLatitude : 시작점 위도
+     * @param startLongitude : 시작점 경도
+     * @param endLatitude : 끝점 위도
+     * @param endLongitude : 끝점 경도
+     * @return : 두 지점 사이의 거리(m)
      */
     public double distance(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
         float[] _distance = new float[2];
@@ -348,6 +298,9 @@ public class GeoManager {
 
     /**
      * WGS84 좌표계에서 3개 이상의 점의 면적 계산
+     * @param points : 사용자가 선택한 좌표
+     * @param unit : 반환 단위
+     * @return 다각형의 면적
      */
     public double getAreaFromPoints(List<GeoPoint> points, String unit) {
 
@@ -371,9 +324,72 @@ public class GeoManager {
 
     /**
      * WGS84 좌표계에서 Polygon을 포함하는 경계
+     * @param points : 사용자가 선택한 좌표
+     * @return 다각형을 포함하는 RectD 구조체 반환
      */
     public RectD getPolygonBoundRect(List<GeoPoint> points)
     {
         return new RectD(points);
+    }
+
+
+    /**
+     * 주어진 좌표에서 동서, 남북의 거리에 위치한 좌표 구하기
+     * @param source_point : 주어진 좌표
+     * @param east_west : 동서방향의 거리(동: +, 서: -)
+     * @param north_south : 남북방향의 거리(북 : +, 남 : -)
+     * @return 주어진 좌표에서 동서, 남북의 거리에 위치한 좌표
+     */
+    private GeoPoint getPositionFromDistance(GeoPoint source_point, double east_west, double north_south){
+        double degreesPerMeterForLat = EarthCircumFence/360.0;
+        double shrinkFactor = Math.cos((source_point.getLatitude()*Math.PI/180));
+        double degreesPerMeterForLon = degreesPerMeterForLat * shrinkFactor;
+        double newLat = source_point.getLatitude() + north_south * (1/degreesPerMeterForLat);
+        double newLng = source_point.getLongitude() + east_west * (1/degreesPerMeterForLon);
+        return new GeoPoint(newLat, newLng);
+    }
+
+    /**
+     * 주어진 점들의 경계면의 구획을 나누는 점들을 구하기
+     * @param points : 사용자가 선택한 좌표
+     * @param east_west : 좌우 간격
+     * @param north_south : 상하 간격
+     * @return 주어진 경계면의 구획을 나누는 점들
+     */
+    public List<GeoPoint> getPositionsFromRectD(List<GeoPoint> points, double east_west, double north_south){
+        List<GeoPoint> _points = new ArrayList<GeoPoint>();
+
+        // 동서방향 좌표 (left-top, left-bottm에서 시작해서 right-top, right-bottom 전까지)
+        List<GeoPoint> _boundaries = new RectD(points).getPoints();
+        GeoPoint _left_top = _boundaries.get(0);
+        GeoPoint _right_top = _boundaries.get(1);
+        GeoPoint _right_bottom = _boundaries.get(2);
+        GeoPoint _left_bottom = _boundaries.get(3);
+
+        int i = 1;
+        if(east_west > 0){
+
+            while (true)
+            {
+                // 상단 좌표 구하기
+                GeoPoint _top = getPositionFromDistance(_left_top, east_west*i, 0.0f);
+                // 하단 좌표 구하기
+                GeoPoint _bottom = getPositionFromDistance(_left_bottom, east_west*i, 0.0f);
+
+                if(_top.getLongitude() > _right_top.getLongitude()) break;
+
+                if(i%2 == 1){
+                    _points.add(_top);
+                    _points.add(_bottom);
+                }else{
+                    _points.add(_bottom);
+                    _points.add(_top);
+                }
+
+                i++;
+            }
+        }
+
+        return _points;
     }
 }

@@ -1,13 +1,14 @@
 package kr.go.forest.das.Model;
 
-import android.os.Environment;
-
 import org.osmdroid.util.GeoPoint;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import dji.common.gimbal.Attitude;
 import dji.common.mission.waypoint.Waypoint;
+import dji.common.mission.waypoint.WaypointAction;
+import dji.common.mission.waypoint.WaypointActionType;
 import dji.common.mission.waypoint.WaypointMissionFinishedAction;
 import dji.common.mission.waypoint.WaypointMissionFlightPathMode;
 import dji.common.mission.waypoint.WaypointMissionGotoWaypointMode;
@@ -33,10 +34,8 @@ public class WaypointMission {
 
         // 첫번째 웨이포인트 이동시 안전하게 이동(상승후 이동)
         builder.gotoFirstWaypointMode(WaypointMissionGotoWaypointMode.SAFELY);
-
         builder.finishedAction(WaypointMissionFinishedAction.GO_HOME);
         builder.flightPathMode(WaypointMissionFlightPathMode.NORMAL);
-        builder.gotoFirstWaypointMode(WaypointMissionGotoWaypointMode.POINT_TO_POINT);
         builder.headingMode(WaypointMissionHeadingMode.AUTO);
 
         builder.repeatTimes(0);
@@ -46,12 +45,15 @@ public class WaypointMission {
 
         List<Waypoint> _waypoint_mission = new ArrayList<>();
 
-        for(GeoPoint point : waypoints)
+        for(int i = 0; i < waypoints.size(); i++)
         {
-            float _altitude = (float)point.getAltitude();
-            Waypoint waypoint = new Waypoint(point.getLatitude(), point.getLongitude(), _altitude);
-            //waypoint.addAction(new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 1));
-            //waypoint.addAction(new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 1));
+            GeoPoint _point = waypoints.get(i);
+            float _altitude = (float)_point.getAltitude();
+            Waypoint waypoint = new Waypoint(_point.getLatitude(), _point.getLongitude(), _altitude);
+
+            if(i == 0) {
+                waypoint.addAction(new WaypointAction(WaypointActionType.GIMBAL_PITCH, -90));
+            }
             _waypoint_mission.add(waypoint);
 
             if(max_flight_altitude < _altitude) {

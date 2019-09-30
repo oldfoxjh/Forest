@@ -32,7 +32,7 @@
             android:id="@+id/upload_mission_radio_group_container"
             android:layout_width="@dimen/px590"
             android:layout_below="@+id/upload_mission_title"
-            android:layout_height="@dimen/px158"
+            android:layout_height="@dimen/px168"
             android:layout_marginTop="@dimen/px20"
             android:padding="@dimen/px20"
             >

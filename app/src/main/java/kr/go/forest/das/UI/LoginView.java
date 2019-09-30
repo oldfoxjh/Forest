@@ -93,16 +93,16 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
 //                return;
 //            }
 
-            if(NetworkStatus.isInternetConnected(context))
-            {
+            //if(NetworkStatus.isInternetConnected(context))
+            //{
                 // 로그인 요청
 
                 // 키보드 체크
                 hideSoftInput();
                 DroneApplication.getEventBus().post(menu);
-            }else{
-                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_internet));
-            }
+//            }else{
+//                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_internet));
+//            }
         }
     }
 

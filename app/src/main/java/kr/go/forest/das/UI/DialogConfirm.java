@@ -112,6 +112,8 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
             DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_SET_RETURN_HOME_LOCATION, null));
         }else if(title_id == R.string.max_flight_height_low_title) {
             DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_MAX_FLIGHT_HEIGHT_LOW, null));
+        }else if(title_id == R.string.mission_start_title) {
+            DroneApplication.getDroneInstance().startMission();
         }
     }
 }

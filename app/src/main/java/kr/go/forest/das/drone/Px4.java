@@ -17,7 +17,15 @@ public class Px4 extends Drone{
 
     public DroneInfo getDroneInfo(){return null;};
 
+    /*=============================================================*
+     *  현재 드론 상태를 반환한다.
+     *==============================================================*/
     public int getDroneStatus(){return drone_status;};
+
+    /*=============================================================*
+     *  현재 드론 비행여부를 확인한다.
+     *==============================================================*/
+    public boolean isFlying(){ return false; }
 
     /**
      * 제조사 정보를 반환한다.
@@ -136,6 +144,14 @@ public class Px4 extends Drone{
     @Override
     public String getCameraDisplayName(){
         return  null;
+    }
+
+    /**
+     * 카메라 촬영 모드를 반환한다.
+     * @return SettingsDefinitions.ShootPhotoMode
+     */
+    public SettingsDefinitions.ShootPhotoMode getShootPhotoMode(){
+        return null;
     }
 
     /**
@@ -302,6 +318,11 @@ public class Px4 extends Drone{
     }
 
     /**
+     * 조종기와 연결이 끊어졌을 때의 동작을 설정한다.
+     */
+    public void setConnectionFailSafeBehavior(ConnectionFailSafeBehavior behavior){}
+
+    /**
      * 자동이륙 명령
      */
     public void startTakeoff(){
@@ -401,6 +422,14 @@ public class Px4 extends Drone{
      */
     public String uploadMission(WaypointMission mission){
         return null;
+    }
+
+    /**
+     * 설정된 임무를 시작하기 위한 조건 설정
+     * @param timeIntervalInSeconds : 촬영시간 간격
+     */
+    public void setMissionCondition(int captureCount, int timeIntervalInSeconds){
+
     }
 
     /**

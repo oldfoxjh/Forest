@@ -265,6 +265,8 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                         DroneApplication.getEventBus().post(new ReturnHome(ReturnHome.SET_RETURN_HOME_LOCATION, null));
                     }else if(popup.command == PopupDialog.DIALOG_TYPE_MAX_FLIGHT_HEIGHT_LOW) {
                         DroneApplication.getDroneInstance().setMaxFlightHeight(500);
+                    }else if(popup.command == PopupDialog.DIALOG_TYPE_START_MISSION){
+                        DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_START_SUCCESS, null));
                     }
                 }
             }
@@ -339,6 +341,7 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         public final static int DIALOG_TYPE_SET_RETURN_HOME_LOCATION = 0x20;
         public final static int DIALOG_TYPE_UPLOAD_MISSION = 0x21;
         public final static int DIALOG_TYPE_MAX_FLIGHT_HEIGHT_LOW = 0x22;
+        public final static int DIALOG_TYPE_START_MISSION = 0x23;
 
         public int type;
         public int contentId;
