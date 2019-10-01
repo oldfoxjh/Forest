@@ -41,6 +41,5 @@
     <string name="mission_start_title">임무 시작</string>
     <string name="mission_start_content">임무를 수행합니다. 임무를 중지하려면 자동복귀 버튼을 사용하시기 바랍니다.</string>
     <string name="aircraft_disconnected">드론과의 연결이 끊겼습니다.</string>
-
-
+    <string name="aircraft_disconnect">드론에 연결할 수 없습니다.</string>
 </resources>

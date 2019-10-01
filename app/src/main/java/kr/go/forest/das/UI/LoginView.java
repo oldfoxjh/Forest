@@ -10,6 +10,7 @@ import android.widget.RelativeLayout;
 
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
+import kr.go.forest.das.Model.DeviceInfo;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
 import kr.go.forest.das.network.NetworkStatus;
@@ -26,6 +27,9 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
     private InputMethodManager imm;                 // 입력방법 관리 인스턴스
     private EditText loginIDEditText;               // 텍스트 입력 : ID
     private EditText loginPWEditText;               // 텍스트 입력 : 비밀번호
+
+    private String IMEI = "";
+    private String SN = "";
 
     public LoginView(Context context){
         super(context);
@@ -77,6 +81,10 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
      */
     @Override
     public void onClick(View v) {
+
+        IMEI = DeviceInfo.getIMEI(context);
+        SN = DeviceInfo.getSerialNumber();
+
         if(v.getId() == R.id.loginProcessButton)
         {
             // ID

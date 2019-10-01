@@ -1,9 +1,16 @@
 package kr.go.forest.das.map;
 
+import android.content.Context;
+import android.os.Environment;
 import android.util.Log;
 
+import org.osmdroid.tileprovider.modules.ArchiveFileFactory;
+import org.osmdroid.tileprovider.modules.OfflineTileProvider;
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase;
+import org.osmdroid.tileprovider.util.SimpleRegisterReceiver;
 import org.osmdroid.util.MapTileIndex;
+
+import java.io.File;
 
 public class MapManager {
 
@@ -73,8 +80,7 @@ public class MapManager {
 
     // V-World 비행제한 구역 레이어
     public  OnlineTileSourceBase GetRestrictedAreaSource()
-    {
-        OnlineTileSourceBase _VWorldWMS = new OnlineTileSourceBase("VWorldLayer", 0, 22, 512, "png",
+    { OnlineTileSourceBase _VWorldWMS = new OnlineTileSourceBase("VWorldLayer", 0, 22, 512, "png",
                 new String[0], "VWorldLayer")
         {
             private final double MAP_SIZE = 20037508.34789244 * 2;
@@ -117,8 +123,7 @@ public class MapManager {
     }
 
     // V-World 비행금지 구역 레이어
-    public  OnlineTileSourceBase GetProhibitededAreaSource()
-    {
+    public  OnlineTileSourceBase GetProhibitededAreaSource() {
         OnlineTileSourceBase _VWorldWMS = new OnlineTileSourceBase("VWorldLayer", 0, 22, 512, "png",
                 new String[0], "VWorldLayer")
         {

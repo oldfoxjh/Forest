@@ -27,16 +27,19 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import dji.common.mission.waypoint.Waypoint;
+import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.Model.RectD;
 
 public class GeoManager {
     private static final double WGS84_RADIUS = 6370997.0;
     private static double EarthCircumFence = 2* WGS84_RADIUS * Math.PI;
+    private static int TURNAROUND_DISTANCE = 20;                        // 회전 반경
 
     private static final String LOG_DIRECTORY = "DroneAppService/Flight_Log";
     private static final GeoManager ourInstance = new GeoManager();
@@ -70,7 +73,7 @@ public class GeoManager {
      * @param points : 표고정보를 받아올 좌표
      * @return : 표고값이 반영된 좌표
      */
-    public int getElevations(List<GeoPoint> points) {
+    public int getElevations(List<GeoPoint> points, GeoPoint base) {
         boolean _complete = true;
         int _result;
 
@@ -85,8 +88,6 @@ public class GeoManager {
         if (_elevationDataSet == null) {
             return -2;
         }
-
-        double[] _geoTransformsInDoubles = _elevationDataSet.GetGeoTransform();
         Band _rasterBand = _elevationDataSet.GetRasterBand(1);
 
         SpatialReference _src = new SpatialReference();
@@ -96,21 +97,24 @@ public class GeoManager {
 
         CoordinateTransformation _ct = new CoordinateTransformation(_src, _dst);
 
-        for (GeoPoint point : points) {
-            double _latitude = point.getLatitude();
-            double _longitude = point.getLongitude();
+        // 시작위치 고도 적용
+        int[] base_altitude = new int[2];
+        if (getAltitude(base, _elevationDataSet, _rasterBand, _ct, base_altitude) != 0) {
+            _complete = false;
+        }
 
-            double[] _xy = _ct.TransformPoint(_longitude, _latitude);
-            int _x = (int) (((_xy[0] - _geoTransformsInDoubles[0]) / _geoTransformsInDoubles[1]));
-            int _y = (int) (((_xy[1] - _geoTransformsInDoubles[3]) / _geoTransformsInDoubles[5]));
+        // 각각의 웨이포인트 고도 적용
+        for (int i = 0 ; i < points.size(); i++) {
+            GeoPoint point = points.get(i);
 
-            int[] flt = new int[2];
-            int _readResult = _rasterBand.ReadRaster(_x, _y, 1, 1, flt);
+            int[] altitude = new int[2];
+            int _readResult = getAltitude(point, _elevationDataSet, _rasterBand, _ct, altitude);
 
             if (_readResult != 0) {
                 _complete = false;
             }else{
-                point.setAltitude(point.getAltitude() + flt[0]);
+                point.setAltitude(point.getAltitude() + altitude[0] - base_altitude[0]);
+                LogWrapper.i("GeoManager", String.format("고도(%d) : %f", i, (point.getAltitude() + altitude[0] - base_altitude[0])));
             }
         }
 
@@ -122,6 +126,18 @@ public class GeoManager {
         if (!_complete) return -3;          // 일부 좌표에 문제가 있음.
 
         return 0;
+    }
+
+    private int getAltitude(GeoPoint point, Dataset data_set, Band band, CoordinateTransformation ct, int[] result){
+        double[] _geoTransformsInDoubles = data_set.GetGeoTransform();
+        double _latitude = point.getLatitude();
+        double _longitude = point.getLongitude();
+
+        double[] _xy = ct.TransformPoint(_longitude, _latitude);
+        int _x = (int) (((_xy[0] - _geoTransformsInDoubles[0]) / _geoTransformsInDoubles[1]));
+        int _y = (int) (((_xy[1] - _geoTransformsInDoubles[3]) / _geoTransformsInDoubles[5]));
+
+        return  band.ReadRaster(_x, _y, 1, 1, result);
     }
 
     public int getPositionsFromShapeFile(String filepath, List<GeoPoint> waypoints) {
@@ -282,6 +298,8 @@ public class GeoManager {
 
     /**
      * ,주어진 점들의 거리 계산
+     * @param points 거리를 계산할 위치들
+     * @return 전체거리(m)
      */
     public int getDistanceFromPoints(List<GeoPoint> points) {
 
@@ -351,16 +369,16 @@ public class GeoManager {
 
     /**
      * 주어진 점들의 경계면의 구획을 나누는 점들을 구하기
-     * @param points : 사용자가 선택한 좌표
+     * @param waypoints : 사용자가 선택한 좌표
      * @param east_west : 좌우 간격
      * @param north_south : 상하 간격
      * @return 주어진 경계면의 구획을 나누는 점들
      */
-    public List<GeoPoint> getPositionsFromRectD(List<GeoPoint> points, double east_west, double north_south){
+    public List<GeoPoint> getPositionsFromRectD(List<GeoPoint> waypoints, double east_west, double north_south){
         List<GeoPoint> _points = new ArrayList<GeoPoint>();
 
         // 동서방향 좌표 (left-top, left-bottm에서 시작해서 right-top, right-bottom 전까지)
-        List<GeoPoint> _boundaries = new RectD(points).getPoints();
+        List<GeoPoint> _boundaries = new RectD(waypoints).getPoints();
         GeoPoint _left_top = _boundaries.get(0);
         GeoPoint _right_top = _boundaries.get(1);
         GeoPoint _right_bottom = _boundaries.get(2);
@@ -368,7 +386,6 @@ public class GeoManager {
 
         int i = 1;
         if(east_west > 0){
-
             while (true)
             {
                 // 상단 좌표 구하기
@@ -390,6 +407,111 @@ public class GeoManager {
             }
         }
 
-        return _points;
+        // 비행영역과 촬영영역과 교차하는 지점 찾기
+        List<GeoPoint> _intersects = new ArrayList<GeoPoint>();
+
+        for(i = 0; i < _points.size(); i++){
+            // 비행영역을 지나는 두 점
+            GeoPoint x1 = _points.get(i);
+            GeoPoint x2 = _points.get(++i);
+
+            // 촬영영역을 지나는 두 지점
+            List<GeoPoint> _temp = new ArrayList<>();
+            for(int j = 0; j < waypoints.size() ; j++){
+                GeoPoint x3 = waypoints.get(j);
+                GeoPoint x4;
+                if(j == waypoints.size() - 1){
+                    x4 = waypoints.get(0);
+                }else x4 = waypoints.get(j+1);
+
+                // 교차점
+                GeoPoint _intersect = GeoManager.getInstance().getIntersectPoint(x1.getLongitude(), x1.getLatitude(), x2.getLongitude(), x2.getLatitude()
+                        , x3.getLongitude(), x3.getLatitude(), x4.getLongitude(), x4.getLatitude());
+
+                // 교차지점 추가
+                if(_intersect != null){
+                    // 촬영 버퍼영역 계산
+                    // 비행경로 추가
+                   _temp.add(_intersect);
+                }
+            }
+
+            // 비행경로 순서 : 홀수 일 때 북남 방향, 짝수 일때 남부 방향
+            if(((_intersects.size()/2)%2) == 0){
+                _intersects.add(getPositionFromDistance(getMaxLatitude(_temp), 0, TURNAROUND_DISTANCE));
+                _intersects.add(getPositionFromDistance(getMinLatitude(_temp), 0, -TURNAROUND_DISTANCE));
+            }else{
+                _intersects.add(getPositionFromDistance(getMinLatitude(_temp), 0, -TURNAROUND_DISTANCE));
+                _intersects.add(getPositionFromDistance(getMaxLatitude(_temp), 0, TURNAROUND_DISTANCE));
+            }
+
+            _temp.clear();
+        }
+
+        _points.clear();
+
+        return _intersects;
+    }
+
+    private GeoPoint getMaxLatitude(List<GeoPoint> points){
+        GeoPoint _max = null;
+
+        for(GeoPoint point : points){
+            if(_max == null) _max = point;
+            if(_max.getLatitude() < point.getLatitude()){
+                _max = point;
+            }
+        }
+
+        return _max;
+    }
+
+    private GeoPoint getMinLatitude(List<GeoPoint> points){
+        GeoPoint _min = null;
+
+        for(GeoPoint point : points){
+            if(_min == null) _min = point;
+            if(_min.getLatitude() > point.getLatitude()){
+                _min = point;
+            }
+        }
+
+        return _min;
+    }
+
+    /**
+     * 두 선의 교차점을 구한다.
+     * @param a1_x 첫번째 선에서 지나는 첫번째 좌표의 x
+     * @param a1_y 첫번째 선에서 지나는 첫번째 좌표의 y
+     * @param a2_x 첫번째 선에서 지나는 두번째 좌표의 x
+     * @param a2_y 첫번째 선에서 지나는 두번째 좌표의 y
+     * @param b1_x 두번째 선에서 지나는 첫번째 좌표의 x
+     * @param b1_y 두번째 선에서 지나는 첫번째 좌표의 y
+     * @param b2_x 두번째 선에서 지나는 두번째 좌표의 x
+     * @param b2_y 두번째 선에서 지나는 두번째 좌표의 y
+     * @return 두 선의 교차점
+     */
+    public GeoPoint getIntersectPoint(double a1_x, double a1_y, double a2_x, double a2_y
+                                      , double b1_x, double b1_y, double b2_x, double b2_y){
+
+        double latitude;
+        double longitude;
+
+        double under = (b2_y-b1_y)*(a2_x-a1_x)-(b2_x-b1_x)*(a2_y-a1_y);
+        if(under==0) return null;
+
+        double _t = (b2_x-b1_x)*(a1_y-b1_y) - (b2_y-b1_y)*(a1_x-b1_x);
+        double _s = (a2_x-a1_x)*(a1_y-b1_y) - (a2_y-a1_y)*(a1_x-b1_x);
+
+        double t = _t/under;
+        double s = _s/under;
+
+        if(t<0.0 || t>1.0 || s<0.0 || s>1.0) return null;
+        if(_t==0 && _s==0) return null;
+
+        longitude = a1_x + t * (double)(a2_x-a1_x);
+        latitude = a1_y + t * (double)(a2_y-a1_y);
+
+        return new GeoPoint(latitude, longitude);
     }
 }

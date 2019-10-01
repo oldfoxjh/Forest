@@ -8,9 +8,10 @@ import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.GoHomeExecutionState;
 import dji.common.mission.waypoint.WaypointMission;
 import dji.common.model.LocationCoordinate2D;
+import dji.common.product.Model;
 import dji.sdk.base.BaseProduct;
+import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
-import kr.go.forest.das.Model.StorageInfo;
 
 public class Px4 extends Drone{
     //region 제품정보
@@ -40,7 +41,8 @@ public class Px4 extends Drone{
      * @return
      */
     @Override
-    public void getAircaftModel(){
+    public Model getAircaftModel(){
+        return Model.UNKNOWN_AIRCRAFT;
     }
 
     /**
@@ -80,6 +82,9 @@ public class Px4 extends Drone{
     public void getCameraMode(){
 
     }
+
+    @Override
+    public void getCameraFocalLength(){}
 
     /**
      * 카메라 동작을 설정한다.
@@ -123,7 +128,7 @@ public class Px4 extends Drone{
     }
 
     @Override
-    public StorageInfo getStorageInfo() {
+    public CameraInfo getStorageInfo() {
         return null;
     }
     //endregion
@@ -295,8 +300,8 @@ public class Px4 extends Drone{
      * @return 16:9, 4:3, Unknown
      */
     @Override
-    public SettingsDefinitions.PhotoAspectRatio getPhotoAspectRatio(){
-        return null;
+    public void getPhotoAspectRatio(){
+        return ;
     }
 
     /**

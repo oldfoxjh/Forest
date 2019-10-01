@@ -11,20 +11,18 @@
  */
 package kr.go.forest.das.drone;
 
-import java.util.List;
-
 import dji.common.flightcontroller.BatteryThresholdBehavior;
 import dji.common.flightcontroller.ConnectionFailSafeBehavior;
 import dji.common.flightcontroller.FlightMode;
 import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.GoHomeExecutionState;
-import dji.common.mission.waypoint.Waypoint;
 import dji.common.mission.waypoint.WaypointMission;
 import dji.common.model.LocationCoordinate2D;
+import dji.common.product.Model;
 import dji.sdk.base.BaseProduct;
 import dji.common.camera.SettingsDefinitions;
+import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
-import kr.go.forest.das.Model.StorageInfo;
 
 public abstract class Drone {
 
@@ -85,7 +83,7 @@ public abstract class Drone {
     float heading;
 
     String seral_number = "";
-    String model = "";
+    Model model = Model.UNKNOWN_AIRCRAFT;
 
     /**
      * Gimbal Data
@@ -130,6 +128,8 @@ public abstract class Drone {
     String camera_iso;
     String camera_exposure;
     String camera_whitebalance;
+    float camera_aspect_ratio;
+    float cmos_factor;                      // sensor_width / focal_length
     Boolean camera_ae_lock;
     Boolean is_camera_auto_exposure_unlock_enabled = false;
 
@@ -163,7 +163,7 @@ public abstract class Drone {
      * 드롬 모델명을 반환한다.
      * @return
      */
-    public abstract void getAircaftModel();
+    public abstract Model getAircaftModel();
 
     /**
      * 드론 시리얼번호를 반환한다.
@@ -195,6 +195,11 @@ public abstract class Drone {
     public abstract void getCameraMode();
 
     /**
+     * 카메라 포커스 길이를 설정한다.
+     */
+    public abstract void getCameraFocalLength();
+
+    /**
      * 카메라 동작을 설정한다.
      * @param modeType : SHOOT_PHOTO, RECORD_VIDEO
      */
@@ -223,7 +228,7 @@ public abstract class Drone {
     /**
      * 카메라 동작 설정값을 반환한다.
      */
-    public abstract StorageInfo getStorageInfo();
+    public abstract CameraInfo getStorageInfo();
     //endregion
 
     //region 카메라 정보
@@ -339,7 +344,7 @@ public abstract class Drone {
      * 사진의 종횡비를 반환한다.
      * @return 16:9, 4:3, Unknown
      */
-    public abstract SettingsDefinitions.PhotoAspectRatio getPhotoAspectRatio();
+    public abstract void getPhotoAspectRatio();
 
     /**
      * 사진의 종횡비값을 설정한다.

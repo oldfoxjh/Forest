@@ -37,6 +37,7 @@ import dji.common.mission.waypoint.WaypointMissionDownloadEvent;
 import dji.common.mission.waypoint.WaypointMissionExecutionEvent;
 import dji.common.mission.waypoint.WaypointMissionState;
 import dji.common.mission.waypoint.WaypointMissionUploadEvent;
+import dji.common.product.Model;
 import dji.common.remotecontroller.GPSData;
 import 	dji.common.remotecontroller.HardwareState;
 import dji.common.model.LocationCoordinate2D;
@@ -57,8 +58,8 @@ import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MainActivity;
+import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
-import kr.go.forest.das.Model.StorageInfo;
 import kr.go.forest.das.R;
 
 import static dji.common.camera.SettingsDefinitions.ShutterSpeed;
@@ -134,23 +135,13 @@ public class DJI extends Drone{
      * @return
      */
     @Override
-    public void getAircaftModel(){
+    public Model getAircaftModel(){
         BaseProduct _product = DJISDKManager.getInstance().getProduct();
         if (_product != null && _product.isConnected()) {
-            if (_product instanceof Aircraft) {
-                _product.getName(new CommonCallbacks.CompletionCallbackWith<String>() {
-                    @Override
-                    public void onSuccess(String s) {
-                        model = s;
-                    }
-
-                    @Override
-                    public void onFailure(DJIError djiError) {
-                        // Error
-                    }
-                });
-            }
+                return  _product.getModel();
         }
+
+        return Model.UNKNOWN_AIRCRAFT;
     }
 
     /**
@@ -164,6 +155,7 @@ public class DJI extends Drone{
             flight_controller.getSerialNumber(new CommonCallbacks.CompletionCallbackWith<String>() {
                 @Override
                 public void onSuccess(String s) {
+                    LogWrapper.i(TAG, "SN : " + s);
                     seral_number = s;
                 }
 
@@ -295,6 +287,37 @@ public class DJI extends Drone{
         }
     }
 
+    @Override
+    public void getCameraFocalLength(){
+        Model m = getAircaftModel();
+
+        BaseProduct _product = DJISDKManager.getInstance().getProduct();
+        if (_product != null && _product.isConnected()) {
+            if(_product.getCamera().isDigitalZoomSupported()){
+                _product.getCamera().getOpticalZoomFocalLength(new CommonCallbacks.CompletionCallbackWith<Integer>() {
+                    @Override
+                    public void onSuccess(Integer integer) {
+                        LogWrapper.i(TAG, "getOpticalZoomFocalLength : " + integer);
+                        cmos_factor = (float)(17.3*10/integer);
+                    }
+
+                    @Override
+                    public void onFailure(DJIError djiError) {
+                        LogWrapper.i(TAG, "getOpticalZoomFocalLength : " + djiError.getDescription());
+                    }
+                });
+            }else{
+                if(m == Model.MAVIC_AIR || m == Model.PHANTOM_4 || m == Model.Spark || m == Model.MAVIC_2 || m == Model.MAVIC_PRO){
+                    cmos_factor = (float)(6.17/3.57);
+                    LogWrapper.i(TAG, "cmos_factor : 6.17");
+                }else{
+                    cmos_factor = (float)(13.2/8.8);
+                    LogWrapper.i(TAG, "cmos_factor : 13.2");
+                }
+            }
+        }
+    }
+
     /**
      * 카메라 동작을 설정한다.
      * @param mode : SHOOT_PHOTO, RECORD_VIDEO
@@ -388,8 +411,8 @@ public class DJI extends Drone{
      * 카메라 및 저장장치의 정보값을 얻는다.
      */
     @Override
-    public StorageInfo getStorageInfo() {
-        StorageInfo _storage_info = new StorageInfo();
+    public CameraInfo getStorageInfo() {
+        CameraInfo _storage_info = new CameraInfo();
         _storage_info.video_resolution_framerate = video_resolution_framerate;
         _storage_info.capture_count = capture_count;
         _storage_info.photo_file_format = photo_file_format;
@@ -403,6 +426,8 @@ public class DJI extends Drone{
         _storage_info.camera_whitebalance = camera_whitebalance;
         _storage_info.camera_ae_lock = camera_ae_lock;
         _storage_info.is_camera_auto_exposure_unlock_enabled = is_camera_auto_exposure_unlock_enabled;
+        _storage_info.camera_aspect_ratio = camera_aspect_ratio;
+        _storage_info.cmos_factor = cmos_factor;
 
         return _storage_info;
     }
@@ -734,8 +759,27 @@ public class DJI extends Drone{
      * @return 16:9, 4:3, Unknown
      */
     @Override
-    public SettingsDefinitions.PhotoAspectRatio getPhotoAspectRatio(){
-        return null;
+    public void getPhotoAspectRatio(){
+        BaseProduct _product = DJISDKManager.getInstance().getProduct();
+        if (_product != null && _product.isConnected()) {
+            _product.getCamera()
+                    .getPhotoAspectRatio(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.PhotoAspectRatio>() {
+
+                        @Override
+                        public void onSuccess(SettingsDefinitions.PhotoAspectRatio ratio) {
+                            camera_aspect_ratio = (ratio == SettingsDefinitions.PhotoAspectRatio.RATIO_4_3) ? 0.75f
+                                                  : (ratio == SettingsDefinitions.PhotoAspectRatio.RATIO_16_9) ? 0.5625f
+                                                  : (ratio == SettingsDefinitions.PhotoAspectRatio.RATIO_3_2) ? 0.6667f : 0.0f;
+
+                            LogWrapper.i(TAG, "getPhotoAspectRatio : %f" + camera_aspect_ratio);
+                        }
+
+                        @Override
+                        public void onFailure(DJIError djiError) {
+                            LogWrapper.i(TAG, "getPhotoAspectRatio : " + djiError.getDescription());
+                        }
+                    });
+        }
     }
 
     /**
@@ -746,6 +790,8 @@ public class DJI extends Drone{
     public void setPhotoAspectRatio(SettingsDefinitions.PhotoAspectRatio photoAspectRatioType){
 
     }
+
+
     //endregion
 
     //region 드론 비행 정보
@@ -1202,9 +1248,10 @@ public class DJI extends Drone{
         public void onProductConnect(BaseProduct product) {
             if(DroneApplication.getDroneInstance() == null) DroneApplication.setDroneInstance(Drone.DRONE_MANUFACTURE_DJI);
 
-            if (!DroneApplication.getDroneInstance().setDroneDataListener()) {
-                DroneApplication.getDroneInstance().getAircaftModel();
-                DroneApplication.getDroneInstance().getSerialNumber();
+            if (DroneApplication.getDroneInstance().setDroneDataListener()) {
+                DroneApplication.getDroneInstance().getAircaftModel();          // 드론 모델정보 설정
+                DroneApplication.getDroneInstance().getSerialNumber();          // 드론 시리얼정보 설정
+                DroneApplication.getDroneInstance().getCameraFocalLength();     // 드론 카메라 GSD factor 설정
             }
             DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_CONNECT));
         }

@@ -45,12 +45,8 @@ import dji.common.model.LocationCoordinate2D;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MainActivity;
-import kr.go.forest.das.Model.DroneInfo;
-import kr.go.forest.das.Model.StorageInfo;
 import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Drone;
-import kr.go.forest.das.geo.GeoManager;
-import kr.go.forest.das.map.MapLayer;
 
 import static kr.go.forest.das.map.MapManager.VWorldStreet;
 

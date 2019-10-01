@@ -19,11 +19,11 @@ public class WaypointMission {
     private dji.common.mission.waypoint.WaypointMission waypoint_mission;
     public float max_flight_altitude = 0.0f;
 
-    public WaypointMission(List<GeoPoint> waypoints, float flight_speed){
-        createMission(waypoints, flight_speed);
+    public WaypointMission(List<GeoPoint> waypoints, GeoPoint base_point, float flight_speed){
+        createDJIMission(waypoints, base_point, flight_speed);
     }
 
-    private void createMission(List<GeoPoint> waypoints, float flight_speed){
+    private void createDJIMission(List<GeoPoint> waypoints, GeoPoint base_point, float flight_speed){
         dji.common.mission.waypoint.WaypointMission.Builder builder = new dji.common.mission.waypoint.WaypointMission.Builder();
 
         builder.autoFlightSpeed(flight_speed);
@@ -41,7 +41,7 @@ public class WaypointMission {
         builder.repeatTimes(0);
 
         // 3D 정보 반영
-        GeoManager.getInstance().getElevations(waypoints);
+        GeoManager.getInstance().getElevations(waypoints, base_point);
 
         List<Waypoint> _waypoint_mission = new ArrayList<>();
 
@@ -65,7 +65,7 @@ public class WaypointMission {
         waypoint_mission =  builder.build();
     }
 
-    public dji.common.mission.waypoint.WaypointMission getMission(){
+    public dji.common.mission.waypoint.WaypointMission getDJIMission(){
         return waypoint_mission;
     }
 }

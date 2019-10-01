@@ -67,8 +67,8 @@ import dji.ux.widget.FPVWidget;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MainActivity;
+import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
-import kr.go.forest.das.Model.StorageInfo;
 import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.geo.GeoManager;
@@ -746,7 +746,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             handler_ui.post(new Runnable() {
                 @Override
                 public void run() {
-                    StorageInfo _info = DroneApplication.getDroneInstance().getStorageInfo();
+                    CameraInfo _info = DroneApplication.getDroneInstance().getStorageInfo();
 
                     if(_info.camera_iso != null) tv_iso.setText(_info.camera_iso);
                     if(_info.camera_shutter != null) tv_shutter.setText(_info.camera_shutter);
