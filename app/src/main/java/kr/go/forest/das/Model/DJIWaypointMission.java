@@ -15,11 +15,11 @@ import dji.common.mission.waypoint.WaypointMissionGotoWaypointMode;
 import dji.common.mission.waypoint.WaypointMissionHeadingMode;
 import kr.go.forest.das.geo.GeoManager;
 
-public class WaypointMission {
+public class DJIWaypointMission {
     private dji.common.mission.waypoint.WaypointMission waypoint_mission;
     public float max_flight_altitude = 0.0f;
 
-    public WaypointMission(List<GeoPoint> waypoints, GeoPoint base_point, float flight_speed){
+    public DJIWaypointMission(List<GeoPoint> waypoints, GeoPoint base_point, float flight_speed){
         createDJIMission(waypoints, base_point, flight_speed);
     }
 

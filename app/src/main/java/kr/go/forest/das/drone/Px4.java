@@ -1,5 +1,8 @@
 package kr.go.forest.das.drone;
 
+import com.comino.mav.control.IMAVController;
+import com.comino.mav.control.impl.MAVSerialController;
+
 import dji.common.camera.SettingsDefinitions;
 import dji.common.flightcontroller.BatteryThresholdBehavior;
 import dji.common.flightcontroller.ConnectionFailSafeBehavior;
@@ -14,6 +17,13 @@ import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
 
 public class Px4 extends Drone{
+    private static IMAVController control = null;
+
+    public Px4()
+    {
+        control = new MAVSerialController();
+    }
+
     //region 제품정보
 
     public DroneInfo getDroneInfo(){return null;};

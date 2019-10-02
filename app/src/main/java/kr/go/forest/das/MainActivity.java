@@ -38,6 +38,7 @@ import kr.go.forest.das.UI.DialogLoadShape;
 import kr.go.forest.das.UI.DialogOk;
 import kr.go.forest.das.UI.DialogUploadMission;
 import kr.go.forest.das.drone.Drone;
+import kr.go.forest.das.drone.Px4;
 
 import static kr.go.forest.das.drone.DJI.registrationCallback;
 
@@ -80,6 +81,8 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         contentFrameLayout = (FrameLayout) findViewById(R.id.framelayout_content);
+
+        Px4 _t = new Px4();
         initParams();
     }
 

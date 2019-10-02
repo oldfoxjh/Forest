@@ -63,13 +63,14 @@
                 android:text="미션정보"/>
 
             <TextView
+                android:id="@+id/textview_mission_info"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/px8"
                 android:textSize="@dimen/px14"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
-                android:text="-"/>
+                android:text=""/>
         </LinearLayout>
 
         <LinearLayout

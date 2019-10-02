@@ -70,8 +70,8 @@ public class GeoManager {
 
     /**
      * 표고(Elevation) 정보를 DEM 파일에서 검색하여 가져온다.
-     * @param points : 표고정보를 받아올 좌표
-     * @return : 표고값이 반영된 좌표
+     * @param points 표고정보를 받아올 좌표목록
+     * @return 표고값이 반영된 좌표 목록
      */
     public int getElevations(List<GeoPoint> points, GeoPoint base) {
         boolean _complete = true;
@@ -128,6 +128,15 @@ public class GeoManager {
         return 0;
     }
 
+    /**
+     * 표고(Elevation) 정보를 DEM 파일에서 검색하여 가져온다.
+     * @param point 표고정보를 받아올 좌표
+     * @param data_set
+     * @param band
+     * @param ct
+     * @param result 표고값
+     * @return
+     */
     private int getAltitude(GeoPoint point, Dataset data_set, Band band, CoordinateTransformation ct, int[] result){
         double[] _geoTransformsInDoubles = data_set.GetGeoTransform();
         double _latitude = point.getLatitude();
@@ -140,6 +149,12 @@ public class GeoManager {
         return  band.ReadRaster(_x, _y, 1, 1, result);
     }
 
+    /**
+     * Shape 파일로 부터 좌표정보를 가져온다
+     * @param filepath Shape 파일이 있는 위치
+     * @param waypoints 좌표정보가 들어가 있는 목록
+     * @return 성공여부
+     */
     public int getPositionsFromShapeFile(String filepath, List<GeoPoint> waypoints) {
         ArrayList<GeoPoint> _return = new ArrayList<GeoPoint>();
 
@@ -191,7 +206,10 @@ public class GeoManager {
     }
 
     /**
-     * 생성된 좌표를 Shape 파일로 변환
+     *  생성된 좌표를 Shape 파일로 변환
+     * @param file_name 저장할 파일명
+     * @param positions 저장할 좌표 목록
+     * @return 성공여부
      */
     public int saveShapeFile(String file_name, List<GeoPoint> positions) {
 
@@ -259,11 +277,6 @@ public class GeoManager {
         }
 
         return 0;
-    }
-
-    public String makeWKT(ArrayList<GeoPoint> points)
-    {
-        return  null;
     }
 
     /**
@@ -358,7 +371,7 @@ public class GeoManager {
      * @param north_south : 남북방향의 거리(북 : +, 남 : -)
      * @return 주어진 좌표에서 동서, 남북의 거리에 위치한 좌표
      */
-    private GeoPoint getPositionFromDistance(GeoPoint source_point, double east_west, double north_south){
+    public GeoPoint getPositionFromDistance(GeoPoint source_point, double east_west, double north_south){
         double degreesPerMeterForLat = EarthCircumFence/360.0;
         double shrinkFactor = Math.cos((source_point.getLatitude()*Math.PI/180));
         double degreesPerMeterForLon = degreesPerMeterForLat * shrinkFactor;
@@ -453,6 +466,11 @@ public class GeoManager {
         return _intersects;
     }
 
+    /**
+     * 주어진 점들에서 위도가 가장 큰 좌표 구하기
+     * @param points 좌표 목록
+     * @return 위도가 가장 큰 좌표
+     */
     private GeoPoint getMaxLatitude(List<GeoPoint> points){
         GeoPoint _max = null;
 
@@ -466,6 +484,11 @@ public class GeoManager {
         return _max;
     }
 
+    /**
+     * 주어진 점들에서 경도가 가장 큰 좌표 구하기
+     * @param points 좌표
+     * @return 경도가 가장 큰 좌표
+     */
     private GeoPoint getMinLatitude(List<GeoPoint> points){
         GeoPoint _min = null;
 
