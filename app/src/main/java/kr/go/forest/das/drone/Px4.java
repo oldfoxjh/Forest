@@ -1,16 +1,5 @@
 package kr.go.forest.das.drone;
 
-import com.comino.mav.control.IMAVController;
-import com.comino.mav.control.impl.MAVSerialController;
-import com.comino.msp.execution.control.listener.IMAVLinkListener;
-import com.comino.msp.execution.control.listener.IMAVMessageListener;
-import com.comino.msp.model.DataModel;
-import com.comino.msp.model.segment.LogMessage;
-import com.comino.msp.utils.linux.LinuxUtils;
-
-import org.mavlink.messages.MAVLinkMessage;
-import org.mavlink.messages.lquac.msg_msp_micro_grid;
-import org.mavlink.messages.lquac.msg_msp_status;
 
 import dji.common.camera.SettingsDefinitions;
 import dji.common.flightcontroller.BatteryThresholdBehavior;
@@ -22,36 +11,13 @@ import dji.common.mission.waypoint.WaypointMission;
 import dji.common.model.LocationCoordinate2D;
 import dji.common.product.Model;
 import dji.sdk.base.BaseProduct;
-import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
 
-public class Px4 extends Drone implements Runnable{
-    private static IMAVController control = null;
-    private DataModel model = null;
+public class Px4 extends Drone {
 
     public Px4()
     {
-        control = new MAVSerialController();
-        model = control.getCurrentModel();
-
-        Thread worker = new Thread(this);
-        worker.start();
-
-        control.addMAVLinkListener(new IMAVLinkListener() {
-            @Override
-            public void received(Object o) {
-                MAVLinkMessage cmd = (MAVLinkMessage)o;
-                LogWrapper.i("MAVLink", "cmd : " + cmd);
-            }
-        });
-
-        control.addMAVMessageListener(new IMAVMessageListener() {
-            @Override
-            public void messageReceived(LogMessage currentMessage) {
-                LogWrapper.i("MAVLink", "LogMessage : " + currentMessage);
-            }
-        });
     }
 
     //region 제품정보
@@ -539,65 +505,6 @@ public class Px4 extends Drone implements Runnable{
     @Override
     public void setGimbalRotate(float pitch){
 
-    }
-
-    @Override
-    public void run() {
-        // TODO Auto-generated method stub
-
-        long tms = System.currentTimeMillis();
-
-        msg_msp_micro_grid grid = new msg_msp_micro_grid(2,1);
-        msg_msp_status msg = new msg_msp_status(2,1);
-
-        while(true) {
-            try {
-
-                if(!control.isConnected()) {
-                    Thread.sleep(200);
-                    control.connect();
-                    continue;
-                }
-
-                while(model.grid.hasTransfers()) {
-                    grid.resolution = 0;
-                    grid.extension  = 0;
-                    grid.cx  = model.grid.getIndicatorX();
-                    grid.cy  = model.grid.getIndicatorY();
-                    grid.tms  = model.sys.getSynchronizedPX4Time_us();
-                    grid.count = model.grid.count;
-                    if(model.grid.toArray(grid.data)) {
-                        control.sendMAVLinkMessage(grid);
-                    }
-                }
-
-
-                Thread.sleep(50);
-
-                if((System.currentTimeMillis()-tms) < 500)
-                    continue;
-
-                tms = System.currentTimeMillis();
-
-                msg.load = LinuxUtils.getProcessCpuLoad();
-                msg.autopilot_mode =control.getCurrentModel().sys.autopilot;
-               // msg.memory = (int)(mxBean.getHeapMemoryUsage().getUsed() * 100 /mxBean.getHeapMemoryUsage().getMax());
-                msg.com_error = control.getErrorCount();
-                msg.uptime_ms = System.currentTimeMillis() - tms;
-                msg.status = control.getCurrentModel().sys.getStatus();
-            //    msg.setVersion(config.getVersion());
-            //    msg.setArch(osBean.getArch());
-                msg.cpu_temp = 27;
-                msg.unix_time_us = control.getCurrentModel().sys.getSynchronizedPX4Time_us();
-                msg.wifi_quality = 100;
-                control.sendMAVLinkMessage(msg);
-
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                control.close();
-            }
-        }
     }
     //endregion
 }
