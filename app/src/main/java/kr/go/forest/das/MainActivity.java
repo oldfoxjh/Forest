@@ -82,7 +82,6 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
 
         contentFrameLayout = (FrameLayout) findViewById(R.id.framelayout_content);
 
-        Px4 _t = new Px4();
         initParams();
     }
 

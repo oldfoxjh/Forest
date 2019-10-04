@@ -39,7 +39,6 @@ import kr.go.forest.das.Model.RectD;
 public class GeoManager {
     private static final double WGS84_RADIUS = 6370997.0;
     private static double EarthCircumFence = 2* WGS84_RADIUS * Math.PI;
-    private static int TURNAROUND_DISTANCE = 20;                        // 회전 반경
 
     private static final String LOG_DIRECTORY = "DroneAppService/Flight_Log";
     private static final GeoManager ourInstance = new GeoManager();
@@ -380,83 +379,179 @@ public class GeoManager {
         return new GeoPoint(newLat, newLng);
     }
 
-    /**
-     * 주어진 점들의 경계면의 구획을 나누는 점들을 구하기
-     * @param waypoints : 사용자가 선택한 좌표
-     * @param east_west : 좌우 간격
-     * @param north_south : 상하 간격
-     * @return 주어진 경계면의 구획을 나누는 점들
-     */
-    public List<GeoPoint> getPositionsFromRectD(List<GeoPoint> waypoints, double east_west, double north_south){
-        List<GeoPoint> _points = new ArrayList<GeoPoint>();
+    private List<GeoPoint> getLines(List<GeoPoint> rect, double overlap, int degree){
+        List<GeoPoint> _result = new ArrayList<>();
 
-        // 동서방향 좌표 (left-top, left-bottm에서 시작해서 right-top, right-bottom 전까지)
-        List<GeoPoint> _boundaries = new RectD(waypoints).getPoints();
-        GeoPoint _left_top = _boundaries.get(0);
-        GeoPoint _right_top = _boundaries.get(1);
-        GeoPoint _right_bottom = _boundaries.get(2);
-        GeoPoint _left_bottom = _boundaries.get(3);
+        double _height = distance(rect.get(0).getLatitude(), rect.get(0).getLongitude(), rect.get(3).getLatitude(), rect.get(3).getLongitude());
+        double _width = distance(rect.get(0).getLatitude(), rect.get(0).getLongitude(), rect.get(1).getLatitude(), rect.get(1).getLongitude());
+        int count = (_height > _width) ? (int)(_height/overlap)*2 : (int)(_width/overlap)*2;
+        double _sin = Math.sin(Math.toRadians(degree));
+        double _cos = Math.cos(Math.toRadians(degree));
+        double ew_factor = overlap*_cos;
+        double ns_factor = overlap*_sin;
 
-        int i = 1;
-        if(east_west > 0){
-            while (true)
-            {
-                // 상단 좌표 구하기
-                GeoPoint _top = getPositionFromDistance(_left_top, east_west*i, 0.0f);
-                // 하단 좌표 구하기
-                GeoPoint _bottom = getPositionFromDistance(_left_bottom, east_west*i, 0.0f);
+        GeoPoint x1;
+        GeoPoint x2;
 
-                if(_top.getLongitude() > _right_top.getLongitude()) break;
+        x1 = getPositionFromDistance(rect.get(1), -Math.max(_height, _width)*2*_sin, -Math.max(_height, _width)*2*_cos);
+        x2 = getPositionFromDistance(rect.get(1), Math.max(_height, _width)*2*_sin, Math.max(_height, _width)*2*_cos);
 
-                if(i%2 == 1){
-                    _points.add(_top);
-                    _points.add(_bottom);
-                }else{
-                    _points.add(_bottom);
-                    _points.add(_top);
+        GeoPoint top;
+        GeoPoint bottom;
+        GeoPoint _intersect;
+
+        for(int i = -count; i < count ; i++){
+            top = getPositionFromDistance(x2, -ew_factor*i, ns_factor*i);
+            bottom = getPositionFromDistance(x1, -ew_factor*i, ns_factor*i);
+            // 경계선과 교차점 찾기
+            _intersect = getIntersectPoint(top.getLongitude(), top.getLatitude(), bottom.getLongitude(), bottom.getLatitude()
+                    , rect.get(1).getLongitude(), rect.get(1).getLatitude(), rect.get(3).getLongitude(), rect.get(3).getLatitude());
+            if(_intersect == null) {
+                _intersect = getIntersectPoint(top.getLongitude(), top.getLatitude(), bottom.getLongitude(), bottom.getLatitude()
+                        , rect.get(0).getLongitude(), rect.get(0).getLatitude(), rect.get(2).getLongitude(), rect.get(2).getLatitude());
+            }
+
+            if(_intersect != null ){
+                if (Math.abs(i % 2) == 1) {
+                    _result.add(top);
+                    _result.add(bottom);
+                } else {
+                    _result.add(bottom);
+                    _result.add(top);
                 }
-
-                i++;
             }
         }
+
+        return _result;
+    }
+    /**
+     * 비행경로와 촬영영역과 교차하는 지점 찾기
+     * @param x1    비행경로 첫번째 좌표
+     * @param x2    비행경로 두번째 좌표
+     * @param waypoints 촬영영역 좌표
+     * @return
+     */
+    private List<GeoPoint> getIntersects(GeoPoint x1, GeoPoint x2, List<GeoPoint> waypoints) {
+        List<GeoPoint> _result = new ArrayList<>();
+        for(int j = 0; j < waypoints.size() ; j++){
+            GeoPoint x3 = waypoints.get(j);
+            GeoPoint x4;
+            if(j == waypoints.size() - 1){
+                x4 = waypoints.get(0);
+            }else x4 = waypoints.get(j+1);
+
+            // 교차점
+            GeoPoint _intersect = getIntersectPoint(x1.getLongitude(), x1.getLatitude(), x2.getLongitude(), x2.getLatitude()
+                    , x3.getLongitude(), x3.getLatitude(), x4.getLongitude(), x4.getLatitude());
+
+            // 교차지점 추가
+            if(_intersect != null){
+                // 비행경로 추가
+                _result.add(_intersect);
+            }
+        }
+
+        return _result;
+    }
+
+    /**
+     * 주어진 점들의 경계면의 구획을 나누는 점들을 구하기
+     * @param waypoints 사용자가 선택한 좌표
+     * @param overlap 좌우 간격
+     * @param degree 회전
+     * @return 주어진 경계면의 구획을 나누는 점들
+     */
+    public List<GeoPoint> getPositionsFromRectD(List<GeoPoint> waypoints, double overlap, int degree){
+        List<GeoPoint> _points = getLines(new RectD(waypoints).getPoints(), overlap, degree);
 
         // 비행영역과 촬영영역과 교차하는 지점 찾기
         List<GeoPoint> _intersects = new ArrayList<GeoPoint>();
 
-        for(i = 0; i < _points.size(); i++){
+        for(int i = 0; i < _points.size(); i++){
             // 비행영역을 지나는 두 점
             GeoPoint x1 = _points.get(i);
             GeoPoint x2 = _points.get(++i);
 
             // 촬영영역을 지나는 두 지점
-            List<GeoPoint> _temp = new ArrayList<>();
-            for(int j = 0; j < waypoints.size() ; j++){
-                GeoPoint x3 = waypoints.get(j);
-                GeoPoint x4;
-                if(j == waypoints.size() - 1){
-                    x4 = waypoints.get(0);
-                }else x4 = waypoints.get(j+1);
+            List<GeoPoint> _temp = getIntersects(x1, x2, waypoints);
 
-                // 교차점
-                GeoPoint _intersect = GeoManager.getInstance().getIntersectPoint(x1.getLongitude(), x1.getLatitude(), x2.getLongitude(), x2.getLatitude()
-                        , x3.getLongitude(), x3.getLatitude(), x4.getLongitude(), x4.getLatitude());
+            // 교차점이 없을 경우 처리
+            if(_temp.size() < 1) continue;
 
-                // 교차지점 추가
-                if(_intersect != null){
-                    // 촬영 버퍼영역 계산
-                    // 비행경로 추가
-                   _temp.add(_intersect);
+            // 비행경로 순서
+//            int _degree = degree%90;
+//            double _radian = Math.toRadians(_degree);
+//            double _sin = Math.sin(_radian);
+//            double _cos = Math.cos(_radian);
+
+//            if(degree < 90){
+//                if(((_intersects.size()/2)%2) == 0){
+//                    _intersects.add(getPositionFromDistance(getMaxLatitude(_temp), _sin*TURNAROUND_DISTANCE, _cos*TURNAROUND_DISTANCE));
+//                    _intersects.add(getPositionFromDistance(getMinLatitude(_temp), -_sin*TURNAROUND_DISTANCE, -_cos*TURNAROUND_DISTANCE));
+//                }else{
+//                    _intersects.add(getPositionFromDistance(getMinLatitude(_temp), -_sin*TURNAROUND_DISTANCE, -_cos*TURNAROUND_DISTANCE));
+//                    _intersects.add(getPositionFromDistance(getMaxLatitude(_temp), _sin*TURNAROUND_DISTANCE, _cos*TURNAROUND_DISTANCE));
+//                }
+//            }else if(degree > 269) {
+//                if(((_intersects.size()/2)%2) == 0){
+//                    _intersects.add(getPositionFromDistance(getMaxLongitude(_temp), _cos*TURNAROUND_DISTANCE, -_sin*TURNAROUND_DISTANCE));
+//                    _intersects.add(getPositionFromDistance(getMinLongitude(_temp), -_cos*TURNAROUND_DISTANCE, _sin*TURNAROUND_DISTANCE));
+//                }else{
+//                    _intersects.add(getPositionFromDistance(getMinLongitude(_temp), -_cos*TURNAROUND_DISTANCE, _sin*TURNAROUND_DISTANCE));
+//                    _intersects.add(getPositionFromDistance(getMaxLongitude(_temp), _cos*TURNAROUND_DISTANCE, -_sin*TURNAROUND_DISTANCE));
+//                }
+//            }else if(degree < 179){
+//                if(((_intersects.size()/2)%2) == 0){
+//                    _intersects.add(getPositionFromDistance(getMaxLongitude(_temp), _cos*TURNAROUND_DISTANCE, -_sin*TURNAROUND_DISTANCE));
+//                    _intersects.add(getPositionFromDistance(getMinLongitude(_temp), -_cos*TURNAROUND_DISTANCE, _sin*TURNAROUND_DISTANCE));
+//                }else{
+//                    _intersects.add(getPositionFromDistance(getMinLongitude(_temp), -_cos*TURNAROUND_DISTANCE, _sin*TURNAROUND_DISTANCE));
+//                    _intersects.add(getPositionFromDistance(getMaxLongitude(_temp), _cos*TURNAROUND_DISTANCE, -_sin*TURNAROUND_DISTANCE));
+//                }
+//            }else{
+//                if(((_intersects.size()/2)%2) == 0){
+//                    _intersects.add(getPositionFromDistance(getMaxLatitude(_temp), _sin*TURNAROUND_DISTANCE, _cos*TURNAROUND_DISTANCE));
+//                    _intersects.add(getPositionFromDistance(getMinLatitude(_temp), -_sin*TURNAROUND_DISTANCE, -_cos*TURNAROUND_DISTANCE));
+//                }else{
+//                    _intersects.add(getPositionFromDistance(getMinLatitude(_temp), -_sin*TURNAROUND_DISTANCE, -_cos*TURNAROUND_DISTANCE));
+//                    _intersects.add(getPositionFromDistance(getMaxLatitude(_temp), _sin*TURNAROUND_DISTANCE, _cos*TURNAROUND_DISTANCE));
+//                }
+//            }
+
+            if(degree < 90){
+                if(((_intersects.size()/2)%2) == 0){
+                    _intersects.add(getPositionFromDistance(getMaxLatitude(_temp), 0, 0));
+                    _intersects.add(getPositionFromDistance(getMinLatitude(_temp), 0, 0));
+                }else{
+                    _intersects.add(getPositionFromDistance(getMinLatitude(_temp), 0, 0));
+                    _intersects.add(getPositionFromDistance(getMaxLatitude(_temp), 0, 0));
+                }
+            }else if(degree > 269) {
+                if(((_intersects.size()/2)%2) == 0){
+                    _intersects.add(getPositionFromDistance(getMaxLongitude(_temp), 0, 0));
+                    _intersects.add(getPositionFromDistance(getMinLongitude(_temp), 0, 0));
+                }else{
+                    _intersects.add(getPositionFromDistance(getMinLongitude(_temp), 0, 0));
+                    _intersects.add(getPositionFromDistance(getMaxLongitude(_temp), 0, 0));
+                }
+            }else if(degree < 179){
+                if(((_intersects.size()/2)%2) == 0){
+                    _intersects.add(getPositionFromDistance(getMaxLongitude(_temp), 0, 0));
+                    _intersects.add(getPositionFromDistance(getMinLongitude(_temp), 0, 0));
+                }else{
+                    _intersects.add(getPositionFromDistance(getMinLongitude(_temp), 0, 0));
+                    _intersects.add(getPositionFromDistance(getMaxLongitude(_temp), 0, 0));
+                }
+            }else{
+                if(((_intersects.size()/2)%2) == 0){
+                    _intersects.add(getPositionFromDistance(getMaxLatitude(_temp), 0, 0));
+                    _intersects.add(getPositionFromDistance(getMinLatitude(_temp), 0, 0));
+                }else{
+                    _intersects.add(getPositionFromDistance(getMinLatitude(_temp), 0, 0));
+                    _intersects.add(getPositionFromDistance(getMaxLatitude(_temp), 0, 0));
                 }
             }
 
-            // 비행경로 순서 : 홀수 일 때 북남 방향, 짝수 일때 남부 방향
-            if(((_intersects.size()/2)%2) == 0){
-                _intersects.add(getPositionFromDistance(getMaxLatitude(_temp), 0, TURNAROUND_DISTANCE));
-                _intersects.add(getPositionFromDistance(getMinLatitude(_temp), 0, -TURNAROUND_DISTANCE));
-            }else{
-                _intersects.add(getPositionFromDistance(getMinLatitude(_temp), 0, -TURNAROUND_DISTANCE));
-                _intersects.add(getPositionFromDistance(getMaxLatitude(_temp), 0, TURNAROUND_DISTANCE));
-            }
 
             _temp.clear();
         }
@@ -485,7 +580,7 @@ public class GeoManager {
     }
 
     /**
-     * 주어진 점들에서 경도가 가장 큰 좌표 구하기
+     * 주어진 점들에서 위도가 가장 작은 좌표 구하기
      * @param points 좌표
      * @return 경도가 가장 큰 좌표
      */
@@ -495,6 +590,42 @@ public class GeoManager {
         for(GeoPoint point : points){
             if(_min == null) _min = point;
             if(_min.getLatitude() > point.getLatitude()){
+                _min = point;
+            }
+        }
+
+        return _min;
+    }
+
+    /**
+     * 주어진 점들에서 경도가 가장 큰 좌표 구하기
+     * @param points 좌표 목록
+     * @return 위도가 가장 큰 좌표
+     */
+    private GeoPoint getMaxLongitude(List<GeoPoint> points){
+        GeoPoint _max = null;
+
+        for(GeoPoint point : points){
+            if(_max == null) _max = point;
+            if(_max.getLongitude() < point.getLongitude()){
+                _max = point;
+            }
+        }
+
+        return _max;
+    }
+
+    /**
+     * 주어진 점들에서 경도가 가장 작은 좌표 구하기
+     * @param points 좌표
+     * @return 경도가 가장 큰 좌표
+     */
+    private GeoPoint getMinLongitude(List<GeoPoint> points){
+        GeoPoint _min = null;
+
+        for(GeoPoint point : points){
+            if(_min == null) _min = point;
+            if(_min.getLongitude() > point.getLongitude()){
                 _min = point;
             }
         }

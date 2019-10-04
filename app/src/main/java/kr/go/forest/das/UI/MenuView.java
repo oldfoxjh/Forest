@@ -11,6 +11,7 @@ import android.widget.RelativeLayout;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
+import kr.go.forest.das.drone.Px4;
 
 public class MenuView extends RelativeLayout implements View.OnClickListener {
 
