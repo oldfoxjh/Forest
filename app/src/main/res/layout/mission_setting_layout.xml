@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:layout_width="@dimen/px330"
-    android:layout_height="@dimen/px664"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:clickable="true"
     android:background="@drawable/mission_bg">
 
@@ -135,7 +135,6 @@
                 android:layout_width="@dimen/px28"
                 android:layout_height="@dimen/px22"
                 android:background="@mipmap/ico_mission_1"/>
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/px22"
@@ -152,14 +151,13 @@
                 android:textColor="#ffffff"
                 android:textStyle="bold"
                 android:text=""/>
-
             <SeekBar
                 android:id="@+id/seekbar_mission_flight_speed"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px26"
-                android:paddingStart="@dimen/px14"
-                android:paddingEnd="@dimen/px14"
+                android:layout_marginTop="@dimen/px32"
+                android:paddingStart="@dimen/px18"
+                android:paddingEnd="@dimen/px18"
                 android:splitTrack="false"
                 android:maxHeight="@dimen/px4"
                 android:thumb="@mipmap/setting_handle"
@@ -199,9 +197,9 @@
                 android:id="@+id/seekbar_mission_angle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px26"
-                android:paddingStart="@dimen/px14"
-                android:paddingEnd="@dimen/px14"
+                android:layout_marginTop="@dimen/px32"
+                android:paddingStart="@dimen/px18"
+                android:paddingEnd="@dimen/px18"
                 android:splitTrack="false"
                 android:maxHeight="@dimen/px4"
                 android:thumb="@mipmap/setting_handle"
@@ -241,13 +239,13 @@
                 android:id="@+id/seekbar_mission_flight_altitude"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px26"
-                android:paddingStart="@dimen/px14"
-                android:paddingEnd="@dimen/px14"
+                android:layout_marginTop="@dimen/px32"
+                android:paddingStart="@dimen/px18"
+                android:paddingEnd="@dimen/px18"
                 android:splitTrack="false"
                 android:maxHeight="@dimen/px4"
                 android:thumb="@mipmap/setting_handle"
-                android:min="0"
+                android:min="10"
                 android:max="450"
                 android:progressDrawable="@drawable/setting_progress"/>
         </RelativeLayout>
@@ -283,13 +281,13 @@
                 android:id="@+id/seekbar_mission_overlap"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px26"
-                android:paddingStart="@dimen/px14"
-                android:paddingEnd="@dimen/px14"
+                android:layout_marginTop="@dimen/px32"
+                android:paddingStart="@dimen/px18"
+                android:paddingEnd="@dimen/px18"
                 android:splitTrack="false"
                 android:maxHeight="@dimen/px4"
                 android:thumb="@mipmap/setting_handle"
-                android:min="0"
+                android:min="10"
                 android:max="85"
                 android:progressDrawable="@drawable/setting_progress"/>
         </RelativeLayout>
@@ -325,13 +323,13 @@
                 android:id="@+id/seekbar_mission_sidelap"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px26"
-                android:paddingStart="@dimen/px14"
-                android:paddingEnd="@dimen/px14"
+                android:layout_marginTop="@dimen/px32"
+                android:paddingStart="@dimen/px18"
+                android:paddingEnd="@dimen/px18"
                 android:splitTrack="false"
                 android:maxHeight="@dimen/px4"
                 android:thumb="@mipmap/setting_handle"
-                android:min="0"
+                android:min="10"
                 android:max="85"
                 android:progressDrawable="@drawable/setting_progress"/>
         </RelativeLayout>

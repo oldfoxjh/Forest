@@ -11,11 +11,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.hardware.usb.UsbManager;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -25,42 +22,20 @@ import android.widget.FrameLayout;
 
 import com.squareup.otto.Subscribe;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
 import dji.common.camera.SettingsDefinitions;
 import dji.sdk.sdkmanager.DJISDKManager;
-import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.UI.DialogConfirm;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.UI.DialogLoadShape;
 import kr.go.forest.das.UI.DialogOk;
 import kr.go.forest.das.UI.DialogUploadMission;
-import kr.go.forest.das.drone.Drone;
-import kr.go.forest.das.drone.Px4;
-
-import static kr.go.forest.das.drone.DJI.registrationCallback;
 
 public class MainActivity extends AppCompatActivity implements  LocationListener //UsbStatus.UsbStatusCallbacks,
 {
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final String[] REQUIRED_PERMISSION_LIST = new String[] {
-            Manifest.permission.VIBRATE,
-            Manifest.permission.INTERNET,
-            Manifest.permission.ACCESS_WIFI_STATE,
-            Manifest.permission.WAKE_LOCK,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.CHANGE_WIFI_STATE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.READ_PHONE_STATE
-    };
-
-    private static final int REQUEST_PERMISSION_CODE = 12345;
-    private List<String> missingPermission = new ArrayList<>();
 
     private Stack<ViewWrapper> stack;
     private FrameLayout contentFrameLayout;
@@ -76,12 +51,10 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
 
         DroneApplication.getEventBus().register(this);
         setContentView(R.layout.activity_main);
-
-        checkAndRequestPermissions();
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         contentFrameLayout = (FrameLayout) findViewById(R.id.framelayout_content);
-
+        setLocationManager();
         initParams();
     }
 
@@ -97,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
 
     private void initParams() {
         setupInAnimations();
-
         stack = new Stack<ViewWrapper>();
         View view = contentFrameLayout.getChildAt(0);
         stack.push(new ViewWrapper(view, true));
@@ -117,48 +89,7 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         popOutTransition.setDuration(popOutAnimator.getDuration());
     }
 
-    //region 퍼미션 획득
-    private void checkAndRequestPermissions() {
-        // Check for permissions
-        for (String eachPermission : REQUIRED_PERMISSION_LIST) {
-            if (ContextCompat.checkSelfPermission(this, eachPermission) != PackageManager.PERMISSION_GRANTED) {
-                missingPermission.add(eachPermission);
-            }
-        }
-        // Request for missing permissions
-        if (missingPermission.isEmpty()) {
-            setLocationManager();
-            // DJI SDK 등록
-            startSDKRegistration();
-        }else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && missingPermission.size() > 0) {
-            ActivityCompat.requestPermissions(this,
-                    missingPermission.toArray(new String[missingPermission.size()]),
-                    REQUEST_PERMISSION_CODE);
-        }
-    }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        // Check for granted permission and remove from missing list
-        if (requestCode == REQUEST_PERMISSION_CODE) {
-            for (int i = grantResults.length - 1; i >= 0; i--) {
-                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                    missingPermission.remove(permissions[i]);
-                }
-            }
-        }
-        // If there is enough permission, we will start the registration
-        if (!missingPermission.isEmpty()) {
-            LogWrapper.i(TAG, "Missing permissions!!!");
-        }else{
-            setLocationManager();
-            // DJI SDK 등록
-            startSDKRegistration();
-        }
-    }
 //region 위치 관리
     private  void setLocationManager()
     {
@@ -479,16 +410,4 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         }
     }
     //endregion
-
-    //region DJI SDK
-    private void startSDKRegistration() {
-        AsyncTask.execute(new Runnable() {
-            @Override
-            public void run() {
-                DJISDKManager.getInstance().registerApp(MainActivity.this, registrationCallback);
-            }
-        });
-    }
-    //endregion
-
 }

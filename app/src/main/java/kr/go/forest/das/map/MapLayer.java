@@ -112,24 +112,24 @@ public class MapLayer {
     public BitmapDrawable writeOnDrawable(Context context, String text, int drawableId) {
         Bitmap bm = BitmapFactory.decodeResource(context.getResources(), drawableId).copy(Bitmap.Config.ARGB_8888, true);
 
-        Paint paint = new Paint();
-        paint.setStyle(Paint.Style.FILL);
+        if(text != null){
+            Paint paint = new Paint();
+            paint.setStyle(Paint.Style.FILL);
 
-        if(drawableId == R.drawable.waypoint_s) {
-            paint.setColor(Color.WHITE);
-        }else{
-            paint.setColor(Color.BLACK);
+            if(drawableId == R.drawable.waypoint_s) {
+                paint.setColor(Color.WHITE);
+            }else{
+                paint.setColor(Color.BLACK);
+            }
+
+            int textSize = context.getResources().getDimensionPixelSize(R.dimen.mission_font);
+            paint.setTextSize(textSize);
+            Rect bounds = new Rect();
+            paint.getTextBounds(text, 0, text.length(), bounds);
+
+            Canvas canvas = new Canvas(bm);
+            canvas.drawText(text, bm.getWidth()/2- bounds.right/2 - (text.equals("1") ? 2 : 0), bm.getHeight()/2-bounds.top/2, paint);
         }
-
-        int textSize = context.getResources().getDimensionPixelSize(R.dimen.mission_font);
-        paint.setTextSize(textSize);
-
-        Rect bounds = new Rect();
-        paint.getTextBounds(text, 0, text.length(), bounds);
-
-        Canvas canvas = new Canvas(bm);
-        canvas.drawText(text, bm.getWidth()/2- bounds.right/2 - (text.equals("1") ? 2 : 0), bm.getHeight()/2-bounds.top/2, paint);
-
 
         return new BitmapDrawable(context.getResources(), bm);
     }

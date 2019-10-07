@@ -429,6 +429,11 @@ public class Px4 extends Drone {
     }
 
     /**
+     * 임무 시작이 가능한지 체크
+     */
+    public boolean isMissionStartAvailable(){ return true;}
+
+    /**
      * 설정된 임무를 드론에 업로드
      */
     public String uploadMission(WaypointMission mission){

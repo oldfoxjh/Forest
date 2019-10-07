@@ -965,6 +965,14 @@ public class DJI extends Drone{
     }
 
     /**
+     * 임무 시작이 가능한지 체크
+     */
+    public boolean isMissionStartAvailable(){
+        if(ready_start_mission < 0) return false;
+        return true;
+    }
+
+    /**
      * 설정된 임무를 드론에 업로드
      */
     public String uploadMission(WaypointMission mission){
@@ -1219,7 +1227,6 @@ public class DJI extends Drone{
      * DJI SDK 등록
      */
     public static DJISDKManager.SDKManagerCallback registrationCallback = new DJISDKManager.SDKManagerCallback() {
-
         /**
          * DJI API 등록 이벤트
          */

@@ -429,6 +429,11 @@ public abstract class Drone {
     public abstract boolean isMissionUploadAvailable();
 
     /**
+     * 임무 시작이 가능한지 체크
+     */
+    public abstract boolean isMissionStartAvailable();
+
+    /**
      * 설정된 임무를 드론에 업로드
      */
     public abstract String uploadMission(WaypointMission mission);

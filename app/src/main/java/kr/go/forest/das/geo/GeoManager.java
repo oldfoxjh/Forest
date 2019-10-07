@@ -68,8 +68,9 @@ public class GeoManager {
     }
 
     /**
-     * 표고(Elevation) 정보를 DEM 파일에서 검색하여 가져온다.
+     * 표고(Elevation) 정보를 DEM 파일에서 검색하여 가져온다. 이 때 이륙지점 표고를 base(0m)로 한다.
      * @param points 표고정보를 받아올 좌표목록
+     * @param base 드론 이륙지점
      * @return 표고값이 반영된 좌표 목록
      */
     public int getElevations(List<GeoPoint> points, GeoPoint base) {

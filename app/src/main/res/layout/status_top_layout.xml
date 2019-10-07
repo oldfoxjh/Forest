@@ -5,20 +5,21 @@
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/px60"
+    android:layout_height="@dimen/px80"
+    android:clickable="true"
     tools:context=".MainActivity">
 
     <ImageView
         android:id="@+id/missionDisconnected"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/px60"
+        android:layout_height="@dimen/px80"
         android:background="@mipmap/top_bg_discon"
         android:visibility="invisible"/>
 
     <RelativeLayout
         android:id="@+id/missionConnected"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/px60"
+        android:layout_height="@dimen/px80"
         android:background="@mipmap/top_bg_discon">
 
         <kr.go.forest.das.UI.CustomPreFlightStatusWidget
@@ -31,9 +32,9 @@
         <LinearLayout
             android:layout_alignParentRight="true"
             android:layout_width="wrap_content"
-            android:layout_height="@dimen/px60"
-            android:layout_marginRight="@dimen/px516"
-            android:layout_marginTop="@dimen/px6"
+            android:layout_height="@dimen/px80"
+            android:layout_marginRight="@dimen/px530"
+            android:layout_marginTop="@dimen/px16"
             android:orientation="horizontal">
             <dji.ux.widget.FlightModeWidget
                 android:layout_width="118.45dp"
@@ -43,7 +44,8 @@
         <LinearLayout
             android:layout_alignParentRight="true"
             android:layout_width="wrap_content"
-            android:layout_height="@dimen/px60"
+            android:layout_height="@dimen/px80"
+            android:layout_marginTop="@dimen/px10"
             android:layout_marginRight="@dimen/px520"
             android:orientation="horizontal">
             <dji.ux.widget.GPSSignalWidget
@@ -54,7 +56,8 @@
         <LinearLayout
             android:layout_alignParentRight="true"
             android:layout_width="wrap_content"
-            android:layout_height="@dimen/px60"
+            android:layout_height="@dimen/px80"
+            android:layout_marginTop="@dimen/px10"
             android:layout_marginRight="@dimen/px440"
             android:orientation="horizontal">
             <dji.ux.widget.RemoteControlSignalWidget
@@ -65,7 +68,8 @@
         <LinearLayout
             android:layout_alignParentRight="true"
             android:layout_width="wrap_content"
-            android:layout_height="@dimen/px60"
+            android:layout_height="@dimen/px80"
+            android:layout_marginTop="@dimen/px10"
             android:layout_marginRight="@dimen/px344"
             android:orientation="horizontal">
             <dji.ux.widget.VideoSignalWidget
@@ -77,8 +81,8 @@
             android:layout_alignParentRight="true"
             android:layout_marginRight="@dimen/px220"
             android:layout_width="wrap_content"
-            android:layout_height="@dimen/px60"
-            android:layout_marginTop="@dimen/px6"
+            android:layout_height="@dimen/px80"
+            android:layout_marginTop="@dimen/px16"
             android:orientation="horizontal">
             <dji.ux.widget.BatteryWidget
                 android:layout_width="@dimen/px112"
@@ -87,8 +91,8 @@
         </LinearLayout>
         <Button
             android:id="@+id/btn_mission_upload"
-            android:layout_width="@dimen/px34"
-            android:layout_height="@dimen/px34"
+            android:layout_width="@dimen/px80"
+            android:layout_height="@dimen/px80"
             android:layout_marginRight="@dimen/px26"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
@@ -96,8 +100,8 @@
             />
         <Button
             android:id="@+id/btn_mission_start"
-            android:layout_width="@dimen/px34"
-            android:layout_height="@dimen/px34"
+            android:layout_width="@dimen/px80"
+            android:layout_height="@dimen/px80"
             android:layout_marginRight="@dimen/px26"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
@@ -108,10 +112,10 @@
 
     <Button
         android:id="@+id/btn_mission_back"
-        android:layout_width="@dimen/px34"
-        android:layout_height="@dimen/px34"
+        android:layout_width="@dimen/px80"
+        android:layout_height="@dimen/px80"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="@dimen/px26"
+        android:layout_marginLeft="@dimen/px16"
         android:background="@drawable/btn_pre_selector"
         />
 </RelativeLayout>

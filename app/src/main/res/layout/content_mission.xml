@@ -15,28 +15,29 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/missionTop"
-        android:layout_marginTop="@dimen/px12"
+        android:layout_marginTop="@dimen/px16"
         android:layout_alignParentRight="true"
+        android:clickable="true"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/btn_mission_location"
-            android:layout_width="@dimen/px54"
-            android:layout_height="@dimen/px54"
+            android:layout_width="@dimen/px64"
+            android:layout_height="@dimen/px64"
             android:layout_marginRight="@dimen/px22"
             android:background="@drawable/btn_location_selector"/>
 
         <Button
             android:id="@+id/btn_load_shape"
-            android:layout_width="@dimen/px54"
-            android:layout_height="@dimen/px54"
+            android:layout_width="@dimen/px64"
+            android:layout_height="@dimen/px64"
             android:layout_marginRight="@dimen/px22"
             android:background="@drawable/btn_open_selector"/>
 
         <Button
             android:id="@+id/btn_new_course"
-            android:layout_width="@dimen/px54"
-            android:layout_height="@dimen/px54"
+            android:layout_width="@dimen/px64"
+            android:layout_height="@dimen/px64"
             android:layout_marginRight="@dimen/px22"
             android:background="@drawable/btn_course_selector"/>
 
@@ -51,7 +52,7 @@
         layout="@layout/mission_setting_layout"
         android:id="@+id/missionSetting"
         android:layout_width="@dimen/px330"
-        android:layout_height="@dimen/px664"
+        android:layout_height="@dimen/px644"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"/>
 </RelativeLayout>

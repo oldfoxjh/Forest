@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="@dimen/px330"
+    android:layout_height="@dimen/px664"
+    android:clickable="true"
+    android:background="@drawable/mission_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/px22"
+        android:layout_marginLeft="@dimen/px20"
+        android:layout_marginRight="@dimen/px20"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/px14"
+                android:textColor="#a5a5a5"
+                android:text="영역 면적"/>
+
+            <TextView
+                android:id="@+id/mission_area"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px8"
+                android:textSize="@dimen/px14"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:text="-"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px16"
+                android:textSize="@dimen/px14"
+                android:textColor="#a5a5a5"
+                android:text="촬영간격(거리)"/>
+
+            <TextView
+                android:id="@+id/textview_mission_lap_distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px8"
+                android:textSize="@dimen/px14"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:text="-"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px16"
+                android:textSize="@dimen/px14"
+                android:textColor="#a5a5a5"
+                android:text="미션정보"/>
+
+            <TextView
+                android:id="@+id/textview_mission_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px8"
+                android:textSize="@dimen/px14"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:text=""/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingLeft="@dimen/px10"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/px14"
+                android:textColor="#a5a5a5"
+                android:text="미션 거리/총 거리"/>
+
+            <TextView
+                android:id="@+id/mission_distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px8"
+                android:textSize="@dimen/px14"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:text="-"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px16"
+                android:textSize="@dimen/px14"
+                android:textColor="#a5a5a5"
+                android:text="촬영간격(시간)"/>
+
+            <TextView
+                android:id="@+id/textview_mission_shoot_interval"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px8"
+                android:textSize="@dimen/px14"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:text="-"/>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/px20"
+        android:layout_marginRight="@dimen/px20"
+        android:layout_marginBottom="@dimen/px22"
+        android:layout_marginTop="@dimen/px22"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:layout_width="@dimen/px28"
+                android:layout_height="@dimen/px22"
+                android:background="@mipmap/ico_mission_1"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/px22"
+                android:layout_marginLeft="@dimen/px36"
+                android:textSize="@dimen/px16"
+                android:textColor="#a5a5a5"
+                android:text="비행속도"/>
+            <TextView
+                android:id="@+id/textview_mission_flight_speed"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/px22"
+                android:layout_alignParentRight="true"
+                android:textSize="@dimen/px16"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:text=""/>
+
+            <SeekBar
+                android:id="@+id/seekbar_mission_flight_speed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px26"
+                android:paddingStart="@dimen/px14"
+                android:paddingEnd="@dimen/px14"
+                android:splitTrack="false"
+                android:maxHeight="@dimen/px4"
+                android:thumb="@mipmap/setting_handle"
+                android:min="10"
+                android:max="200"
+                android:progressDrawable="@drawable/setting_progress"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/px18">
+
+            <ImageView
+                android:layout_width="@dimen/px28"
+                android:layout_height="@dimen/px22"
+                android:background="@mipmap/ico_mission_2"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/px22"
+                android:layout_marginLeft="@dimen/px36"
+                android:textSize="@dimen/px16"
+                android:textColor="#a5a5a5"
+                android:text="영역회전"/>
+            <TextView
+                android:id="@+id/textview_mission_angle"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/px22"
+                android:layout_alignParentRight="true"
+                android:textSize="@dimen/px16"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:text="0°"/>
+
+            <SeekBar
+                android:id="@+id/seekbar_mission_angle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px26"
+                android:paddingStart="@dimen/px14"
+                android:paddingEnd="@dimen/px14"
+                android:splitTrack="false"
+                android:maxHeight="@dimen/px4"
+                android:thumb="@mipmap/setting_handle"
+                android:min="0"
+                android:max="359"
+                android:progressDrawable="@drawable/setting_progress"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/px18">
+
+            <ImageView
+                android:layout_width="@dimen/px28"
+                android:layout_height="@dimen/px22"
+                android:background="@mipmap/ico_mission_3"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/px22"
+                android:layout_marginLeft="@dimen/px36"
+                android:textSize="@dimen/px16"
+                android:textColor="#a5a5a5"
+                android:text="비행고도"/>
+            <TextView
+                android:id="@+id/textview_mission_flight_altitude"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/px22"
+                android:layout_alignParentRight="true"
+                android:textSize="@dimen/px16"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:text=""/>
+
+            <SeekBar
+                android:id="@+id/seekbar_mission_flight_altitude"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px26"
+                android:paddingStart="@dimen/px14"
+                android:paddingEnd="@dimen/px14"
+                android:splitTrack="false"
+                android:maxHeight="@dimen/px4"
+                android:thumb="@mipmap/setting_handle"
+                android:min="0"
+                android:max="450"
+                android:progressDrawable="@drawable/setting_progress"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/px18">
+
+            <ImageView
+                android:layout_width="@dimen/px28"
+                android:layout_height="@dimen/px22"
+                android:background="@mipmap/ico_mission_5"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/px22"
+                android:layout_marginLeft="@dimen/px36"
+                android:textSize="@dimen/px16"
+                android:textColor="#a5a5a5"
+                android:text="종중복도"/>
+            <TextView
+                android:id="@+id/textview_mission_overlap"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/px22"
+                android:layout_alignParentRight="true"
+                android:textSize="@dimen/px16"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:text="60%"/>
+
+            <SeekBar
+                android:id="@+id/seekbar_mission_overlap"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px26"
+                android:paddingStart="@dimen/px14"
+                android:paddingEnd="@dimen/px14"
+                android:splitTrack="false"
+                android:maxHeight="@dimen/px4"
+                android:thumb="@mipmap/setting_handle"
+                android:min="0"
+                android:max="85"
+                android:progressDrawable="@drawable/setting_progress"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/px18">
+
+            <ImageView
+                android:layout_width="@dimen/px28"
+                android:layout_height="@dimen/px22"
+                android:background="@mipmap/ico_mission_5"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/px22"
+                android:layout_marginLeft="@dimen/px36"
+                android:textSize="@dimen/px16"
+                android:textColor="#a5a5a5"
+                android:text="횡중복도"/>
+            <TextView
+                android:id="@+id/textview_mission_sidelap"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/px22"
+                android:layout_alignParentRight="true"
+                android:textSize="@dimen/px16"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:text="60%"/>
+
+            <SeekBar
+                android:id="@+id/seekbar_mission_sidelap"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px26"
+                android:paddingStart="@dimen/px14"
+                android:paddingEnd="@dimen/px14"
+                android:splitTrack="false"
+                android:maxHeight="@dimen/px4"
+                android:thumb="@mipmap/setting_handle"
+                android:min="0"
+                android:max="85"
+                android:progressDrawable="@drawable/setting_progress"/>
+        </RelativeLayout>
+    </LinearLayout>
+
+
+</LinearLayout>

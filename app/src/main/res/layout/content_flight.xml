@@ -432,29 +432,29 @@
 
         <Button
             android:id="@+id/btn_flight_location"
-            android:layout_width="@dimen/px54"
-            android:layout_height="@dimen/px54"
+            android:layout_width="@dimen/px76"
+            android:layout_height="@dimen/px76"
             android:layout_marginRight="@dimen/px22"
             android:background="@drawable/btn_location_selector"/>
 
         <Button
             android:id="@+id/btn_flight_nofly"
-            android:layout_width="@dimen/px54"
-            android:layout_height="@dimen/px54"
+            android:layout_width="@dimen/px76"
+            android:layout_height="@dimen/px76"
             android:layout_marginRight="@dimen/px22"
             android:background="@drawable/btn_nofly_selector"/>
 
         <Button
             android:id="@+id/btn_flight_fires"
-            android:layout_width="@dimen/px54"
-            android:layout_height="@dimen/px54"
+            android:layout_width="@dimen/px76"
+            android:layout_height="@dimen/px76"
             android:layout_marginRight="@dimen/px22"
             android:background="@drawable/btn_fires_selector"/>
 
         <Button
             android:id="@+id/btn_flight_save_path"
-            android:layout_width="@dimen/px54"
-            android:layout_height="@dimen/px54"
+            android:layout_width="@dimen/px76"
+            android:layout_height="@dimen/px76"
             android:layout_marginRight="@dimen/px22"
             android:background="@drawable/btn_save_selector"/>
     </LinearLayout>

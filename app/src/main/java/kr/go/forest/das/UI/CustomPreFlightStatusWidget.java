@@ -66,7 +66,7 @@ public class CustomPreFlightStatusWidget extends dji.ux.widget.PreFlightStatusWi
     protected void onDraw(Canvas canvas) {
         Rect bounds = new Rect();
         status_paint.getTextBounds(drone_status, 0, drone_status.length(), bounds);
-        canvas.drawText(drone_status, 26, height + bounds.top + bounds.bottom, status_paint);
+        canvas.drawText(drone_status, 26, 65, status_paint);
     }
 
     /** Called when connection status changes */

@@ -23,7 +23,6 @@ import static android.content.Context.INPUT_METHOD_SERVICE;
 public class LoginView extends RelativeLayout implements View.OnClickListener {
     private Context context;
     private Button mBtnLogin;                       // 로그인 요청 버튼
-    private ViewWrapper menu;                       // 메뉴화면 View 인스턴스
     private InputMethodManager imm;                 // 입력방법 관리 인스턴스
     private EditText loginIDEditText;               // 텍스트 입력 : ID
     private EditText loginPWEditText;               // 텍스트 입력 : 비밀번호
@@ -48,8 +47,6 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
     protected void onFinishInflate() {
         super.onFinishInflate();
         initUI();
-
-        menu = new ViewWrapper(new MenuView(context), true);
     }
 
     @Override
@@ -107,7 +104,8 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
 
                 // 키보드 체크
                 hideSoftInput();
-                DroneApplication.getEventBus().post(menu);
+                DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), true));
+               // DroneApplication.getEventBus().post(new ViewWrapper(new PixhawkMissionView(context), true));
 //            }else{
 //                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_internet));
 //            }
