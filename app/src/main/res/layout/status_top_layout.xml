@@ -34,10 +34,10 @@
             android:layout_width="wrap_content"
             android:layout_height="@dimen/px80"
             android:layout_marginRight="@dimen/px530"
-            android:layout_marginTop="@dimen/px16"
+            android:layout_marginTop="@dimen/px14"
             android:orientation="horizontal">
             <dji.ux.widget.FlightModeWidget
-                android:layout_width="118.45dp"
+                android:layout_width="@dimen/dji236"
                 android:layout_height="@dimen/dji50"/>
         </LinearLayout>
 
@@ -115,7 +115,7 @@
         android:layout_width="@dimen/px80"
         android:layout_height="@dimen/px80"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="@dimen/px16"
+        android:layout_marginLeft="@dimen/top16"
         android:background="@drawable/btn_pre_selector"
         />
 </RelativeLayout>

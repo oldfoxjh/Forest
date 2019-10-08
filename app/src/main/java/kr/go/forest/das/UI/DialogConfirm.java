@@ -64,18 +64,22 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
             || title_id == R.string.return_home_title
             || title_id == R.string.return_home_cancel_title
             || title_id == R.string.set_home_location_title
-            || title_id == R.string.landing_cancel_title
             || title_id == R.string.max_flight_height_low_title
+            || title_id == R.string.mission_start_title                 // 확인
         ){
             TextView _title = (TextView) findViewById(R.id.dialog_confirm_title);
             _title.setText(title_id);
             _title.setVisibility(VISIBLE);
 
-            if(title_id == R.string.takeoff_title || title_id == R.string.max_flight_height_low_title)  _params.height += 150;
-            else if(title_id == R.string.landing_title || title_id == R.string.return_home_title)  _params.height += 200;
-        }else if(content_id == R.string.clear_mission || content_id == R.string.max_flight_height_low) {
-            _params.height += 50;
-        }
+            if(title_id == R.string.takeoff_title
+                    || title_id == R.string.mission_start_title)  _params.height += 120;
+            else if(title_id == R.string.landing_title
+                    || title_id == R.string.max_flight_height_low_title)  _params.height += 180;
+            else if(title_id == R.string.return_home_title
+                    || title_id == R.string.set_home_location_title)  _params.height += 200;
+        }else if(content_id == R.string.clear_mission
+                || content_id == R.string.max_flight_height_low
+                || content_id == R.string.landing_cancel_title) _params.height += 50;
 
         mBtnYes = (Button)findViewById(R.id.btn_dialog_confirm_yes);
         mBtnYes.setOnClickListener(this);

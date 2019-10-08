@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="mission_font">14dp</dimen>
-    <dimen name="status_font">16dp</dimen>
-    <dimen name="radio_font">6dp</dimen>
+    <dimen name="entry_font">10dp</dimen>
+
 </resources>

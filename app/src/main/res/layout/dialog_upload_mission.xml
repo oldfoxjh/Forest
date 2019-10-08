@@ -24,7 +24,7 @@
             android:layout_marginTop="@dimen/px40"
             android:gravity="center"
             android:textAlignment="center"
-            android:textSize="46px"
+            android:textSize="@dimen/font42"
             android:textFontWeight=""
             android:textColor="#000"
             android:text="신호가 끊겼을 때 동작 선택" />
@@ -51,7 +51,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textAlignment="center"
-            android:textSize="32px"
+            android:textSize="@dimen/font24"
             android:textColor="#000"
             android:text="임무 생성 및 전송에 시간이 걸릴 수 있습니다." />
         <LinearLayout
@@ -66,7 +66,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="0.5"
                 android:text="확인"
-                android:textSize="34px"
+                android:textSize="@dimen/font34"
                 android:textAlignment="center"
                 android:background="#555"
                 android:textColor="#FFF"
@@ -77,7 +77,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="0.5"
                 android:text="취소"
-                android:textSize="34px"
+                android:textSize="@dimen/font34"
                 android:textAlignment="center"
                 android:background="#555"
                 android:textColor="#FFF"

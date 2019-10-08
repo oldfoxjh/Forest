@@ -514,7 +514,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                 break;
             case R.id.btn_flight_cancel:
                 if(btn_flight_cancel.getTag().equals("landing")){
-                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.landing_cancel_title, 0));
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, 0, R.string.landing_cancel_title));
                 }else if(btn_flight_cancel.getTag().equals("rtl")){
                     DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.return_home_cancel_title, 0));
                 }

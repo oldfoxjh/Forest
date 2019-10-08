@@ -8,6 +8,7 @@
     <dimen name="px12">6dp</dimen>
     <dimen name="px14">7dp</dimen>
     <dimen name="px16">8dp</dimen>
+    <dimen name="top16">8dp</dimen>
     <dimen name="px18">9dp</dimen>
     <dimen name="px20">10dp</dimen>
     <dimen name="px22">11dp</dimen>
@@ -26,6 +27,7 @@
     <dimen name="px44">22dp</dimen>
     <dimen name="px46">23dp</dimen>
     <dimen name="px50">25dp</dimen>
+    <dimen name="px52">26dp</dimen>
     <dimen name="px54">27dp</dimen>
     <dimen name="px56">28dp</dimen>
     <dimen name="px60">30dp</dimen>
@@ -90,4 +92,11 @@
     <dimen name="dji50">25.3dp</dimen>
     <dimen name="dji86">43.7dp</dimen>
     <dimen name="dji100">50.6dp</dimen>
+    <dimen name="dji236">118.45dp</dimen>
+    <dimen name="status_font">16dp</dimen>
+    <dimen name="radio_font">6dp</dimen>
+    <dimen name="font24">12dp</dimen>
+    <dimen name="font28">14dp</dimen>
+    <dimen name="font34">17dp</dimen>
+    <dimen name="font42">21dp</dimen>
 </resources>

@@ -51,12 +51,13 @@ public class DialogOk extends RelativeLayout implements View.OnClickListener{
         LayoutParams _params = (LayoutParams)_layout.getLayoutParams();
 
         if(contentId == R.string.check_login_info
-           || contentId == R.string.check_internet
-           || contentId == R.string.save_fail
-           || contentId == R.string.check_drone_connection
-           || msg != null
+            || contentId == R.string.check_internet
+            || contentId == R.string.save_fail
+            || contentId == R.string.check_drone_connection
+            || contentId == R.string.max_flight_height_success
+            || msg != null
         ) {
-            _params.height += 50;
+            _params.height += 46;
         }
 
         mBtnOk = (Button)findViewById(R.id.btn_dialog_ok);

@@ -29,6 +29,7 @@ import dji.common.camera.SettingsDefinitions;
 import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.UI.DialogConfirm;
 import kr.go.forest.das.Model.ViewWrapper;
+import kr.go.forest.das.UI.DialogLoadMission;
 import kr.go.forest.das.UI.DialogLoadShape;
 import kr.go.forest.das.UI.DialogOk;
 import kr.go.forest.das.UI.DialogUploadMission;
@@ -158,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_SHAPE) {
                     wrapper = new ViewWrapper(new DialogLoadShape(MainActivity.this), false);
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_MISSION) {
-                    wrapper = new ViewWrapper(new DialogConfirm(MainActivity.this, 0, popup.contentId), false);
+                    wrapper = new ViewWrapper(new DialogLoadMission(MainActivity.this), false);
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_UPLOAD_MISSION){
                     wrapper = new ViewWrapper(new DialogUploadMission(MainActivity.this), false);
                 }

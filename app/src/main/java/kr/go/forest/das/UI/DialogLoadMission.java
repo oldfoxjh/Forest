@@ -49,7 +49,7 @@ public class DialogLoadMission extends RelativeLayout implements View.OnClickLis
     protected void initUI(){
         //초기화
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Service.LAYOUT_INFLATER_SERVICE);
-        layoutInflater.inflate(R.layout.dialog_load_shape, this, true);
+        layoutInflater.inflate(R.layout.dialog_load_mission, this, true);
 
         RadioGroup _file_list = (RadioGroup) findViewById(R.id.load_shape_file_list);
         _file_list.setOnCheckedChangeListener(this);

@@ -19,12 +19,12 @@
 
         <TextView
             android:id="@+id/dialog_text"
-            android:layout_marginTop="@dimen/px50"
+            android:layout_marginTop="@dimen/px46"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textAlignment="center"
-            android:textSize="32px"
+            android:textSize="@dimen/font34"
             android:textColor="#000"
             android:text="드론과 연결이 끊어졌습니다." />
         <Button
@@ -32,7 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/px80"
             android:text="확인"
-            android:textSize="34px"
+            android:textSize="@dimen/font34"
             android:textAlignment="center"
             android:background="#555"
             android:textColor="#FFF"
