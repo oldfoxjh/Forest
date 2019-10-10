@@ -14,6 +14,8 @@ package kr.go.forest.das.drone;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 import dji.common.battery.BatteryState;
@@ -49,6 +51,8 @@ import dji.sdk.camera.Camera;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.gimbal.Gimbal;
 import dji.sdk.mission.MissionControl;
+import dji.sdk.mission.timeline.TimelineElement;
+import dji.sdk.mission.timeline.actions.ShootPhotoAction;
 import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import dji.sdk.mission.waypoint.WaypointMissionOperatorListener;
 import dji.sdk.products.Aircraft;
@@ -659,8 +663,14 @@ public class DJI extends Drone{
     }
 
     private String getExposureString(int exposure) {
-        double _result= -5.0 + 1*(exposure/3) + ((exposure%3 == 2) ? 0.3 : (exposure%3 == 0) ? 0.7 : 0.0f);
-        return (exposure == 65535) ? "UNKNOWN" : (exposure < 16 ) ? String.format("-%.1f", _result) : String.format("+%.1f", _result);
+        double _result;
+        if(exposure < 16){
+            _result= -5.0 + 1*(exposure/3) + ((exposure%3 == 2) ? 0.3 : (exposure%3 == 0) ? -0.3 : 0.0f);
+        }else{
+            _result= -5.0 + 1*(exposure/3) + ((exposure%3 == 2) ? 0.3 : (exposure%3 == 0) ? 0.7-1.0 : 0.0f);
+        }
+
+        return (exposure == 65535) ? "UNKNOWN" : (exposure < 16 ) ? String.format("%.1f", _result) : String.format("+%.1f", _result);
     }
 
     /**
@@ -976,12 +986,13 @@ public class DJI extends Drone{
      * 설정된 임무를 드론에 업로드
      */
     public String uploadMission(WaypointMission mission){
+
         WaypointMissionOperator mission_operator = MissionControl.getInstance().getWaypointMissionOperator();
         waypoint_count = mission.getWaypointCount() - 1;
         // 설정된 임무에 대한 확인
         DJIError  _error = MissionControl.getInstance().getWaypointMissionOperator().loadMission(mission);
         if(_error != null){
-            LogWrapper.i("WaypointMission", "uploadMission Fail : " + _error.getDescription());
+            LogWrapper.i("DJI", "loadMission Fail : " + _error.getDescription());
             return _error.getDescription();
         }
 
@@ -1550,6 +1561,7 @@ public class DJI extends Drone{
             }
         }
 
+        private boolean start_timeline = false;
         @Override
         public void onExecutionUpdate(WaypointMissionExecutionEvent executionEvent) {
             LogWrapper.i("WaypointMission",
@@ -1561,6 +1573,16 @@ public class DJI extends Drone{
                             + (executionEvent.getProgress() == null
                             ? ""
                             : executionEvent.getProgress().targetWaypointIndex));
+
+            // Timeline Mission
+            if(executionEvent.getProgress().targetWaypointIndex == 1 && start_timeline == false){
+                List<TimelineElement> elements = new ArrayList<>();
+                elements.add(ShootPhotoAction.newShootIntervalPhotoAction(3,2));
+                MissionControl.getInstance().scheduleElements(elements);
+                MissionControl.getInstance().startTimeline();
+                start_timeline = true;
+            }
+
         }
 
         @Override

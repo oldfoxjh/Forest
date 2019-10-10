@@ -106,6 +106,7 @@ public class CustomPreFlightStatusWidget extends dji.ux.widget.PreFlightStatusWi
             else if(status.equals("Remote Controller Signal Weak")) drone_status = "조종기 신호 약함";
             else if(status.equals("Cannot take off")) drone_status = "이륙준비 오류";
             else if(status.equals("IMU Error. Calibrate IMU")) drone_status = "IMU 오류";
+            else if(status.equals("Compass Error. Exit GPS Mode")) drone_status = "나침반 오류";
             else drone_status = "기기 연결 끊김";
 
             is_good = false;

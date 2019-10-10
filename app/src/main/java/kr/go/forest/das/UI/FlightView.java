@@ -131,7 +131,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     TextView tv_flight_format_info;
     TextView tv_flight_capacity;
 
-    SeekBar sb_flight_gimbal_pitch;
+    //SeekBar sb_flight_gimbal_pitch;
     Button btn_flight_ae;
     Button btn_select_movie;
     Button btn_select_shoot;
@@ -140,6 +140,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     Button btn_camera_setting;
     TextView tv_record_time;
     LinearLayout layout_camera;
+    dji.ux.panel.CameraSettingExposurePanel flight_camera_setting_panel;
 
     // RTH
     Button btn_flight_takeoff;
@@ -347,35 +348,36 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             }
         });
 
-        tv_iso = (TextView) findViewById(R.id.tv_flight_iso);
-        tv_shutter = (TextView) findViewById(R.id.tv_flight_shutter);
-        tv_aperture = (TextView) findViewById(R.id.tv_flight_aperture);
-        tv_exposure = (TextView) findViewById(R.id.tv_flight_exposure);
-        tv_wb = (TextView) findViewById(R.id.tv_flight_wb);
-        tv_flight_format_info = (TextView) findViewById(R.id.tv_flight_format_info);
-        tv_flight_capacity = (TextView) findViewById(R.id.tv_flight_capacity);
+        tv_iso = findViewById(R.id.tv_flight_iso);
+        tv_shutter = findViewById(R.id.tv_flight_shutter);
+        tv_aperture = findViewById(R.id.tv_flight_aperture);
+        tv_exposure = findViewById(R.id.tv_flight_exposure);
+        tv_wb = findViewById(R.id.tv_flight_wb);
+        tv_flight_format_info = findViewById(R.id.tv_flight_format_info);
+        tv_flight_capacity = findViewById(R.id.tv_flight_capacity);
 
-        btn_select_movie = (Button) findViewById(R.id.btn_flight_select_movie);
+        btn_select_movie = findViewById(R.id.btn_flight_select_movie);
         btn_select_movie.setOnClickListener(this);
-        btn_select_shoot = (Button) findViewById(R.id.btn_flight_select_shoot);
+        btn_select_shoot = findViewById(R.id.btn_flight_select_shoot);
         btn_select_shoot.setOnClickListener(this);
-        btn_record = (Button) findViewById(R.id.btn_flight_record);
+        btn_record = findViewById(R.id.btn_flight_record);
         btn_record.setOnClickListener(this);
-        btn_shoot = (Button) findViewById(R.id.btn_flight_shoot);
+        btn_shoot = findViewById(R.id.btn_flight_shoot);
         btn_shoot.setOnClickListener(this);
-        btn_camera_setting = (Button) findViewById(R.id.btn_flight_camera_setting);
+        btn_camera_setting = findViewById(R.id.btn_flight_camera_setting);
         btn_camera_setting.setOnClickListener(this);
         tv_record_time = (TextView) findViewById(R.id.tv_flight_record_time);
-        sb_flight_gimbal_pitch = (SeekBar) findViewById(R.id.sb_flight_gimbal_pitch);
-        sb_flight_gimbal_pitch.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return true;
-            }
-        });
-        parent_ae = (ViewGroup) findViewById(R.id.aeLayout);
-        btn_flight_ae = (Button) findViewById(R.id.btn_flight_ae);
-        layout_camera = (LinearLayout) findViewById(R.id.layout_camera_info);
+//        sb_flight_gimbal_pitch = (SeekBar) findViewById(R.id.sb_flight_gimbal_pitch);
+//        sb_flight_gimbal_pitch.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                return true;
+//            }
+//        });
+        parent_ae = findViewById(R.id.aeLayout);
+        btn_flight_ae =  findViewById(R.id.btn_flight_ae);
+        layout_camera = findViewById(R.id.layout_camera_info);
+        flight_camera_setting_panel = findViewById(R.id.flight_camera_setting_panel);
 
         // Map Top
         btn_flight_location = (Button) findViewById(R.id.btn_flight_location);
@@ -436,7 +438,13 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                 DroneApplication.getDroneInstance().startShootPhoto();
                 break;
             case R.id.btn_flight_camera_setting:
-
+                if(flight_camera_setting_panel.getVisibility() == VISIBLE){
+                    flight_camera_setting_panel.setVisibility(INVISIBLE);
+                    btn_camera_setting.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_csetting_selector));
+                }else{
+                    flight_camera_setting_panel.setVisibility(VISIBLE);
+                    btn_camera_setting.setBackground(ContextCompat.getDrawable(context, R.mipmap.btn_csetting_s));
+                }
                 break;
             case R.id.btn_flight_location:
                 // 현재 위치로 가운데.
@@ -536,6 +544,9 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             ResizeAnimation mapViewAnimation = new ResizeAnimation(_layout, width, height, device_width, device_height, 0);
             _layout.startAnimation(mapViewAnimation);
             setCameraSettingWidgetVisible(INVISIBLE);
+
+            flight_camera_setting_panel.setVisibility(INVISIBLE);
+            btn_camera_setting.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_csetting_selector));
             _map.setVisibility(VISIBLE);
             is_map_mini = false;
         }else{
@@ -621,7 +632,18 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                             flight_path_line.addPoint(_dron_location);
                         }
 
+                        CameraInfo _camera_info = DroneApplication.getDroneInstance().getStorageInfo();
 
+                        if(_camera_info.camera_iso != null) tv_iso.setText(_camera_info.camera_iso);
+                        if(_camera_info.camera_shutter != null) tv_shutter.setText(_camera_info.camera_shutter);
+                        if(_camera_info.camera_aperture != null) tv_aperture.setText(_camera_info.camera_aperture);
+                        if(_camera_info.camera_exposure != null) tv_exposure.setText(_camera_info.camera_exposure);
+                        if(_camera_info.camera_whitebalance != null) tv_wb.setText(_camera_info.camera_whitebalance);
+                        if(parent_ae.getVisibility() == VISIBLE && !_camera_info.is_camera_auto_exposure_unlock_enabled) {
+                            parent_ae.setVisibility(INVISIBLE);
+                        }
+                        if(_camera_info.camera_ae_lock != null && _camera_info.camera_ae_lock) btn_flight_ae.setBackground(ContextCompat.getDrawable(context, R.mipmap.ae_n));
+                        else btn_flight_ae.setBackground(ContextCompat.getDrawable(context, R.mipmap.ae_s));
 
                         marker_my_location.setPosition(new GeoPoint(_info.rc_latitude, _info.rc_longitude));
                         marker_home_location.setPosition(new GeoPoint(_home.getLatitude(), _home.getLongitude()));
@@ -728,8 +750,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         btn_shoot.setVisibility(INVISIBLE);
                         btn_select_shoot.setVisibility(INVISIBLE);
                         btn_camera_setting.setVisibility(INVISIBLE);
-                        sb_flight_gimbal_pitch.setVisibility(INVISIBLE);
-
+                        //sb_flight_gimbal_pitch.setVisibility(INVISIBLE);
+                        flight_camera_setting_panel.setVisibility(INVISIBLE);
                         primary_camera.setVisibility(INVISIBLE);
 
                         // 자동복귀 위젯 초기화
@@ -747,18 +769,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                 @Override
                 public void run() {
                     CameraInfo _info = DroneApplication.getDroneInstance().getStorageInfo();
-
-                    if(_info.camera_iso != null) tv_iso.setText(_info.camera_iso);
-                    if(_info.camera_shutter != null) tv_shutter.setText(_info.camera_shutter);
-                    if(_info.camera_aperture != null) tv_aperture.setText(_info.camera_aperture);
-                    if(_info.camera_exposure != null) tv_exposure.setText(_info.camera_exposure);
-                    if(_info.camera_whitebalance != null) tv_wb.setText(_info.camera_whitebalance);
-                    if(parent_ae.getVisibility() == VISIBLE && !_info.is_camera_auto_exposure_unlock_enabled) {
-                        parent_ae.setVisibility(INVISIBLE);
-                    }
-                    if(_info.camera_ae_lock != null && _info.camera_ae_lock) btn_flight_ae.setBackground(ContextCompat.getDrawable(context, R.mipmap.ae_n));
-                    else btn_flight_ae.setBackground(ContextCompat.getDrawable(context, R.mipmap.ae_s));
-
                     primary_camera.setVisibility(VISIBLE);
 
                     // 임무 중이면 카메라 위젯 보이지 않도록 처리
@@ -771,7 +781,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         btn_select_shoot.setVisibility(VISIBLE);
                         btn_shoot.setVisibility(VISIBLE);
                         btn_camera_setting.setVisibility(VISIBLE);
-                        sb_flight_gimbal_pitch.setVisibility(VISIBLE);
+                        //sb_flight_gimbal_pitch.setVisibility(VISIBLE);
 
                         if(btn_select_movie.getVisibility() == VISIBLE) btn_select_movie.setVisibility(INVISIBLE);
                         if(btn_record.getVisibility() == VISIBLE) btn_record.setVisibility(INVISIBLE);
@@ -786,13 +796,11 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         btn_record.setVisibility(VISIBLE);
                         btn_camera_setting.setVisibility(VISIBLE);
                         tv_record_time.setVisibility(VISIBLE);
-                        sb_flight_gimbal_pitch.setVisibility(VISIBLE);
+                        //sb_flight_gimbal_pitch.setVisibility(VISIBLE);
 
                         if(btn_shoot.getVisibility() == VISIBLE) btn_shoot.setVisibility(INVISIBLE);
                         if(btn_select_shoot.getVisibility() == VISIBLE) btn_select_shoot.setVisibility(INVISIBLE);
                     }
-
-
                 }
             });
         }
@@ -876,8 +884,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         //조종기 위치 불러오기
                         DroneInfo _info = DroneApplication.getDroneInstance().getDroneInfo();
                         // 자동복귀 요청
-                       //DroneApplication.getDroneInstance().setHomeLocation(new LocationCoordinate2D(_info.rc_latitude, _info.rc_longitude));
-                        DroneApplication.getDroneInstance().setHomeLocation(new LocationCoordinate2D(36.358713, 127.384911));
+                       DroneApplication.getDroneInstance().setHomeLocation(new LocationCoordinate2D(_info.rc_latitude, _info.rc_longitude));
+                        //DroneApplication.getDroneInstance().setHomeLocation(new LocationCoordinate2D(36.358713, 127.384911));
                     }else if(rtl.mode == MainActivity.ReturnHome.REQUEST_RETURN_HOME_SUCCESS){
                         // 자동복귀 요청
                         DroneApplication.getDroneInstance().startGoHome();
@@ -933,7 +941,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     private void setCameraSettingWidgetVisible(int visible){
         layout_camera.setVisibility(visible);
         parent_ae.setVisibility(visible);
-        sb_flight_gimbal_pitch.setVisibility(visible);
+        //sb_flight_gimbal_pitch.setVisibility(visible);
     }
 
     private void setCameraWidgetVisible(int visible){
@@ -943,7 +951,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         btn_shoot.setVisibility(visible);
         btn_select_shoot.setVisibility(visible);
         btn_camera_setting.setVisibility(visible);
-        sb_flight_gimbal_pitch.setVisibility(visible);
+        //sb_flight_gimbal_pitch.setVisibility(visible);
     }
 
     /**

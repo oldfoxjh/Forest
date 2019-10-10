@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#a0a0a0"
-    android:id="@+id/root_view">
+    android:id="@+id/root_view"
+    tools:context=".MainActivity">
 
     <RelativeLayout
         android:id="@+id/flight_fpv_layout"
@@ -522,21 +524,30 @@
             android:background="@drawable/btn_csetting_selector"
             android:visibility="invisible"/>
     </RelativeLayout>
-
-    <SeekBar
-        android:id="@+id/sb_flight_gimbal_pitch"
-        android:layout_width="@dimen/px310"
-        android:layout_height="@dimen/px14"
-        android:layout_alignParentRight="true"
+    <dji.ux.panel.CameraSettingExposurePanel
+        android:id="@+id/flight_camera_setting_panel"
+        android:layout_width="@dimen/px360"
+        android:layout_height="@dimen/px570"
+        android:layout_toLeftOf="@+id/flightSettingLayout"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="@dimen/px330"
-        android:layout_marginRight="@dimen/px10"
-        android:paddingStart="@dimen/px10"
-        android:paddingEnd="@dimen/px10"
-        android:maxHeight="14px"
-        android:splitTrack="false"
-        android:rotation="90"
-        android:thumb="@mipmap/csetting_handle"
-        android:progressDrawable="@drawable/csetting_progress"
+        android:layout_marginBottom="@dimen/px80"
+        android:background="@color/transparent"
+        android:gravity="center"
         android:visibility="invisible"/>
+<!--    <SeekBar-->
+<!--        android:id="@+id/sb_flight_gimbal_pitch"-->
+<!--        android:layout_width="@dimen/px310"-->
+<!--        android:layout_height="@dimen/px14"-->
+<!--        android:layout_alignParentRight="true"-->
+<!--        android:layout_alignParentBottom="true"-->
+<!--        android:layout_marginBottom="@dimen/px330"-->
+<!--        android:layout_marginRight="@dimen/px10"-->
+<!--        android:paddingStart="@dimen/px10"-->
+<!--        android:paddingEnd="@dimen/px10"-->
+<!--        android:maxHeight="14px"-->
+<!--        android:splitTrack="false"-->
+<!--        android:rotation="90"-->
+<!--        android:thumb="@mipmap/csetting_handle"-->
+<!--        android:progressDrawable="@drawable/csetting_progress"-->
+<!--        android:visibility="invisible"/>-->
 </RelativeLayout>

@@ -74,5 +74,6 @@ dependencies {
         exclude module: 'library-networkrtk-helper'
     })
     compileOnly 'com.dji:dji-sdk-provided:4.10'
+
     implementation files('libs/mvgisSDK.jar')
 }

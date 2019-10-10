@@ -115,6 +115,7 @@ public class GeoManager {
                 _complete = false;
             }else{
                 point.setAltitude(point.getAltitude() + altitude[0] - base_altitude[0]);
+                LogWrapper.i("GeoManager", String.format("lat : %f, lng : %f", point.getLatitude(), point.getLongitude()));
                 LogWrapper.i("GeoManager", String.format("고도(%d) : %f", i, (point.getAltitude() + altitude[0] - base_altitude[0])));
             }
         }

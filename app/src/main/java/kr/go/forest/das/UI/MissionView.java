@@ -457,7 +457,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
             if(_result != null){
                 // 오류 팝업
-                LogWrapper.i("WaypointMission", "uploadMission Fail : " +_result);
+                LogWrapper.i("MissionView", "uploadMission Fail : " +_result);
                 // ProgressDialog 닫기
                 progress.dismiss();
                 DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_upload_fail, _result));
@@ -542,16 +542,16 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_LOAD_SHAPE, 0,0));
                 break;
             case R.id.btn_mission_upload:
-//                if(DroneApplication.getDroneInstance() == null){
-//                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.aircraft_disconnect));
-//                    return;
-//                }
-//
-//                // 웨이 포인트 3개 이상...확인
-//                if(mWaypoints.size() < 2) {
-//                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_create_fail, null));
-//                    return;
-//                }
+                if(DroneApplication.getDroneInstance() == null){
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.aircraft_disconnect));
+                    return;
+                }
+
+                // 웨이 포인트 3개 이상...확인
+                if(mWaypoints.size() < 2) {
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_create_fail, null));
+                    return;
+                }
 
                 // 경로 나누기
                 double _meters_per_waypoint =  Math.max(flight_path.getDistance()/(WaypointMission.MAX_WAYPOINT_COUNT+1), 20);
@@ -571,12 +571,16 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                     for(int j = 1; ; j++)
                     {
                         // 시작점부터 거리 구하기
-                        double _east_west = _meters_per_waypoint*Math.sin(0)*direction_ew;
-                        double _north_south = _meters_per_waypoint*Math.cos(0)*direction_ns;
-                        // 남은 거리가 단위거리보다 작을경우 나가기
-                        _distance -= _meters_per_waypoint;
-                        if(_distance < _meters_per_waypoint) break;
+                        double _sin = Math.abs(Math.sin(Math.toRadians(mission_angle)));
+                        double _cos = Math.abs(Math.cos(Math.toRadians(mission_angle)));
+                        double _east_west = _meters_per_waypoint*j*_sin*direction_ew;
+                        double _north_south = _meters_per_waypoint*j*_cos*direction_ns;
+
                         GeoPoint _next = GeoManager.getInstance().getPositionFromDistance(_start, _east_west, _north_south);
+
+                        // 남은 거리가 단위거리보다 작을경우 나가기
+                        double _temp = GeoManager.getInstance().distance(_next.getLatitude(), _next.getLongitude(), _end.getLatitude(), _end.getLongitude());
+                        if(_temp < _meters_per_waypoint) break;
                         upload_mission.add(_next);
                     }
                     upload_mission.add(_end);
@@ -615,6 +619,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         switch (seekBar.getId())
         {
             case R.id.seekbar_mission_flight_speed:         // 비행속도
+                if(progress < 10) progress = 10;            // 최저값 1.0m/s
                 mission_flight_speed = ((float)progress)/10;
                 _progress = String.format("%.1f m/s", mission_flight_speed);
                 tv_mission_flight_speed.setText(_progress);
@@ -797,6 +802,8 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
      * 비행경로 시작점과 종료점을 나타내는 마커를 추가한다.
      */
     private void setEntryExit() {
+        if(flight_points.size() < 2) return;
+
         // 선택된 마커 제거
         for(Marker marker : selected_points){
             map_view.getOverlayManager().remove(marker);
@@ -844,37 +851,8 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         flight_points.clear();
         flight_points = GeoManager.getInstance().getPositionsFromRectD(mWaypoints, side_distance, mission_angle);
 
-        // 경로 나누기
-        double _meters_per_waypoint =  Math.max(flight_path.getDistance()/(WaypointMission.MAX_WAYPOINT_COUNT+1), 20);
-        List<GeoPoint> upload_mission = new ArrayList<>();
-        for(int i = 0; i < flight_points.size(); i++){
-            // 시작점
-            GeoPoint _start = flight_points.get(i);
-            // 끝점
-            GeoPoint _end = flight_points.get(++i);
-
-            // 진행방향(남북)
-            int direction_ns = (_start.getLatitude() > _end.getLatitude()) ? -1 : 1;
-            int direction_ew = (_start.getLongitude() > _end.getLongitude()) ? -1 : 1;
-            // 시작점과 끝점 사이 거리
-            double _distance = GeoManager.getInstance().distance(_start.getLatitude(), _start.getLongitude(), _end.getLatitude(), _end.getLongitude());
-            upload_mission.add(_start);
-            for(int j = 1; ; j++)
-            {
-                // 시작점부터 거리 구하기
-                double _east_west = _meters_per_waypoint*Math.sin(0)*direction_ew;
-                double _north_south = _meters_per_waypoint*Math.cos(0)*direction_ns;
-                // 남은 거리가 단위거리보다 작을경우 나가기
-                _distance -= _meters_per_waypoint;
-                if(_distance < _meters_per_waypoint) break;
-                GeoPoint _next = GeoManager.getInstance().getPositionFromDistance(_start, _east_west, _north_south);
-                upload_mission.add(_next);
-            }
-            upload_mission.add(_end);
-        }
-
         setEntryExit();
-        flight_path.setPoints(upload_mission);
+        flight_path.setPoints(flight_points);
         if(!map_view.getOverlays().contains(flight_path)) map_view.getOverlayManager().add(flight_path);
         flight_area.setPoints(area_points);
 
@@ -917,7 +895,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
         // 총거리
         double _dist_total = 0;
-        if(my_location != null){
+        if(my_location != null && flight_points.size() > 1){
             GeoPoint first = flight_points.get(0);
             GeoPoint last = flight_points.get(flight_points.size() - 1);
             _dist_total = _dist_mission + GeoManager.getInstance().distance(my_location.getLatitude(), my_location.getLongitude(), first.getLatitude(), first.getLongitude())
@@ -929,7 +907,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         // 촬영간격 계산
         shoot_time_interval = (int)(front_distance/mission_flight_speed);
         shoot_time_interval = Math.max(2, shoot_time_interval);
-        shoot_count = (int)(_dist_mission/front_distance) + 1;
+        shoot_count = (int)(_dist_mission/front_distance);
         tv_mission_shoot_interval.setText(String.format("%d초/%d",shoot_time_interval, shoot_count));
         // 종간격, 횡간격 정보 업데이트
         tv_mission_lap_distance.setText(String.format("F:%.1f m/S:%.1f m", front_distance, side_distance));
