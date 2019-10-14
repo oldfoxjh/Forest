@@ -365,6 +365,18 @@ public class GeoManager {
         return new RectD(points);
     }
 
+    /**
+     * 주어진 점들을 지나는 사각형의 중심점을 계산
+     * @param points 주어진 점
+     * @return 중심점
+     */
+    public GeoPoint getCenter(List<GeoPoint> points){
+        List<GeoPoint> _bound = new RectD(points).getPoints();
+
+        return getIntersectPoint(_bound.get(0).getLongitude(), _bound.get(0).getLatitude(), _bound.get(2).getLongitude(), _bound.get(2).getLatitude()
+                , _bound.get(1).getLongitude(), _bound.get(1).getLatitude(), _bound.get(3).getLongitude(), _bound.get(3).getLatitude());
+    }
+
 
     /**
      * 주어진 좌표에서 동서, 남북의 거리에 위치한 좌표 구하기
@@ -382,6 +394,13 @@ public class GeoManager {
         return new GeoPoint(newLat, newLng);
     }
 
+    /**
+     * 중복도와 회전값에 따른 경계면을 지나는 라인 구하기
+     * @param rect 경계
+     * @param overlap 중복도
+     * @param degree 회전
+     * @return 경계면을 지나는 라인
+     */
     private List<GeoPoint> getLines(List<GeoPoint> rect, double overlap, int degree){
         List<GeoPoint> _result = new ArrayList<>();
 
@@ -427,6 +446,7 @@ public class GeoManager {
 
         return _result;
     }
+
     /**
      * 비행경로와 촬영영역과 교차하는 지점 찾기
      * @param x1    비행경로 첫번째 좌표

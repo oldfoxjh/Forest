@@ -13,8 +13,6 @@ package kr.go.forest.das.drone;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,8 +94,6 @@ public class DJI extends Drone{
         _drone.drone_yaw = drone_pitch;
         _drone.heading = heading;
 
-        _drone.rc_latitude = rc_latitude;
-        _drone.rc_longitude = rc_longitude;
         _drone.left_stick_x = left_stick_x;
         _drone.left_stick_y = left_stick_y;
         _drone.right_stick_x = right_stick_x;
@@ -198,7 +194,6 @@ public class DJI extends Drone{
                 // 조종기 callback
                 remote_controller = ((Aircraft) _product).getRemoteController();
                 remote_controller.setHardwareStateCallback(rc_hardware_callback);
-                remote_controller.setGPSDataCallback(rc_gps_callback);
 
                 // 짐벌 callback
                 for (Gimbal gimbal:gimbals) {
@@ -1040,37 +1035,9 @@ public class DJI extends Drone{
                         }
                     }
                 });
-            }
-
-            // 카메라 설정 : Interval
-            if(shoot_photo_mode != SettingsDefinitions.ShootPhotoMode.INTERVAL){
-                _camera.setShootPhotoMode(SettingsDefinitions.ShootPhotoMode.INTERVAL, new CommonCallbacks.CompletionCallback() {
-                    @Override
-                    public void onResult(DJIError djiError) {
-                        if(djiError == null){
-                            ready_start_mission = 0;
-                        }else{
-                            ready_start_mission = -3;
-                            LogWrapper.i(TAG, "setShootPhotoMode Fail : " + djiError.getDescription());
-                        }
-                    }
-                });
             }else{
                 ready_start_mission = 0;
             }
-
-            // 카메라 촬영 간격 설정
-            _camera.setPhotoTimeIntervalSettings(new SettingsDefinitions.PhotoTimeIntervalSettings(captureCount, timeIntervalInSeconds), new CommonCallbacks.CompletionCallback() {
-                @Override
-                public void onResult(DJIError djiError) {
-                    if(djiError == null){
-                        ready_start_mission = 0;
-                    }else{
-                        ready_start_mission = -4;
-                        LogWrapper.i(TAG, "setPhotoTimeIntervalSettings Fail : " + djiError.getDescription());
-                    }
-                }
-            });
         }
     }
 
@@ -1439,19 +1406,6 @@ public class DJI extends Drone{
             left_stick_y = hardware.getLeftStick().getVerticalPosition();
             right_stick_x = hardware.getRightStick().getHorizontalPosition();
             right_stick_y = hardware.getRightStick().getVerticalPosition();
-        }
-    };
-
-    /**
-     * 조종기 GPS Data  Callback
-     */
-    public GPSData.Callback rc_gps_callback = new GPSData.Callback() {
-        @Override
-        public void onUpdate(GPSData gps) {
-            rc_latitude = gps.getLocation().getLatitude();
-            rc_longitude = gps.getLocation().getLongitude();
-
-            LogWrapper.i(TAG, String.format("lat : %f, lng : %f", rc_latitude, rc_longitude));
         }
     };
 

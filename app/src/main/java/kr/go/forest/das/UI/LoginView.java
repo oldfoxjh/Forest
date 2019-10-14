@@ -84,22 +84,21 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
 
         if(v.getId() == R.id.loginProcessButton)
         {
-            // ID
+            if(NetworkStatus.isInternetConnected(context))
+            {
+                // ID
 //            if(loginIDEditText.length() == 0)
 //            {
 //                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.check_id));
 //                return;
 //            }
 
-            // Password
+                // Password
 //            if(loginPWEditText.length() == 0)
 //            {
 //                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, R.string.check_password));
 //                return;
 //            }
-
-            //if(NetworkStatus.isInternetConnected(context))
-            //{
                 // 로그인 요청
 
                 // 키보드 체크
@@ -107,9 +106,9 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                 DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), true));
 
                // DroneApplication.getEventBus().post(new ViewWrapper(new PixhawkMissionView(context), true));
-//            }else{
-//                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_internet));
-//            }
+            }else{
+                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.check_internet_title, R.string.check_internet));
+            }
         }
     }
 

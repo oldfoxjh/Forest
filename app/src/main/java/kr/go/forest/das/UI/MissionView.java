@@ -1,5 +1,6 @@
 package kr.go.forest.das.UI;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.Context;
@@ -12,6 +13,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -96,7 +98,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
     List<Marker> selected_points = new ArrayList<Marker>();          // 사용자가 선택한 위치를 나타내는 마커
     List<GeoPoint> mWaypoints = new ArrayList<GeoPoint>();             // 사용자가 선택한 위치
-    List<GeoPoint> area_points = new ArrayList<GeoPoint>();            // 촬영영역을 보여주기 위한 위치
+    List<GeoPoint> area_points = new ArrayList<GeoPoint>();     // 촬영영역을 보여주기 위한 위치
     List<GeoPoint> flight_points = new ArrayList<GeoPoint>();          // 촬영영역을 보여주기 위한 위치
     List<Marker> entry_exit = new ArrayList<Marker>();               // 임무 시작점과 종료점 마커
 
@@ -140,6 +142,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
     @Override
     protected void onAttachedToWindow() {
+        ((Activity)context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         DroneApplication.getEventBus().register(this);
         handler_ui = new Handler(Looper.getMainLooper());
         progress = new ProgressDialog(context);
@@ -159,6 +162,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
     @Override
     protected void onDetachedFromWindow() {
 
+        ((Activity)context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // Clear Overlays
         map_view.getOverlays().clear();
         DroneApplication.getEventBus().unregister(this);
@@ -212,7 +216,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         //setOfflineTile();
 
         IMapController mapController = map_view.getController();
-        mapController.setZoom(18.0);
+        mapController.setZoom(16.0);
 
         // Touch Overlay
         MapEventsOverlay _events = new MapEventsOverlay(this);
@@ -833,14 +837,14 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
      * @param waypoints : 선택한 웨이포인트
      */
     private void setMissionPolygon(List<GeoPoint> waypoints) {
-
         if(mWaypoints != null) {
             // 촬영 영역
+            mWaypoints.clear();
             mWaypoints.addAll(waypoints);
         }
 
         for(GeoPoint _point : area_points) {
-            Marker _waypoint = getDefaultMarker(new GeoPoint(_point.getLatitude(), _point.getLongitude()), null);
+            Marker _waypoint = getDefaultMarker(new GeoPoint(_point.getLatitude(), _point.getLongitude()));
             map_view.getOverlays().add(_waypoint);
             // Add List
             selected_points.add(_waypoint);
@@ -855,6 +859,11 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         flight_path.setPoints(flight_points);
         if(!map_view.getOverlays().contains(flight_path)) map_view.getOverlayManager().add(flight_path);
         flight_area.setPoints(area_points);
+
+        // 촬영지역의 중심 위치로 배경지도 중심점 변경
+        IMapController mapController = map_view.getController();
+        GeoPoint _center = GeoManager.getInstance().getCenter(mWaypoints);
+        mapController.setCenter(_center);
 
         map_view.invalidate();
 

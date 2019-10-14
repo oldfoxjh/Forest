@@ -18,20 +18,25 @@
  */
 package kr.go.forest.das.UI;
 
+import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.MediaPlayer;
+import android.nfc.Tag;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.Button;
@@ -85,6 +90,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     private Handler handler_ui;                                 // UI 업데이트 핸들러
     private boolean is_recording = false;                       // 녹화 여부
     MediaPlayer media_player = null;
+    private SharedPreferences pref;
 
     // 배경지도 & 카메라 전환
     private int device_width;                                   // 화면 폭
@@ -101,8 +107,9 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     boolean is_map_mini = true;                                 // 맵 크기
     HashMap<String, Polygon> no_fly_zone = null;                // 비행금지구역 정보
     List<Marker> forest_fires = new ArrayList<Marker>();             // 산불발생지역 정보
-    List<GeoPoint> flight_paths = new ArrayList<GeoPoint>();            // 비행경로
-    Polyline flight_path_line = new Polyline();                  // 비행경로 표시
+    List<GeoPoint> flight_paths = new ArrayList<GeoPoint>();           // 비행경로
+    Polyline flight_path_line = new Polyline();                 // 비행경로 표시
+    GeoPoint my_location = null;                                // 현재 조종자 위치
 
     Button btn_flight_location;
     Button btn_flight_nofly;
@@ -169,6 +176,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      */
     @Override
     protected void onAttachedToWindow() {
+        ((Activity)context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         handler_ui = new Handler(Looper.getMainLooper());
 
         // 드론 상태 체크
@@ -180,9 +188,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                 btn_flight_takeoff.setTag("landing");
             }
             // Data 수집 타이머 시작
-            if(timer == null) {
-                timer = new Timer();
-            }
             timer.schedule(new CollectDroneInformationTimer(), 0, period);
 
             // 카메라 설정 정보
@@ -205,6 +210,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      */
     @Override
     protected void onDetachedFromWindow() {
+        ((Activity)context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         DroneApplication.getEventBus().unregister(this);
         handler_ui.removeCallbacksAndMessages(null);
         handler_ui = null;
@@ -233,7 +239,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      * 지도 및 기타 컨트롤 설정
      */
     protected void initUI() {
-
+        pref = context.getSharedPreferences("drone", Context.MODE_PRIVATE);
         DroneApplication.getEventBus().register(this);
 
         int UI_OPTIONS = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
@@ -264,8 +270,16 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
 
         IMapController mapController = map_view.getController();
         // 마지막에 저장된 위치 불러오기
-        mapController.setZoom(17.0);
-        mapController.setCenter(new GeoPoint(36.361481, 127.384841));
+        mapController.setZoom(16.0);
+        // 현재 GPS 좌표 불러오기
+        String _lat = pref.getString("lat", null);
+        String _lon = pref.getString("lon", null);
+
+        if(_lat == null && _lon == null) {
+            mapController.setCenter(new GeoPoint(36.361481, 127.384841));
+        }else{
+            mapController.setCenter(new GeoPoint(Double.parseDouble(_lat), Double.parseDouble(_lon)));
+        }
 
         // 마커 설정
         // 내위치
@@ -448,6 +462,20 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                 break;
             case R.id.btn_flight_location:
                 // 현재 위치로 가운데.
+                if (my_location != null)
+                {
+                    marker_my_location.setPosition(my_location);
+                    map_view.getController().setCenter(new GeoPoint(my_location.getLatitude(), my_location.getLongitude()));
+                    map_view.invalidate();
+
+                    SharedPreferences.Editor _editor = pref.edit();
+                    _editor.putString("lat", String.valueOf(my_location.getLatitude()));
+                    _editor.putString("lon", String.valueOf(my_location.getLongitude()));
+                    _editor.commit();
+                }else{
+                    // 위치 확인 팝업
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.search_location));
+                }
                 break;
             case R.id.btn_flight_nofly:
                 // 비행금지 제한구역 불러오기
@@ -591,7 +619,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     }
 
     /**
-     * 시동 걸리고 0.5초 단위로 기체정보 수집
+     * 기체정보 수집
      */
     private class CollectDroneInformationTimer extends TimerTask {
         @Override
@@ -604,10 +632,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                     @Override
                     public void run() {
                         DroneInfo _info = DroneApplication.getDroneInstance().getDroneInfo();
-
-                        // 1. 조종기
-                        LocationCoordinate2D _home = DroneApplication.getDroneInstance().getHomeLocation();
-                        tv_distance.setText(String.format("%.2f", GeoManager.getInstance().distance(_home.getLatitude(), _home.getLongitude(), _info.drone_latitude, _info.drone_longitude)));
 
                         // 2. 고도
                         String _alt = String.format("%.2f", _info.drone_altitude);
@@ -628,8 +652,11 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         // 6. 비행경로(비행중일때만)
                         if(DroneApplication.getDroneInstance().isFlying()) {
                             GeoPoint _dron_location = new GeoPoint(_info.drone_latitude, _info.drone_longitude, _info.drone_altitude);
-                            flight_paths.add(_dron_location);
-                            flight_path_line.addPoint(_dron_location);
+
+                            if(Math.abs(_info.drone_latitude) > 0 && Math.abs(_info.drone_longitude) > 0){
+                                flight_paths.add(_dron_location);
+                                flight_path_line.addPoint(_dron_location);
+                            }
                         }
 
                         CameraInfo _camera_info = DroneApplication.getDroneInstance().getStorageInfo();
@@ -645,16 +672,48 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         if(_camera_info.camera_ae_lock != null && _camera_info.camera_ae_lock) btn_flight_ae.setBackground(ContextCompat.getDrawable(context, R.mipmap.ae_n));
                         else btn_flight_ae.setBackground(ContextCompat.getDrawable(context, R.mipmap.ae_s));
 
-                        marker_my_location.setPosition(new GeoPoint(_info.rc_latitude, _info.rc_longitude));
+                        // 1. 조종기와의 거리
+                        if(my_location == null) tv_distance.setText("0.0");
+                        else tv_distance.setText(String.format("%.2f", GeoManager.getInstance().distance(my_location.getLatitude(), my_location.getLongitude(), _info.drone_latitude, _info.drone_longitude)));
+
+                        if(my_location != null) marker_my_location.setPosition(my_location);
+
+                        LocationCoordinate2D _home = DroneApplication.getDroneInstance().getHomeLocation();
                         marker_home_location.setPosition(new GeoPoint(_home.getLatitude(), _home.getLongitude()));
                         map_view.invalidate();
                     }
                 });
             }
-
         }
     }
 
+    /**
+     * 모바일 장치의 위치 정보를 업데이트 한다.
+     * @param location 현재 위치
+     */
+    @Subscribe
+    public void onUpdateLocation(final MainActivity.LocationUpdate location) {
+        if (handler_ui != null) {
+            handler_ui.post(new Runnable() {
+                @Override
+                public void run() {
+
+                    Log.e("GPS", String.format("lat : %f, lon : %f", location.latitude, location.longitude));
+                    if(my_location == null){
+                        my_location = new GeoPoint(location.latitude, location.longitude);
+                    }else {
+                        my_location.setLatitude(location.latitude);
+                        my_location.setLongitude(location.longitude);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * DJI 드론 연결상태 이벤트 리시버
+     * @param drone_status 드론 연결정보
+     */
     @Subscribe
     public void onConnectionChange(final MainActivity.DroneStatusChange drone_status) {
         if(drone_status.status == Drone.DRONE_STATUS_CONNECT) {
@@ -762,6 +821,10 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         }
     }
 
+    /**
+     * 카메라 상태 이벤트 리시버
+     * @param camera 카메라 상태정보
+     */
     @Subscribe
     public void onCameraStatusChange(final MainActivity.DroneCameraStatus camera) {
         if (handler_ui != null) {
@@ -806,6 +869,10 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         }
     }
 
+    /**
+     * 카메라 촬영 이벤트 리시버
+     * @param camera 촬영정보
+     */
     @Subscribe
     public void onCameraShootInfo(final MainActivity.DroneCameraShootInfo camera){
 
@@ -844,6 +911,10 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         }
     }
 
+    /**
+     * 자동복귀 중 이벤트 리시버
+     * @param rtl 자동복귀 정보
+     */
     @Subscribe
     public void onReturnHome(final MainActivity.ReturnHome rtl) {
         if (handler_ui != null) {
@@ -935,7 +1006,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     }
 
     /**
-     * 카메라 위젯 표시여부를 설정한다.
+     * 카메라 설정 위젯 표시여부를 설정한다.
      * @param visible
      */
     private void setCameraSettingWidgetVisible(int visible){
@@ -944,6 +1015,10 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         //sb_flight_gimbal_pitch.setVisibility(visible);
     }
 
+    /**
+     * 카메라 위젯 표시여부를 결정한다.
+     * @param visible 표시여부
+     */
     private void setCameraWidgetVisible(int visible){
         btn_select_movie.setVisibility(visible);
         btn_record.setVisibility(visible);
@@ -955,7 +1030,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     }
 
     /**
-     * 자동귀환 또는 자동차륙 위젯 표시여부를 설정한다.
+     * 자동귀환 또는 자동착륙 컨트롤 버튼 표시여부를 설정한다.
      * @param is_rth : 자동귀환 여부, true : 자동귀환, false : 자동착륙
      */
     private void setReturnHomeCancelWidget(boolean is_rth){
@@ -978,6 +1053,9 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         }
     }
 
+    /**
+     * 자동귀환 또는 자동착률 컨트롤 버튼 표시여부를 설정한다.
+     */
     private void setReturnHomeWidget(){
         LinearLayout _layout = (LinearLayout) findViewById(R.id.layout_flight_cancel);
         _layout.setVisibility(INVISIBLE);

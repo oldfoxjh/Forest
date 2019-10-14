@@ -14,6 +14,7 @@ import org.w3c.dom.Text;
 
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
+import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
 
 public class DialogConfirm extends RelativeLayout implements View.OnClickListener{
@@ -65,6 +66,7 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
             || title_id == R.string.return_home_cancel_title
             || title_id == R.string.set_home_location_title
             || title_id == R.string.max_flight_height_low_title
+            || title_id == R.string.check_internet_title
             || title_id == R.string.mission_start_title                 // 확인
         ){
             TextView _title = (TextView) findViewById(R.id.dialog_confirm_title);
@@ -72,11 +74,12 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
             _title.setVisibility(VISIBLE);
 
             if(title_id == R.string.takeoff_title
-                    || title_id == R.string.mission_start_title)  _params.height += 120;
+                || title_id == R.string.mission_start_title)  _params.height += 120;
+            else if(title_id == R.string.check_internet_title)  _params.height += 150;
             else if(title_id == R.string.landing_title
-                    || title_id == R.string.max_flight_height_low_title)  _params.height += 180;
+                || title_id == R.string.max_flight_height_low_title)  _params.height += 180;
             else if(title_id == R.string.return_home_title
-                    || title_id == R.string.set_home_location_title)  _params.height += 200;
+                || title_id == R.string.set_home_location_title)  _params.height += 200;
         }else if(content_id == R.string.clear_mission
                 || content_id == R.string.max_flight_height_low
                 || content_id == R.string.landing_cancel_title) _params.height += 50;
@@ -118,6 +121,8 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
             DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_MAX_FLIGHT_HEIGHT_LOW, null));
         }else if(title_id == R.string.mission_start_title) {
             DroneApplication.getDroneInstance().startMission();
+        }else if(title_id == R.string.check_internet_title){
+            DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), true));
         }
     }
 }

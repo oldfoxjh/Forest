@@ -43,7 +43,6 @@ public abstract class Drone {
     public static final int CAMERA_APERTURE = 0x02;
     public static final int CAMERA_EXPOSURE = 0x03;
     public static final int CAMERA_WHITE_BALANCE = 0x04;
-
     public static final int CAMERA_ALL = 0xFF;
 
     int drone_status = DRONE_STATUS_DISCONNECT;
@@ -55,30 +54,25 @@ public abstract class Drone {
      */
     public int max_flight_height = 0;
     public ConnectionFailSafeBehavior connection_failsafe_behavior = ConnectionFailSafeBehavior.UNKNOWN;
-    /** 드론 위도 */
-    double drone_latitude;
-    /** 드론 경도 */
-    double drone_longitude;
-    /** 드론 고도 */
-    float drone_altitude;
-    /** 드론 x축 속도 */
-    float velocyty_x = 0.0f;
-    /** 드론 y축 속도 */
-    float velocyty_y = 0.0f;
-    /** 드론 z축 속도 */
-    float velocyty_z = 0.0f;
 
-    int flight_time;
+    double drone_latitude;          /** 드론 위도 */
+    double drone_longitude;         /** 드론 경도 */
+    float drone_altitude;           /** 드론 고도 */
+    float velocyty_x = 0.0f;        /** 드론 x축 속도 */
+    float velocyty_y = 0.0f;        /** 드론 y축 속도 */
+    float velocyty_z = 0.0f;        /** 드론 z축 속도 */
 
-    double drone_pitch;
-    double drone_roll;
-    double drone_yaw;
+    int flight_time;                /** 비행시간 */
 
-    String flight_mode;
+    double drone_pitch;             /** 드론 pitch */
+    double drone_roll;              /** 드론 roll */
+    double drone_yaw;               /** 드론 yaw */
 
-    double home_latitude;
-    double home_longitude;
-    boolean home_set = false;
+    String flight_mode;             /** 비행 모드 */
+
+    double home_latitude;           /** 자동복귀지점 위도 */
+    double home_longitude;          /** 자동복귀지점 경도 */
+    boolean home_set = false;       /** 자동복귀지점 설정여부 */
 
     float heading;
 
@@ -102,8 +96,6 @@ public abstract class Drone {
     /**
      * 조종기 Data
      */
-    double rc_latitude;
-    double rc_longitude;
     int left_stick_x;
     int left_stick_y;
     int right_stick_x;
