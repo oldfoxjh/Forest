@@ -13,6 +13,10 @@ package kr.go.forest.das.drone;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+
+import org.osmdroid.util.GeoPoint;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -992,20 +996,20 @@ public class DJI extends Drone{
         }
 
         // 임무 업로드
-        mission_operator.uploadMission(new CommonCallbacks.CompletionCallback() {
-            @Override
-            public void onResult(DJIError djiError) {
-                if(djiError != null) {
-                    // 임무 업로드 실패
-                    LogWrapper.i("DJI", "uploadMission Fail : " + djiError.getDescription());
-                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD_FAIL, djiError.getDescription()));
-                }else{
-                    // 임무 업로드 성공
-                    LogWrapper.i("DJI", "uploadMission Sucess");
-                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD_SUCCESS, null));
-                }
-            }
-        });
+//        mission_operator.uploadMission(new CommonCallbacks.CompletionCallback() {
+//            @Override
+//            public void onResult(DJIError djiError) {
+//                if(djiError != null) {
+//                    // 임무 업로드 실패
+//                    LogWrapper.i("DJI", "uploadMission Fail : " + djiError.getDescription());
+//                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD_FAIL, djiError.getDescription()));
+//                }else{
+//                    // 임무 업로드 성공
+//                    LogWrapper.i("DJI", "uploadMission Sucess");
+//                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD_SUCCESS, null));
+//                }
+//            }
+//        });
 
         return null;
     }
@@ -1044,7 +1048,7 @@ public class DJI extends Drone{
     /**
      * 설정된 임무를 시작
      */
-    public void startMission(){
+    public void startMission(int _shoot_count, int _interval){
         // check pre-condition
         if(ready_start_mission < 0){
             DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_START_FAIL, "카메라 설정에 실패하였습니다."));
@@ -1053,23 +1057,33 @@ public class DJI extends Drone{
 
         WaypointMissionOperator mission_operator = MissionControl.getInstance().getWaypointMissionOperator();
         mission_operator.addListener(mission_notification_listener);
+        shoot_count = _shoot_count;
+        interval = _interval;
+
         mission_operator.startMission(new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(DJIError djiError) {
                 if(djiError != null) {
                     LogWrapper.i("WaypointMission", "startMission Fail : " + djiError.getDescription());
                     DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_START_FAIL, djiError.getDescription()));
+                    WaypointMissionOperator mission_operator = MissionControl.getInstance().getWaypointMissionOperator();
+                    mission_operator.removeListener(mission_notification_listener);
                 }else{
                     // 임무 시작 성공
-                    DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_START_MISSION, null));
+                    //DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_START_MISSION_SUCCESS, null));
+                    LogWrapper.i("DJI", "임무시작???");
+                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_START_SUCCESS, null));
                 }
             }
         });
     }
 
+    /**
+     * 설정된 임무 종료
+     */
     public void stopMission(){
         WaypointMissionOperator mission_operator = MissionControl.getInstance().getWaypointMissionOperator();
-        mission_operator.startMission(new CommonCallbacks.CompletionCallback() {
+        mission_operator.stopMission(new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(DJIError djiError) {
                 if(djiError != null) {
@@ -1079,6 +1093,36 @@ public class DJI extends Drone{
                 }
             }
         });
+    }
+
+    /**
+     * 임무비행 경로 정보를 반환한다.
+     * @return 임무비행 경로
+     */
+    public List<GeoPoint> getMissionPoints(){
+        return flight_points;
+    }
+
+    /**
+     * 임무비행 경로를 설정한다.
+     * @param points 임무비행 경로
+     */
+    public void setMissionPoints(List<GeoPoint> points){
+
+        if(flight_points == null){
+            flight_points = new ArrayList<>();
+        }
+
+        if(points == null) {
+            flight_points.clear();
+            flight_points = null;
+            return;
+        }
+
+
+
+        flight_points.clear();
+        flight_points.addAll(points);
     }
 
     /**
@@ -1239,6 +1283,8 @@ public class DJI extends Drone{
                 DroneApplication.getDroneInstance().getCameraFocalLength();     // 드론 카메라 GSD factor 설정
             }
             DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_CONNECT));
+
+            LogWrapper.i("onProductConnect", "isConnected : ");
         }
 
         @Override
@@ -1249,6 +1295,7 @@ public class DJI extends Drone{
                 newComponent.setComponentListener(new BaseComponent.ComponentListener() {
                     @Override
                     public void onConnectivityChange(boolean isConnected) {
+                        LogWrapper.i("onComponentChange", "isConnected : " + isConnected);
                     }
                 });
             }
@@ -1529,19 +1576,18 @@ public class DJI extends Drone{
                             : executionEvent.getProgress().targetWaypointIndex));
 
             // Timeline Mission
-            if(executionEvent.getProgress().targetWaypointIndex == 1 && start_timeline == false){
-                List<TimelineElement> elements = new ArrayList<>();
-                elements.add(ShootPhotoAction.newShootIntervalPhotoAction(3,2));
-                MissionControl.getInstance().scheduleElements(elements);
-                MissionControl.getInstance().startTimeline();
-                start_timeline = true;
-            }
+//            if(executionEvent.getProgress().targetWaypointIndex == 1 && start_timeline == false){
+//                List<TimelineElement> elements = new ArrayList<>();
+//                elements.add(ShootPhotoAction.newShootIntervalPhotoAction(shoot_count,interval));
+//                MissionControl.getInstance().scheduleElements(elements);
+//                MissionControl.getInstance().startTimeline();
+//                start_timeline = true;
+//            }
 
         }
 
         @Override
         public void onExecutionStart() {
-            LogWrapper.e("WaypointMission", "Execution started!");
             if((drone_status & DRONE_STATUS_MISSION) == 0) {
                 drone_status += DRONE_STATUS_MISSION;
             }

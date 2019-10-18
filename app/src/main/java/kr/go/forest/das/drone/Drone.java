@@ -11,6 +11,10 @@
  */
 package kr.go.forest.das.drone;
 
+import org.osmdroid.util.GeoPoint;
+
+import java.util.List;
+
 import dji.common.flightcontroller.BatteryThresholdBehavior;
 import dji.common.flightcontroller.ConnectionFailSafeBehavior;
 import dji.common.flightcontroller.FlightMode;
@@ -129,21 +133,25 @@ public abstract class Drone {
      * 임무 데이터
      */
     int waypoint_count = 0;
+    int interval = 0;
+    int shoot_count = 0;
+    List<GeoPoint> flight_points = null;          // 비행경로를 보여주기 위한 위치
+
     //region 제품정보
     /**
      * 드론 기체 및 비행정보를 반환한다.
      * @return 드론기체 및 비행정보
      */
     public abstract DroneInfo getDroneInfo();
-
-    /*=============================================================*
-     *  현재 드론 상태를 반환한다.
-     *==============================================================*/
+    /**
+     * 현재 드론 상태를 반환한다.
+     * @return 드론 상태
+     */
     public abstract int getDroneStatus();
-
-    /*=============================================================*
-     *  현재 드론 비행여부를 확인한다.
-     *==============================================================*/
+    /**
+     * 현재 드론 비행여부를 확인한다.
+     * @return 비행여부
+     */
     public abstract boolean isFlying();
 
     /**
@@ -345,7 +353,6 @@ public abstract class Drone {
     public abstract void setPhotoAspectRatio(SettingsDefinitions.PhotoAspectRatio photoAspectRatioType);
     //endregion
 
-
     //region 드론 비행 정보
 
     /**
@@ -438,7 +445,7 @@ public abstract class Drone {
     /**
      * 설정된 임무를 시작
      */
-    public abstract void startMission();
+    public abstract void startMission(int _shoot_count, int _interval);
 
     /**
      * 설정된 임무를 멈춤
@@ -449,9 +456,21 @@ public abstract class Drone {
      * 드론 최대비행고도를 설정한다.
      */
     public abstract void setMaxFlightHeight(int height);
+
+    /**
+     * 임무비행 경로 정보를 반환한다.
+     * @return 임무비행 경로
+     */
+    public abstract List<GeoPoint> getMissionPoints();
+
+    /**
+     * 임무비행 경로를 설정한다.
+     * @param points 임무비행 경로
+     */
+    public abstract void setMissionPoints(List<GeoPoint> points);
     //endregion
 
-    //region RTL
+    //region 자동복귀
     public abstract boolean isHomeLocationSet();
     public abstract LocationCoordinate2D getHomeLocation();
     public abstract GoHomeExecutionState getGoHomeExecutionState();

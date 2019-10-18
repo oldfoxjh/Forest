@@ -96,6 +96,7 @@ public class DialogUploadMission extends RelativeLayout implements View.OnClickL
                 return;
             }
         }
+
         // 임무 업로드 진행
         DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_UPLOAD_MISSION, 0, null));
     }

@@ -47,10 +47,6 @@ public class SplashActivity extends AppCompatActivity {
 
         // DJI SDK 시작
         checkAndRequestPermissions();
-        //
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-        finish();
     }
 
     //region 퍼미션 획득
@@ -65,6 +61,11 @@ public class SplashActivity extends AppCompatActivity {
         if (missingPermission.isEmpty()) {
             // DJI SDK 등록
             startSDKRegistration();
+
+            // 앱 시작
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
         }else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && missingPermission.size() > 0) {
             ActivityCompat.requestPermissions(this,
                     missingPermission.toArray(new String[missingPermission.size()]),
@@ -91,6 +92,11 @@ public class SplashActivity extends AppCompatActivity {
         }else{
             // DJI SDK 등록
             startSDKRegistration();
+
+            // 앱 시작
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
         }
     }
 

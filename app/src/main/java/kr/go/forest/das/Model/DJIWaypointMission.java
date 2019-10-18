@@ -5,18 +5,19 @@ import org.osmdroid.util.GeoPoint;
 import java.util.ArrayList;
 import java.util.List;
 
-import dji.common.gimbal.Attitude;
 import dji.common.mission.waypoint.Waypoint;
 import dji.common.mission.waypoint.WaypointAction;
 import dji.common.mission.waypoint.WaypointActionType;
+import dji.common.mission.waypoint.WaypointMission;
 import dji.common.mission.waypoint.WaypointMissionFinishedAction;
 import dji.common.mission.waypoint.WaypointMissionFlightPathMode;
 import dji.common.mission.waypoint.WaypointMissionGotoWaypointMode;
 import dji.common.mission.waypoint.WaypointMissionHeadingMode;
+import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.geo.GeoManager;
 
 public class DJIWaypointMission {
-    private dji.common.mission.waypoint.WaypointMission waypoint_mission;
+    private List<WaypointMission> waypoint_missions;
     public float max_flight_altitude = 0.0f;
 
     public DJIWaypointMission(List<GeoPoint> waypoints, GeoPoint base_point, float flight_speed){
@@ -24,6 +25,7 @@ public class DJIWaypointMission {
     }
 
     private void createDJIMission(List<GeoPoint> waypoints, GeoPoint base_point, float flight_speed){
+        waypoint_missions = new ArrayList<>();
         dji.common.mission.waypoint.WaypointMission.Builder builder = new dji.common.mission.waypoint.WaypointMission.Builder();
 
         builder.autoFlightSpeed(flight_speed);
@@ -34,10 +36,9 @@ public class DJIWaypointMission {
 
         // 첫번째 웨이포인트 이동시 안전하게 이동(상승후 이동)
         builder.gotoFirstWaypointMode(WaypointMissionGotoWaypointMode.SAFELY);
-        builder.finishedAction(WaypointMissionFinishedAction.GO_HOME);
+        builder.finishedAction(WaypointMissionFinishedAction.NO_ACTION);
         builder.flightPathMode(WaypointMissionFlightPathMode.NORMAL);
         builder.headingMode(WaypointMissionHeadingMode.AUTO);
-
         builder.repeatTimes(0);
 
         // 3D 정보 반영
@@ -45,27 +46,39 @@ public class DJIWaypointMission {
 
         List<Waypoint> _waypoint_mission = new ArrayList<>();
 
-        for(int i = 0; i < waypoints.size(); i++)
-        {
-            GeoPoint _point = waypoints.get(i);
-            float _altitude = (float)_point.getAltitude();
-            Waypoint waypoint = new Waypoint(_point.getLatitude(), _point.getLongitude(), _altitude);
+        int group_count = waypoints.size()/WaypointMission.MAX_WAYPOINT_COUNT + 1;
+        for(int i = 0; i < group_count; i++) {
+            for(int j = 0; j < WaypointMission.MAX_WAYPOINT_COUNT ; j++){
 
-            if(i == 0) {
-                waypoint.addAction(new WaypointAction(WaypointActionType.GIMBAL_PITCH, -90));
-            }
-            _waypoint_mission.add(waypoint);
+                int _index = i*WaypointMission.MAX_WAYPOINT_COUNT + j;
+                if(_index > waypoints.size() - 1 ) break;
 
-            if(max_flight_altitude < _altitude) {
-                max_flight_altitude = _altitude;
+                GeoPoint _point = waypoints.get(_index);
+                float _altitude = (float)_point.getAltitude();
+                Waypoint waypoint = new Waypoint(_point.getLatitude(), _point.getLongitude(), _altitude);
+
+                if(i == 0 && j == 0) {
+                    waypoint.addAction(new WaypointAction(WaypointActionType.GIMBAL_PITCH, -90));
+                }
+                waypoint.addAction(new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 1));
+                LogWrapper.i("Waypoint", String.format("lat : %f, lng : %f, alt : %f",_point.getLatitude(), _point.getLongitude(), _altitude));
+                _waypoint_mission.add(waypoint);
+
+                if(max_flight_altitude < _altitude) {
+                    max_flight_altitude = _altitude;
+                }
             }
+            builder.waypointList(_waypoint_mission).waypointCount(_waypoint_mission.size());
+
+            waypoint_missions.add(builder.build());
+
+            _waypoint_mission.clear();
         }
 
-        builder.waypointList(_waypoint_mission).waypointCount(_waypoint_mission.size());
-        waypoint_mission =  builder.build();
+
     }
 
-    public dji.common.mission.waypoint.WaypointMission getDJIMission(){
-        return waypoint_mission;
+    public List<WaypointMission> getDJIMission(){
+        return waypoint_missions;
     }
 }

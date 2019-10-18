@@ -37,6 +37,7 @@ import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.Model.RectD;
 
 public class GeoManager {
+    private final double VERTICAL_SPEED_PER_SECONDS = 1.0;
     private static final double WGS84_RADIUS = 6370997.0;
     private static double EarthCircumFence = 2* WGS84_RADIUS * Math.PI;
     private static int TURNAROUND_DISTANCE = 50;
@@ -115,8 +116,16 @@ public class GeoManager {
                 _complete = false;
             }else{
                 point.setAltitude(point.getAltitude() + altitude[0] - base_altitude[0]);
-                LogWrapper.i("GeoManager", String.format("lat : %f, lng : %f", point.getLatitude(), point.getLongitude()));
-                LogWrapper.i("GeoManager", String.format("고도(%d) : %f", i, (point.getAltitude() + altitude[0] - base_altitude[0])));
+
+                // 이전 고도값과 비교해서 기울기가 1보다 클경우 기울기를 1로 적용(기울기 : 초당 수직속도)
+                if(i > 0){
+                    double _distance = distance(points.get(i-1).getLatitude(), points.get(i-1).getLongitude(), point.getLatitude(), point.getLongitude());
+                    double _diff_altitude =  points.get(i-1).getAltitude() - points.get(i).getAltitude();
+
+                    if(Math.abs(_diff_altitude/_distance) > VERTICAL_SPEED_PER_SECONDS){
+                        point.setAltitude(points.get(i - 1).getAltitude() - _distance*VERTICAL_SPEED_PER_SECONDS);
+                    }
+                }
             }
         }
 
@@ -422,18 +431,18 @@ public class GeoManager {
         GeoPoint bottom;
         GeoPoint _intersect;
 
-        for(int i = -count; i < count ; i++){
-            top = getPositionFromDistance(x2, ew_factor*i, -ns_factor*i);
-            bottom = getPositionFromDistance(x1, ew_factor*i, -ns_factor*i);
+        for(int i = -count; i < count ; i++) {
+            top = getPositionFromDistance(x2, ew_factor * i, -ns_factor * i);
+            bottom = getPositionFromDistance(x1, ew_factor * i, -ns_factor * i);
             // 경계선과 교차점 찾기
             _intersect = getIntersectPoint(top.getLongitude(), top.getLatitude(), bottom.getLongitude(), bottom.getLatitude()
                     , rect.get(1).getLongitude(), rect.get(1).getLatitude(), rect.get(3).getLongitude(), rect.get(3).getLatitude());
-            if(_intersect == null) {
+            if (_intersect == null) {
                 _intersect = getIntersectPoint(top.getLongitude(), top.getLatitude(), bottom.getLongitude(), bottom.getLatitude()
                         , rect.get(0).getLongitude(), rect.get(0).getLatitude(), rect.get(2).getLongitude(), rect.get(2).getLatitude());
             }
 
-            if(_intersect != null ){
+            if (_intersect != null) {
                 if (Math.abs(i % 2) == 1) {
                     _result.add(top);
                     _result.add(bottom);
@@ -442,6 +451,18 @@ public class GeoManager {
                     _result.add(top);
                 }
             }
+        }
+
+        // 비행경로가 1 line(2 point 일경우)
+        if(_result.size() < 3){
+            _result.clear();
+            _intersect = getIntersectPoint(rect.get(0).getLongitude(), rect.get(0).getLatitude(), rect.get(2).getLongitude(), rect.get(2).getLatitude()
+                    , rect.get(1).getLongitude(), rect.get(1).getLatitude(), rect.get(3).getLongitude(), rect.get(3).getLatitude());
+            top = getPositionFromDistance(_intersect, -Math.max(_height, _width)*2*_sin, -Math.max(_height, _width)*2*_cos);
+            bottom = getPositionFromDistance(_intersect, Math.max(_height, _width)*2*_sin, Math.max(_height, _width)*2*_cos);
+
+            _result.add(top);
+            _result.add(bottom);
         }
 
         return _result;
@@ -486,8 +507,7 @@ public class GeoManager {
      */
     public List<GeoPoint> getPositionsFromRectD(List<GeoPoint> waypoints, double overlap, int degree){
         List<GeoPoint> _points = getLines(new RectD(waypoints).getPoints(), overlap, degree);
-
-        // 비행영역과 촬영영역과 교차하는 지점 찾기
+        //비행영역과 촬영영역과 교차하는 지점 찾기
         List<GeoPoint> _intersects = new ArrayList<GeoPoint>();
 
         for(int i = 0; i < _points.size(); i++){
@@ -518,6 +538,7 @@ public class GeoManager {
         _points.clear();
 
         return _intersects;
+
     }
 
     /**

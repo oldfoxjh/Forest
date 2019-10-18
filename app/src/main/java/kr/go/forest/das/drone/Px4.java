@@ -1,6 +1,11 @@
 package kr.go.forest.das.drone;
 
 
+import org.osmdroid.util.GeoPoint;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import dji.common.camera.SettingsDefinitions;
 import dji.common.flightcontroller.BatteryThresholdBehavior;
 import dji.common.flightcontroller.ConnectionFailSafeBehavior;
@@ -451,7 +456,7 @@ public class Px4 extends Drone {
     /**
      * 설정된 임무를 시작
      */
-    public void startMission(){
+    public void startMission(int _shoot_count, int _interval){
 
     }
 
@@ -466,6 +471,27 @@ public class Px4 extends Drone {
      * 드론 최대비행고도를 설정한다.
      */
     public void setMaxFlightHeight(int height){
+    }
+
+    /**
+     * 임무비행 경로 정보를 반환한다.
+     * @return 임무비행 경로
+     */
+    public List<GeoPoint> getMissionPoints(){
+        return flight_points;
+    }
+
+    /**
+     * 임무비행 경로를 설정한다.
+     * @param points 임무비행 경로
+     */
+    public void setMissionPoints(List<GeoPoint> points){
+        if(flight_points == null){
+            flight_points = new ArrayList<>();
+        }
+
+        flight_points.clear();
+        flight_points.addAll(points);
     }
     //endregion
 

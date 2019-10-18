@@ -103,7 +103,7 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
 
                 // 키보드 체크
                 hideSoftInput();
-                DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), true));
+                DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), false));
 
                // DroneApplication.getEventBus().post(new ViewWrapper(new PixhawkMissionView(context), true));
             }else{

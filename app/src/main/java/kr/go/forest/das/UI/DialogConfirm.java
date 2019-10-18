@@ -103,6 +103,7 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
 
     @Override
     public void onClick(View v) {
+
         if(content_id == R.string.clear_mission) {
             DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.Mission.MISSION_CLEAR, null));
         }else if(title_id == R.string.takeoff_title) {
@@ -120,9 +121,10 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
         }else if(title_id == R.string.max_flight_height_low_title) {
             DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_MAX_FLIGHT_HEIGHT_LOW, null));
         }else if(title_id == R.string.mission_start_title) {
-            DroneApplication.getDroneInstance().startMission();
+            DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_START_MISSION, null));
         }else if(title_id == R.string.check_internet_title){
             DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), true));
+            DroneApplication.getEventBus().post(new MainActivity.PopdownView(0, MainActivity.PopupDialog.REMOVE_PRE_VIEW, null));
         }
     }
 }

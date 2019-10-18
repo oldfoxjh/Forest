@@ -162,7 +162,7 @@
                 android:maxHeight="@dimen/px4"
                 android:thumb="@mipmap/setting_handle"
                 android:min="10"
-                android:max="200"
+                android:max="140"
                 android:progressDrawable="@drawable/setting_progress"/>
         </RelativeLayout>
 

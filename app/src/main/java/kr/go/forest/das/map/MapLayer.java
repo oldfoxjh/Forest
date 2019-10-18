@@ -14,6 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Polygon;
 
 import java.io.IOException;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.R;
+import kr.go.forest.das.UI.MissionView;
 import kr.go.forest.das.geo.GeoManager;
 
 public class MapLayer {

@@ -48,10 +48,12 @@ import java.util.TimerTask;
 
 import dji.common.mission.waypoint.WaypointMission;
 import dji.common.model.LocationCoordinate2D;
+import dji.sdk.mission.MissionControl;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.CameraInfo;
+import kr.go.forest.das.Model.DJITimelineMission;
 import kr.go.forest.das.Model.DroneInfo;
 import kr.go.forest.das.Model.RectD;
 import kr.go.forest.das.Model.ViewWrapper;
@@ -99,7 +101,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
     List<Marker> selected_points = new ArrayList<Marker>();          // 사용자가 선택한 위치를 나타내는 마커
     List<GeoPoint> mWaypoints = new ArrayList<GeoPoint>();             // 사용자가 선택한 위치
     List<GeoPoint> area_points = new ArrayList<GeoPoint>();     // 촬영영역을 보여주기 위한 위치
-    List<GeoPoint> flight_points = new ArrayList<GeoPoint>();          // 촬영영역을 보여주기 위한 위치
+    List<GeoPoint> flight_points = new ArrayList<GeoPoint>();          // 비행경로를 보여주기 위한 위치
     List<Marker> entry_exit = new ArrayList<Marker>();               // 임무 시작점과 종료점 마커
 
     Polygon flight_area = new Polygon();                        // 촬영영역
@@ -154,7 +156,10 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         timer.schedule(new MissionView.CollectDroneInformationTimer(), 0, period);
 
         // 드론 촬영 종횡비값 가져오기
-        if(DroneApplication.getDroneInstance() != null) DroneApplication.getDroneInstance().getPhotoAspectRatio();
+        if(DroneApplication.getDroneInstance() != null) {
+            DroneApplication.getDroneInstance().getPhotoAspectRatio();
+            DroneApplication.getDroneInstance().setMissionPoints(null);
+        }
 
         super.onAttachedToWindow();
     }
@@ -429,6 +434,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
      */
     @Subscribe
     public void onMissionLoad(final MainActivity.Mission mission) {
+        LogWrapper.i("MissionView", "cmd : " + mission.command);
         if(mission.command == MainActivity.Mission.MISSION_FROM_FILE || mission.command == MainActivity.Mission.MISSION_FROM_ONLINE){
             // 임무정보 초기화
             clearMission();
@@ -450,22 +456,41 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
             }
             // 파일이 잘못되었을 경우 팝업
         }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD){
-
             // 업로드 중이라는 ProgressDialog
             progress.setMessage("임무 업로드...");
             progress.setCancelable(false);
             progress.setProgressStyle(android.R.style.Widget_ProgressBar_Horizontal);
             progress.show();
 
-            String _result = DroneApplication.getDroneInstance().uploadMission(waypoint_mission.getDJIMission());
+            DroneInfo _info = DroneApplication.getDroneInstance().getDroneInfo();
 
-            if(_result != null){
-                // 오류 팝업
-                LogWrapper.i("MissionView", "uploadMission Fail : " +_result);
-                // ProgressDialog 닫기
-                progress.dismiss();
-                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_upload_fail, _result));
+            List<WaypointMission> _waypoints_mission = waypoint_mission.getDJIMission();
+            DJITimelineMission _temp = new DJITimelineMission(_waypoints_mission, new GeoPoint(_info.drone_latitude, _info.drone_longitude));
+
+            String _result = null;
+
+            for(WaypointMission item : _waypoints_mission){
+                _result = DroneApplication.getDroneInstance().uploadMission(item);
+
+                if(_result != null){
+                    // 오류 팝업
+                    // ProgressDialog 닫기
+                    progress.dismiss();
+
+                    LogWrapper.i("임무 아이템", "" + item.getWaypointCount());
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_upload_fail, _result));
+                    return;
+                }
             }
+
+
+            if (MissionControl.getInstance().scheduledCount() > 0) {
+                MissionControl.getInstance().startTimeline();
+            }
+
+            // ProgressDialog 닫기
+            progress.dismiss();
+
         }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD_FAIL){
             // ProgressDialog 닫기
             progress.dismiss();
@@ -483,27 +508,38 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                         // ProgressDialog 닫기
                         progress.dismiss();
 
-                        // 임무시작조거 설정 확인
+                        // 임무시작조건 설정 확인
                         if(DroneApplication.getDroneInstance().isMissionStartAvailable()) {
-                            btn_mission_start.setVisibility(VISIBLE);
-                            btn_upload.setVisibility(INVISIBLE);
                             DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.mission_start_title, R.string.mission_start_content, ""));
                         }else{
                             DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_start_fail, "camera setting fail"));
                         }
                     }
-                }, 2000);
+                }, 3000);
             }
 
         }else if(mission.command == MainActivity.Mission.MISSION_START_FAIL){
             // 미션 시작 실패
             DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_start_fail, mission.data));
         }else if(mission.command == MainActivity.Mission.MISSION_START_SUCCESS){
-            // 비행화면으로 전환
-            DroneApplication.getEventBus().post(new ViewWrapper(new FlightView(context), true));
+            if (handler_ui != null) {
+                handler_ui.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        // 비행경로 저장
+                        DroneApplication.getDroneInstance().setMissionPoints(flight_points);
+                        // 비행화면으로 전환
+                        DroneApplication.getEventBus().post(new ViewWrapper(new FlightView(context), true));
+                    }
+                });
+            }
+        }else if(mission.command == MainActivity.Mission.MISSION_START){
+            DroneApplication.getDroneInstance().startMission(shoot_count, shoot_time_interval);
         }else if(mission.command == MainActivity.Mission.MAX_FLIGHT_HEIGHT_SET_SUCCESS){
             // 드론 최대비행고도 변경 성공
             DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.max_flight_height_success, null));
+        }else if(mission.command == MainActivity.Mission.MISSION_CLEAR){
+            clearMission();
         }
     }
 
@@ -538,8 +574,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
             case R.id.btn_new_course:
                 // 현재 임무를 초기화 하겠냐는 팝업
                 DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, 0, R.string.clear_mission));
-                // clear waypoints
-                clearMission();
                 break;
             case R.id.btn_load_shape:
                 // Mission 파일 목록 팝업
@@ -594,9 +628,11 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 for(GeoPoint point : upload_mission){
                     point.setAltitude(mission_altitude);
                 }
-
-                // 웨이포인트 생성
+//
+//                // 웨이포인트 생성
                 DroneInfo _info = DroneApplication.getDroneInstance().getDroneInfo();
+//                waypoint_mission = new DJIWaypointMission(upload_mission, new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
+
                 waypoint_mission = new DJIWaypointMission(upload_mission, new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
 
                 if(waypoint_mission.max_flight_altitude > DroneApplication.getDroneInstance().max_flight_height){
@@ -643,12 +679,14 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 setMissionPolygon();
                 break;
             case R.id.seekbar_mission_overlap:              // 종중복도
+                if(progress < 1) progress = 1;
                 mission_front_lap= ((float)progress);
                 _progress = String.format("%d", progress);
                 tv_mission_overlap.setText(_progress + "%");
                 setMissionPolygon();
                 break;
             case R.id.seekbar_mission_sidelap:              // 횡중복도
+                if(progress < 1) progress = 1;
                 mission_side_lap = ((float)progress);
                 _progress = String.format("%d", progress);
                 tv_mission_sidelap.setText(_progress + "%");
@@ -916,7 +954,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         // 촬영간격 계산
         shoot_time_interval = (int)(front_distance/mission_flight_speed);
         shoot_time_interval = Math.max(2, shoot_time_interval);
-        shoot_count = (int)(_dist_mission/front_distance);
+        shoot_count = (int)(_dist_mission/front_distance) + 1;
         tv_mission_shoot_interval.setText(String.format("%d초/%d",shoot_time_interval, shoot_count));
         // 종간격, 횡간격 정보 업데이트
         tv_mission_lap_distance.setText(String.format("F:%.1f m/S:%.1f m", front_distance, side_distance));
@@ -977,7 +1015,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                             marker_drone_location.setPosition(new GeoPoint(_info.drone_latitude, _info.drone_longitude));
 
                             // 3. 조종기 위치
-                            marker_my_location.setPosition(new GeoPoint(_info.rc_latitude, _info.rc_longitude));
+                            //marker_my_location.setPosition(new GeoPoint(_info.rc_latitude, _info.rc_longitude));
 
                             map_view.invalidate();
                         }

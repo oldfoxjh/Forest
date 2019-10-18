@@ -15,10 +15,10 @@
         android:background="#FFF"
         android:orientation="vertical"
         android:layout_width="@dimen/px590"
-        android:layout_height="@dimen/px520">
+        android:layout_height="@dimen/px382">
 
         <TextView
-            android:id="@+id/load_shape_title"
+            android:id="@+id/textview_dialog_purpose_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/px40"
@@ -27,24 +27,30 @@
             android:textSize="@dimen/font42"
             android:textFontWeight=""
             android:textColor="#000"
-            android:text="임무비행 경로에 적용할\nShape 파일을 선택하세요." />
-        <ScrollView
-            android:layout_width="@dimen/px590"
-            android:layout_below="@+id/load_shape_title"
-            android:layout_height="@dimen/px320"
-            android:layout_marginTop="@dimen/px4"
-            android:padding="@dimen/px20"
-
-            >
-            <RadioGroup
-                android:id="@+id/load_shape_file_list"
+            android:text="촬영목적"/>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/px46"
+            android:layout_below="@+id/textview_dialog_purpose_title">
+            <Spinner
+                android:id="@+id/spinner_purpose"
+                android:background="@drawable/spinner_background"
+                android:layout_width="@dimen/px400"
+                android:layout_height="@dimen/px70"
+                android:layout_marginLeft="@dimen/px96"
+                android:paddingLeft="@dimen/px20"
+                android:paddingRight="@dimen/px20"
+                android:gravity="center"
+                android:textSize="@dimen/font42"/>
+            <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                >
-
-            </RadioGroup>
-        </ScrollView>
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="@dimen/px104"
+                android:layout_marginTop="@dimen/px32"
+                android:src="@mipmap/input_arrow" />
+        </RelativeLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="@dimen/px80"
@@ -52,7 +58,7 @@
             android:orientation="horizontal"
             >
             <Button
-                android:id="@+id/btn_dialog_load_shape_open"
+                android:id="@+id/btn_dialog_purpose_yes"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.5"
@@ -63,7 +69,7 @@
                 android:textColor="#FFF"
                 />
             <Button
-                android:id="@+id/btn_dialog_load_shape_cancel"
+                android:id="@+id/btn_dialog_purpose_no"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.5"

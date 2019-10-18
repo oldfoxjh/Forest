@@ -12,16 +12,20 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
@@ -32,6 +36,7 @@ import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.UI.DialogLoadMission;
 import kr.go.forest.das.UI.DialogLoadShape;
 import kr.go.forest.das.UI.DialogOk;
+import kr.go.forest.das.UI.DialogShootingPurpose;
 import kr.go.forest.das.UI.DialogUploadMission;
 
 public class MainActivity extends AppCompatActivity implements  LocationListener //UsbStatus.UsbStatusCallbacks,
@@ -45,6 +50,9 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     private ObjectAnimator popInAnimator;
     private LayoutTransition popOutTransition;
     LocationManager mManager;
+    boolean doubleBackToExitPressedOnce = false;
+
+    List<String> shooting_purpose = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         setupInAnimations();
         stack = new Stack<ViewWrapper>();
         View view = contentFrameLayout.getChildAt(0);
-        stack.push(new ViewWrapper(view, true));
+        stack.push(new ViewWrapper(view, false));
     }
 
     private void setupInAnimations() {
@@ -90,10 +98,27 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         popOutTransition.setDuration(popOutAnimator.getDuration());
     }
 
+    @Override
+    public void onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        }
 
-//region 위치 관리
-    private  void setLocationManager()
-    {
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, "한번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                doubleBackToExitPressedOnce=false;
+            }
+        }, 2000);
+    }
+
+    //region 위치 관리
+    private  void setLocationManager() {
         mManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -132,7 +157,6 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
 
     }
     //endregion
-    //endregion
 
     //region OTTO Event Subscribe
     @Subscribe
@@ -162,6 +186,12 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                     wrapper = new ViewWrapper(new DialogLoadMission(MainActivity.this), false);
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_UPLOAD_MISSION){
                     wrapper = new ViewWrapper(new DialogUploadMission(MainActivity.this), false);
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_SHOOTING_PURPOSE){
+                    shooting_purpose.add("선택해주세요.");
+                    shooting_purpose.add("재난");
+                    shooting_purpose.add("병해충");
+                    shooting_purpose.add("사법");
+                    wrapper = new ViewWrapper(new DialogShootingPurpose(MainActivity.this, shooting_purpose), false);
                 }
 
                 pushView(wrapper);
@@ -174,7 +204,12 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                popView();
+                if(popup.command == PopupDialog.REMOVE_PRE_VIEW){
+                    ViewWrapper removeWrapper = stack.remove(stack.size()-2);
+                    contentFrameLayout.removeView(removeWrapper.getView());
+                }else {
+                    popView();
+                }
 
                 if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_SHAPE) {
                     DroneApplication.getEventBus().post(new Mission(Mission.MISSION_FROM_FILE, popup.data));
@@ -200,7 +235,7 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                     }else if(popup.command == PopupDialog.DIALOG_TYPE_MAX_FLIGHT_HEIGHT_LOW) {
                         DroneApplication.getDroneInstance().setMaxFlightHeight(500);
                     }else if(popup.command == PopupDialog.DIALOG_TYPE_START_MISSION){
-                        DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_START_SUCCESS, null));
+                        DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_START, null));
                     }
                 }
             }
@@ -208,16 +243,11 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     }
 
     private void pushView(ViewWrapper wrapper) {
-        if (stack.size() <= 0) {
-            return;
-        }
 
         contentFrameLayout.setLayoutTransition(null);
 
         View showView = wrapper.getView();
-
         View preView = stack.peek().getView();
-
         stack.push(wrapper);
 
         if (showView.getParent() != null) {
@@ -245,13 +275,10 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         ViewWrapper removeWrapper = stack.pop();
         ViewWrapper showWrapper = stack.peek();
 
-
-        if(removeWrapper.isAnimation())
-            contentFrameLayout.setLayoutTransition(popOutTransition);
-
         contentFrameLayout.removeView(removeWrapper.getView());
 
-        if(removeWrapper.isAnimation()) {
+        if(showWrapper.isAnimation()) {
+            contentFrameLayout.setLayoutTransition(popOutTransition);
             popInAnimator.setTarget(showWrapper.getView());
             popInAnimator.start();
         }
@@ -262,20 +289,23 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
 
     public static class PopupDialog {
 
-        public final static int DIALOG_TYPE_OK = 0x10;
-        public final static int DIALOG_TYPE_CONFIRM = 0x11;
-        public final static int DIALOG_TYPE_LOAD_SHAPE = 0x12;
-        public final static int DIALOG_TYPE_LOAD_MISSION = 0x13;
-        public final static int DIALOG_TYPE_REQUEST_TAKEOFF = 0x14;
-        public final static int DIALOG_TYPE_REQUEST_LANDING = 0x15;
-        public final static int DIALOG_TYPE_CANCEL_LANDING = 0x16;
-        public final static int DIALOG_TYPE_CONFIRM_LANDING = 0x17;
-        public final static int DIALOG_TYPE_START_RETURN_HOME = 0x18;
-        public final static int DIALOG_TYPE_CANCEL_RETURN_HOME = 0x19;
-        public final static int DIALOG_TYPE_SET_RETURN_HOME_LOCATION = 0x20;
-        public final static int DIALOG_TYPE_UPLOAD_MISSION = 0x21;
-        public final static int DIALOG_TYPE_MAX_FLIGHT_HEIGHT_LOW = 0x22;
-        public final static int DIALOG_TYPE_START_MISSION = 0x23;
+        public final static int DIALOG_TYPE_OK = 0x1010;
+        public final static int DIALOG_TYPE_CONFIRM = 0x1011;
+        public final static int DIALOG_TYPE_LOAD_SHAPE = 0x1012;
+        public final static int DIALOG_TYPE_LOAD_MISSION = 0x1013;
+        public final static int DIALOG_TYPE_REQUEST_TAKEOFF = 0x1014;
+        public final static int DIALOG_TYPE_REQUEST_LANDING = 0x1015;
+        public final static int DIALOG_TYPE_CANCEL_LANDING = 0x1016;
+        public final static int DIALOG_TYPE_CONFIRM_LANDING = 0x1017;
+        public final static int DIALOG_TYPE_START_RETURN_HOME = 0x1018;
+        public final static int DIALOG_TYPE_CANCEL_RETURN_HOME = 0x1019;
+        public final static int DIALOG_TYPE_SET_RETURN_HOME_LOCATION = 0x1020;
+        public final static int DIALOG_TYPE_UPLOAD_MISSION = 0x1021;
+        public final static int DIALOG_TYPE_MAX_FLIGHT_HEIGHT_LOW = 0x1022;
+        public final static int DIALOG_TYPE_START_MISSION_SUCCESS = 0x1023;
+        public final static int DIALOG_TYPE_SHOOTING_PURPOSE = 0x1024;
+        public final static int DIALOG_TYPE_START_MISSION = 0x1025;
+        public final static int REMOVE_PRE_VIEW = 0x1026;
 
         public int type;
         public int contentId;
@@ -348,17 +378,18 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     }
 
     public static class Mission{
-        public final static int MISSION_CLEAR = 0x20;
-        public final static int MISSION_FROM_FILE = 0x21;
-        public final static int MISSION_FROM_ONLINE = 0x22;
+        public final static int MISSION_CLEAR = 0x2020;
+        public final static int MISSION_FROM_FILE = 0x2021;
+        public final static int MISSION_FROM_ONLINE = 0x2022;
 
-        public final static int MISSION_UPLOAD = 0x23;
-        public final static int MISSION_UPLOAD_FAIL = 0x24;
-        public final static int MISSION_UPLOAD_SUCCESS = 0x25;
+        public final static int MISSION_UPLOAD = 0x2023;
+        public final static int MISSION_UPLOAD_FAIL = 0x2024;
+        public final static int MISSION_UPLOAD_SUCCESS = 0x2025;
 
-        public final static int MISSION_START_FAIL = 0x26;
-        public final static int MISSION_START_SUCCESS = 0x27;
-        public final static int MAX_FLIGHT_HEIGHT_SET_SUCCESS = 0x28;
+        public final static int MISSION_START_FAIL = 0x2026;
+        public final static int MISSION_START_SUCCESS = 0x2027;
+        public final static int MAX_FLIGHT_HEIGHT_SET_SUCCESS = 0x2028;
+        public final static int MISSION_START = 0x2029;
 
         public int command = 0;
         public String data = null;
@@ -410,5 +441,13 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
             message = msg;
         }
     }
+
+    public static class Realtime{
+        public boolean is_realtime = false;
+
+        public Realtime(boolean realtime){
+            is_realtime = realtime;
+        }
+    };
     //endregion
 }

@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import kr.go.forest.das.DroneApplication;
+import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Px4;
@@ -34,7 +35,8 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
 
     @Override
     protected void onAttachedToWindow() {
-
+        // LoginView Pop
+        DroneApplication.getEventBus().post(new MainActivity.PopdownView(0, MainActivity.PopupDialog.REMOVE_PRE_VIEW, null));
         super.onAttachedToWindow();
     }
 
@@ -69,10 +71,10 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
         switch (v.getId())
         {
             case R.id.missionButton:
-                wrapper = new ViewWrapper(new MissionView(context), true);
+                wrapper = new ViewWrapper(new MissionView(context), false);
                 break;
             case R.id.flightButton:
-                wrapper = new ViewWrapper(new FlightView(context), true);
+                wrapper = new ViewWrapper(new FlightView(context), false);
                 break;
             case R.id.settingButton:
                 wrapper = null; return;

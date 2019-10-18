@@ -109,6 +109,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     List<Marker> forest_fires = new ArrayList<Marker>();             // 산불발생지역 정보
     List<GeoPoint> flight_paths = new ArrayList<GeoPoint>();           // 비행경로
     Polyline flight_path_line = new Polyline();                 // 비행경로 표시
+    Polyline mission_flight_path_line = new Polyline();         // 임무비행 경로 표시
     GeoPoint my_location = null;                                // 현재 조종자 위치
 
     Button btn_flight_location;
@@ -176,6 +177,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      */
     @Override
     protected void onAttachedToWindow() {
+        LogWrapper.i(TAG, "onAttachedToWindow");
         ((Activity)context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         handler_ui = new Handler(Looper.getMainLooper());
 
@@ -200,6 +202,33 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             DroneApplication.getDroneInstance().getAutoAEUnlockEnabled();
 
             DroneApplication.getDroneInstance().getCameraMode();
+
+            // 임무비행 경로
+            List<GeoPoint> flight_path = DroneApplication.getDroneInstance().getMissionPoints();
+            if(flight_path != null && flight_path.size() > 2){
+                // 비행경로
+                mission_flight_path_line.setPoints(flight_path);
+
+                // 진입점과 종료점 마커
+                setEntryExit(flight_path);
+
+                // 임무시작위치를 가운데로..
+                DroneInfo _info = DroneApplication.getDroneInstance().getDroneInfo();
+                LocationCoordinate2D _home = DroneApplication.getDroneInstance().getHomeLocation();
+                IMapController mapController = map_view.getController();
+                mapController.setCenter(new GeoPoint(_home.getLatitude(), _home.getLongitude()));
+
+                // 임무화면 remove
+                if (handler_ui != null) {
+                    handler_ui.postAtTime(new Runnable() {
+                        @Override
+                        public void run() {
+                            DroneApplication.getEventBus().post(new MainActivity.PopdownView(0, MainActivity.PopupDialog.REMOVE_PRE_VIEW, null));
+                        }
+                    }, 10000);
+                }
+
+            }
         }
 
         super.onAttachedToWindow();
@@ -226,11 +255,18 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             media_player = null;
         }
 
+        // 산불발생지역 초기화
         forest_fires.clear();
         forest_fires = null;
 
+        // 배경지도 초기화
         map_view.getOverlays().clear();
         map_view = null;
+
+        // 임무비행경로 초기화
+        if(DroneApplication.getDroneInstance() != null) {
+            DroneApplication.getDroneInstance().setMissionPoints(null);
+        }
 
         super.onDetachedFromWindow();
     }
@@ -239,6 +275,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      * 지도 및 기타 컨트롤 설정
      */
     protected void initUI() {
+        LogWrapper.i(TAG, "initUI");
         pref = context.getSharedPreferences("drone", Context.MODE_PRIVATE);
         DroneApplication.getEventBus().register(this);
 
@@ -280,6 +317,11 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         }else{
             mapController.setCenter(new GeoPoint(Double.parseDouble(_lat), Double.parseDouble(_lon)));
         }
+
+        //임무 비행경로
+        mission_flight_path_line.setColor(Color.WHITE);
+        mission_flight_path_line.setWidth(6.0f);
+        map_view.getOverlayManager().add(mission_flight_path_line);
 
         // 마커 설정
         // 내위치
@@ -415,7 +457,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         btn_flight_cancel.setOnClickListener(this);
 
         // 드론 임무상태를 체크해서 적용
-        if( DroneApplication.getDroneInstance()!= null
+        if( DroneApplication.getDroneInstance() != null
                 && (DroneApplication.getDroneInstance().getDroneStatus() & Drone.DRONE_STATUS_MISSION) == Drone.DRONE_STATUS_MISSION){
             setCameraWidgetVisible(INVISIBLE);
             btn_flight_takeoff.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_landing_selector));
@@ -440,12 +482,11 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                 DroneApplication.getDroneInstance().setCameraMode(SettingsDefinitions.CameraMode.SHOOT_PHOTO);
                 break;
             case R.id.btn_flight_record:
-                // 촬영가능용량 확인
                 // 촬영중인지..확인
                 if(is_recording == true) {
                     DroneApplication.getDroneInstance().stopRecordVideo();
                 }else{
-                    DroneApplication.getDroneInstance().startRecordVideo();
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_SHOOTING_PURPOSE, 0, 0));
                 }
                 break;
             case R.id.btn_flight_shoot:
@@ -673,7 +714,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         else btn_flight_ae.setBackground(ContextCompat.getDrawable(context, R.mipmap.ae_s));
 
                         // 1. 조종기와의 거리
-                        if(my_location == null) tv_distance.setText("0.0");
+                        if(my_location == null || Math.abs(my_location.getLatitude()) < 1) tv_distance.setText("0.00");
                         else tv_distance.setText(String.format("%.2f", GeoManager.getInstance().distance(my_location.getLatitude(), my_location.getLongitude(), _info.drone_latitude, _info.drone_longitude)));
 
                         if(my_location != null) marker_my_location.setPosition(my_location);
@@ -726,6 +767,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         if(timer == null) {
                             timer = new Timer();
                         }
+
                         timer.schedule(new CollectDroneInformationTimer(), 0, period);
                         DroneApplication.getDroneInstance().getCameraMode();
 
@@ -892,7 +934,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             }else{
                 // 동영상 촬영 종료음
                 media_player = MediaPlayer.create(context, R.raw.shoot_photo);
-                //media_player.start();
+                media_player.start();
 
                 if (handler_ui != null) {
                     handler_ui.post(new Runnable() {
@@ -907,7 +949,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         } else if(camera.mode == SettingsDefinitions.CameraMode.SHOOT_PHOTO){
             // 사진촬영음
             media_player = MediaPlayer.create(context, R.raw.shoot_photo);
-            //media_player.start();
+            media_player.start();
         }
     }
 
@@ -969,6 +1011,19 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         }
     }
 
+    /**
+     * 실시간 동영상 촬영 여부
+     * @param realtime
+     */
+    @Subscribe
+    public void onRealtimeVideo(final MainActivity.Realtime realtime){
+        // 실시간 동영상 전송
+        if(realtime.is_realtime == true){
+
+        }
+        // 동영상 촬영 시작
+        DroneApplication.getDroneInstance().startRecordVideo();
+    }
     /**
      * 카메라와 지도 View 전환 애니메이션
      */
@@ -1061,5 +1116,36 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         _layout.setVisibility(INVISIBLE);
         LinearLayout _layout_rth = (LinearLayout) findViewById(R.id.layout_flight_rth);
         _layout_rth.setVisibility(VISIBLE);
+    }
+
+    /**
+     *  선택한 좌표의 마커를 생성한다.
+     * @param p 터치한 위치 좌표
+     * @return  마커
+     */
+    private Marker getDefaultMarker(GeoPoint p, String text) {
+        Marker _marker = new Marker(map_view);
+        _marker.setPosition(new GeoPoint(p.getLatitude(), p.getLongitude()));
+        _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+        _marker.setIcon(MapLayer.getInstance().writeOnDrawable(context, text, R.drawable.waypoint_s));
+        _marker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker, MapView mapView) {
+                return true;
+            }
+        });
+
+        return  _marker;
+    }
+
+    /**
+     * 비행경로 시작점과 종료점을 나타내는 마커를 추가한다.
+     */
+    private void setEntryExit(List<GeoPoint> points) {
+        Marker _entry = getDefaultMarker(points.get(0), "S");
+        map_view.getOverlays().add(_entry);
+
+        Marker _exit = getDefaultMarker(points.get(points.size() - 1), "E");
+        map_view.getOverlays().add(_exit);
     }
 }
