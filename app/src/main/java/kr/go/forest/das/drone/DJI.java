@@ -296,6 +296,9 @@ public class DJI extends Drone{
 
         BaseProduct _product = DJISDKManager.getInstance().getProduct();
         if (_product != null && _product.isConnected()) {
+
+            cmos_factor = (float)(13.2/8.8);
+
             if(_product.getCamera().isDigitalZoomSupported()){
                 _product.getCamera().getOpticalZoomFocalLength(new CommonCallbacks.CompletionCallbackWith<Integer>() {
                     @Override
@@ -1018,31 +1021,6 @@ public class DJI extends Drone{
      * 설정된 임무를 시작하기 위한 조건 설정
      */
     public void setMissionCondition(int captureCount, int timeIntervalInSeconds){
-
-        for(Camera _camera : cameras)
-        {
-            // 카메라가 촬영모드인지 확인
-            if(camera_mode != SettingsDefinitions.CameraMode.SHOOT_PHOTO){
-                setCameraMode(SettingsDefinitions.CameraMode.SHOOT_PHOTO);
-            }
-
-            // 저장형식이 JPEG인지 확인
-            if(photo_file_format != null && !photo_file_format.equals("JPEG")) {
-                _camera.setPhotoFileFormat(SettingsDefinitions.PhotoFileFormat.JPEG, new CommonCallbacks.CompletionCallback() {
-                    @Override
-                    public void onResult(DJIError djiError) {
-                        if(djiError == null){
-                            ready_start_mission = 0;
-                        }else{
-                            ready_start_mission = -2;
-                            LogWrapper.i(TAG, "setPhotoFileFormat Fail : " + djiError.getDescription());
-                        }
-                    }
-                });
-            }else{
-                ready_start_mission = 0;
-            }
-        }
     }
 
     /**

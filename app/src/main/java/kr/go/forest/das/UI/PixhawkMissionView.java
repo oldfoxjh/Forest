@@ -318,7 +318,7 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
     }
 
     /**
-     * 시동 걸리고 주어진 주기로 기체정보 수집
+     * 기체정보 수집
      */
     private class CollectDroneInformationTimer extends TimerTask {
         @Override

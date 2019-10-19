@@ -36,6 +36,7 @@
     <string name="max_flight_height_low">현재 드론 최대비행고도가 임무비행 고도보다 낮습니다.드론 최대비행고도를 다시 설정 하시겠습니까?</string>
     <string name="max_flight_height_fail">드론 최대비행고도 설정에 실패하였습니다.\n</string>
     <string name="max_flight_height_success">드론 최대비행고도가 500m로 재설정 되었습니다.</string>
+    <string name="max_flight_height_over">최대비행고도가 500m보다 높습니다. 임무를 다시 설정해주세요.</string>
     <string name="mission_upload_success_content">임무가 정상적으로 업로드 되었습니다.\n오른쪽 상단의 임무시작버튼을 누르면 시작됩니다.</string>
     <string name="mission_rc_disconnect_title">신호가 끊겼을 때 동작</string>
     <string name="mission_stop_and_rth">임무 중지 후 Home 귀환(기본)</string>

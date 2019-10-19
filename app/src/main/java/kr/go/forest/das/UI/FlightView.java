@@ -45,6 +45,7 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.squareup.otto.Subscribe;
 
 import org.osmdroid.api.IMapController;
@@ -87,6 +88,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     private final int period = 250;                             // 드론정보 수십 주기 0.25 second
     private Context context;
     Timer timer = null;                                         // 드론정보 수집 타이머
+    List<DroneInfo> drone_flight_log = new ArrayList<>();
     private Handler handler_ui;                                 // UI 업데이트 핸들러
     private boolean is_recording = false;                       // 녹화 여부
     MediaPlayer media_player = null;
@@ -659,6 +661,14 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         root_view.addView(flight_fpv_layout, fpvInsertPosition);
     }
 
+    private String sendFlightLog(){
+        Gson gson = new Gson();
+        String json = gson.toJson(drone_flight_log);
+
+
+        return  json;
+    }
+
     /**
      * 기체정보 수집
      */
@@ -1021,8 +1031,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         if(realtime.is_realtime == true){
 
         }
-        // 동영상 촬영 시작
-        DroneApplication.getDroneInstance().startRecordVideo();
     }
     /**
      * 카메라와 지도 View 전환 애니메이션

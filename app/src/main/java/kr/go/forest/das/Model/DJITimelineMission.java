@@ -7,7 +7,6 @@ import java.util.List;
 
 import dji.common.gimbal.Attitude;
 import dji.common.gimbal.Rotation;
-import dji.common.mission.waypoint.Waypoint;
 import dji.common.mission.waypoint.WaypointMission;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.mission.MissionControl;
@@ -28,14 +27,6 @@ public class DJITimelineMission {
         missionControl = MissionControl.getInstance();
 
         final TimelineEvent preEvent = null;
-
-//        MissionControl.Listener listener = new MissionControl.Listener() {
-//            @Override
-//            public void onEvent(@Nullable TimelineElement element, TimelineEvent event, DJIError error) {
-//                updateTimelineStatus(element, event, error);
-//            }
-//        };
-
         //이륙
         elements.add(new TakeOffAction());
 
@@ -63,6 +54,5 @@ public class DJITimelineMission {
         }
 
         missionControl.scheduleElements(elements);
-        //missionControl.addListener(listener);
     }
 }

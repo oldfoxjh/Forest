@@ -148,6 +148,8 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         DroneApplication.getEventBus().register(this);
         handler_ui = new Handler(Looper.getMainLooper());
         progress = new ProgressDialog(context);
+        progress.setCancelable(false);
+        progress.setProgressStyle(android.R.style.Widget_ProgressBar_Horizontal);
 
         // Data 수집 타이머 시작
         if(timer == null) {
@@ -456,12 +458,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
             }
             // 파일이 잘못되었을 경우 팝업
         }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD){
-            // 업로드 중이라는 ProgressDialog
-            progress.setMessage("임무 업로드...");
-            progress.setCancelable(false);
-            progress.setProgressStyle(android.R.style.Widget_ProgressBar_Horizontal);
-            progress.show();
-
             DroneInfo _info = DroneApplication.getDroneInstance().getDroneInfo();
 
             List<WaypointMission> _waypoints_mission = waypoint_mission.getDJIMission();
@@ -483,14 +479,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 }
             }
 
-
-            if (MissionControl.getInstance().scheduledCount() > 0) {
-                MissionControl.getInstance().startTimeline();
-            }
-
-            // ProgressDialog 닫기
-            progress.dismiss();
-
+            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.mission_start_title, R.string.mission_start_content, ""));
         }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD_FAIL){
             // ProgressDialog 닫기
             progress.dismiss();
@@ -499,29 +488,11 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD_SUCCESS){
             // 임무 시작 조건 설정
             DroneApplication.getDroneInstance().setMissionCondition(shoot_count, shoot_time_interval);
-
-            // 임무시작조건 확인 및 팝업
-            if (handler_ui != null) {
-                handler_ui.postAtTime(new Runnable() {
-                    @Override
-                    public void run() {
-                        // ProgressDialog 닫기
-                        progress.dismiss();
-
-                        // 임무시작조건 설정 확인
-                        if(DroneApplication.getDroneInstance().isMissionStartAvailable()) {
-                            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.mission_start_title, R.string.mission_start_content, ""));
-                        }else{
-                            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_start_fail, "camera setting fail"));
-                        }
-                    }
-                }, 3000);
-            }
-
         }else if(mission.command == MainActivity.Mission.MISSION_START_FAIL){
             // 미션 시작 실패
             DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_start_fail, mission.data));
-        }else if(mission.command == MainActivity.Mission.MISSION_START_SUCCESS){
+        }
+        else if(mission.command == MainActivity.Mission.MISSION_START_SUCCESS){
             if (handler_ui != null) {
                 handler_ui.post(new Runnable() {
                     @Override
@@ -529,12 +500,27 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                         // 비행경로 저장
                         DroneApplication.getDroneInstance().setMissionPoints(flight_points);
                         // 비행화면으로 전환
-                        DroneApplication.getEventBus().post(new ViewWrapper(new FlightView(context), true));
+                        DroneApplication.getEventBus().post(new ViewWrapper(new FlightView(context), false));
                     }
                 });
             }
         }else if(mission.command == MainActivity.Mission.MISSION_START){
-            DroneApplication.getDroneInstance().startMission(shoot_count, shoot_time_interval);
+            // 웨이포인트 미션일 경우
+            //DroneApplication.getDroneInstance().startMission(shoot_count, shoot_time_interval);
+            if (handler_ui != null) {
+                handler_ui.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (MissionControl.getInstance().scheduledCount() > 0) {
+                            MissionControl.getInstance().startTimeline();
+                        }
+                        // 비행경로 저장
+                        DroneApplication.getDroneInstance().setMissionPoints(flight_points);
+                        // 비행화면으로 전환
+                        DroneApplication.getEventBus().post(new ViewWrapper(new FlightView(context), false));
+                    }
+                });
+            }
         }else if(mission.command == MainActivity.Mission.MAX_FLIGHT_HEIGHT_SET_SUCCESS){
             // 드론 최대비행고도 변경 성공
             DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.max_flight_height_success, null));
@@ -591,60 +577,71 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                     return;
                 }
 
-                // 경로 나누기
-                double _meters_per_waypoint =  Math.max(flight_path.getDistance()/(WaypointMission.MAX_WAYPOINT_COUNT+1), 20);
-                List<GeoPoint> upload_mission = new ArrayList<>();
-                for(int i = 0; i < flight_points.size(); i++){
-                    // 시작점
-                    GeoPoint _start = flight_points.get(i);
-                    // 끝점
-                    GeoPoint _end = flight_points.get(++i);
-
-                    // 진행방향(남북)
-                    int direction_ns = (_start.getLatitude() > _end.getLatitude()) ? -1 : 1;
-                    int direction_ew = (_start.getLongitude() > _end.getLongitude()) ? -1 : 1;
-                    // 시작점과 끝점 사이 거리
-                    double _distance = GeoManager.getInstance().distance(_start.getLatitude(), _start.getLongitude(), _end.getLatitude(), _end.getLongitude());
-                    upload_mission.add(_start);
-                    for(int j = 1; ; j++)
-                    {
-                        // 시작점부터 거리 구하기
-                        double _sin = Math.abs(Math.sin(Math.toRadians(mission_angle)));
-                        double _cos = Math.abs(Math.cos(Math.toRadians(mission_angle)));
-                        double _east_west = _meters_per_waypoint*j*_sin*direction_ew;
-                        double _north_south = _meters_per_waypoint*j*_cos*direction_ns;
-
-                        GeoPoint _next = GeoManager.getInstance().getPositionFromDistance(_start, _east_west, _north_south);
-
-                        // 남은 거리가 단위거리보다 작을경우 나가기
-                        double _temp = GeoManager.getInstance().distance(_next.getLatitude(), _next.getLongitude(), _end.getLatitude(), _end.getLongitude());
-                        if(_temp < _meters_per_waypoint) break;
-                        upload_mission.add(_next);
-                    }
-                    upload_mission.add(_end);
-                }
-
-                // 비행고도 적용
-                for(GeoPoint point : upload_mission){
-                    point.setAltitude(mission_altitude);
-                }
-//
-//                // 웨이포인트 생성
+                // 웨이포인트 생성
                 DroneInfo _info = DroneApplication.getDroneInstance().getDroneInfo();
-//                waypoint_mission = new DJIWaypointMission(upload_mission, new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
+                waypoint_mission = new DJIWaypointMission(devideFlightPath(), new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
 
-                waypoint_mission = new DJIWaypointMission(upload_mission, new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
-
+                if(waypoint_mission.max_flight_altitude > 500){
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.max_flight_height_over));
+                    return;
+                }
                 if(waypoint_mission.max_flight_altitude > DroneApplication.getDroneInstance().max_flight_height){
                     DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.max_flight_height_low_title, R.string.max_flight_height_low, ""));
                 }else {
                     DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_UPLOAD_MISSION, 0, 0));
-               }
+                }
+
                 break;
             case R.id.btn_mission_start:
                 DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.mission_start_title, R.string.mission_start_content, ""));
                 break;
         }
+    }
+
+    /**
+     * 비행경로를 촬영거리만큼 나눈다.
+     * @return 촬영거리만큼 분할된 경로
+     */
+    private List<GeoPoint> devideFlightPath()
+    {
+        // 경로 나누기
+        List<GeoPoint> upload_mission = new ArrayList<>();
+        for(int i = 0; i < flight_points.size(); i++){
+            // 시작점
+            GeoPoint _start = flight_points.get(i);
+            // 끝점
+            GeoPoint _end = flight_points.get(++i);
+
+            // 진행방향(남북)
+            int direction_ns = (_start.getLatitude() > _end.getLatitude()) ? -1 : 1;
+            int direction_ew = (_start.getLongitude() > _end.getLongitude()) ? -1 : 1;
+
+            // 시작점과 끝점 사이 거리
+            upload_mission.add(_start);
+            for(int j = 1; ; j++)
+            {
+                // 시작점부터 거리 구하기
+                double _sin = Math.abs(Math.sin(Math.toRadians(mission_angle)));
+                double _cos = Math.abs(Math.cos(Math.toRadians(mission_angle)));
+                double _east_west = front_distance*j*_sin*direction_ew;
+                double _north_south = front_distance*j*_cos*direction_ns;
+
+                GeoPoint _next = GeoManager.getInstance().getPositionFromDistance(_start, _east_west, _north_south);
+
+                // 남은 거리가 단위거리보다 작을경우 나가기
+                double _temp = GeoManager.getInstance().distance(_next.getLatitude(), _next.getLongitude(), _end.getLatitude(), _end.getLongitude());
+                if(_temp < front_distance) break;
+                upload_mission.add(_next);
+            }
+            upload_mission.add(_end);
+        }
+
+        // 비행고도 적용
+        for(GeoPoint point : upload_mission){
+            point.setAltitude(mission_altitude);
+        }
+
+        return  upload_mission;
     }
 
     /**
