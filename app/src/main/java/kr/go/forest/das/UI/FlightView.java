@@ -88,7 +88,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     private final int period = 250;                             // 드론정보 수십 주기 0.25 second
     private Context context;
     Timer timer = null;                                         // 드론정보 수집 타이머
-    List<DroneInfo> drone_flight_log = new ArrayList<>();
+    List<DroneInfo> drone_flight_log = new ArrayList<>();       // 비행 및 기체정보
     private Handler handler_ui;                                 // UI 업데이트 핸들러
     private boolean is_recording = false;                       // 녹화 여부
     MediaPlayer media_player = null;
@@ -114,53 +114,45 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     Polyline mission_flight_path_line = new Polyline();         // 임무비행 경로 표시
     GeoPoint my_location = null;                                // 현재 조종자 위치
 
-    Button btn_flight_location;
-    Button btn_flight_nofly;
-    Button btn_flight_fires;
-    Button btn_flight_save_path;
-
-    // Button
-    Button btn_upload;
-    Button btn_back;
+    Button btn_flight_location;                                 // 현재 위치 확인
+    Button btn_flight_nofly;                                    // 비행금지구역 확인
+    Button btn_flight_fires;                                    // 산불발생지역 확인
+    Button btn_flight_save_path;                                // 비행경로 저장
 
     // TextView
-    TextView tv_distance;
-    TextView tv_altitude;
-    TextView tv_horizontal_speed;
-    TextView tv_vertical_speed;
+    TextView tv_distance;                                                   // 드론과 거리
+    TextView tv_altitude;                                                   // 드론 고도
+    TextView tv_horizontal_speed;                                           // 드론 수평속도
+    TextView tv_vertical_speed;                                             // 드론 수직속도
 
     // 카메라 정보
     ViewGroup root_view;
     ViewGroup parent_ae;
     FPVWidget primary_camera;
-    TextView tv_iso;
-    TextView tv_shutter;
-    TextView tv_aperture;
-    TextView tv_exposure;
-    TextView tv_wb;
-    TextView tv_flight_format_info;
-    TextView tv_flight_capacity;
+    TextView tv_iso;                                                        // ISO 정보
+    TextView tv_shutter;                                                    // 셔터 속도 정보
+    TextView tv_aperture;                                                   // 조리개 정보
+    TextView tv_exposure;                                                   // 노출 정보
+    TextView tv_wb;                                                         // 화이트밸런스 정보
+    TextView tv_flight_format_info;                                         // 저장 포맷 정보
+    TextView tv_flight_capacity;                                            // 촬영가능 용량
 
     //SeekBar sb_flight_gimbal_pitch;
     Button btn_flight_ae;
-    Button btn_select_movie;
-    Button btn_select_shoot;
-    Button btn_record;
-    Button btn_shoot;
-    Button btn_camera_setting;
-    TextView tv_record_time;
-    LinearLayout layout_camera;
-    dji.ux.panel.CameraSettingExposurePanel flight_camera_setting_panel;
+    Button btn_select_movie;                                                // 동영상 전환 버튼
+    Button btn_select_shoot;                                                // 촬영 전환 버튼
+    Button btn_record;                                                      // 동영상 촬영 버튼
+    Button btn_shoot;                                                       // 사진 촬영 버튼
+    Button btn_camera_setting;                                              // 카메라 설정 버튼
+    TextView tv_record_time;                                                // 동영상 촬영 시간
+    LinearLayout layout_camera;                                             // 카메라 layout
+    dji.ux.panel.CameraSettingExposurePanel flight_camera_setting_panel;    // 카메라 설정 UI
 
     // RTH
-    Button btn_flight_takeoff;
-    Button btn_flight_return_home;
-    Button btn_flight_return_my_location;
-    Button btn_flight_cancel;
-
-    // 실시간영상
-    // Codec for video live view
-    protected DJICodecManager mCodecManager = null;
+    Button btn_flight_takeoff;                                              // 이륙 버튼
+    Button btn_flight_return_home;                                          // 자동복귀 버튼
+    Button btn_flight_return_my_location;                                   // 조종기 위치 복귀 버튼
+    Button btn_flight_cancel;                                               // 자동복귀 취소 버튼
 
     public FlightView(Context context){
         super(context);
@@ -383,12 +375,10 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      * UI 위셋 설정
      */
     private void setWidget() {
-        // Button
-        btn_back = (Button) findViewById(R.id.btn_mission_back);
-        btn_back.setOnClickListener(this);
-
-        btn_upload = (Button) findViewById(R.id.btn_mission_upload);
-        btn_upload.setVisibility(INVISIBLE);
+        // 뒤로가기 버튼
+        findViewById(R.id.btn_mission_back).setOnClickListener(this);
+        // 업로드버튼 비활성화
+        findViewById(R.id.btn_mission_upload).setVisibility(INVISIBLE);
 
         // 드론 정보
         tv_distance = (TextView) findViewById(R.id.tv_flight_distance_from_home);
@@ -638,6 +628,13 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         return true;
     }
 
+    /**
+     * 카메라와 배경지도 간의 크기 변경 처리
+     * @param width 변경될 width
+     * @param height 변경될 height
+     * @param margin 변경될 margin
+     * @param fpvInsertPosition 위젯 z-index
+     */
     private void resizeFPVWidget(int width, int height, int margin, int fpvInsertPosition) {
         RelativeLayout flight_fpv_layout = (RelativeLayout) findViewById(R.id.flight_fpv_layout);
         RelativeLayout.LayoutParams fpvParams = (RelativeLayout.LayoutParams)flight_fpv_layout.getLayoutParams();

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#a0a0a0">
+    <!-- MAP  -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <org.osmdroid.views.MapView android:id="@+id/pixhawk_flight_map_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </RelativeLayout>
+
+    <!-- 지도 관련 버튼  -->
+    <LinearLayout
+        android:id="@+id/layout_flight_map_top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/pixhawk_flight_top"
+        android:layout_marginTop="@dimen/px12"
+        android:layout_alignParentRight="true"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/pixhawk_btn_flight_location"
+            android:layout_width="@dimen/px76"
+            android:layout_height="@dimen/px76"
+            android:layout_marginRight="@dimen/px22"
+            android:background="@drawable/btn_location_selector"/>
+
+        <Button
+            android:id="@+id/pixhawk_btn_flight_nofly"
+            android:layout_width="@dimen/px76"
+            android:layout_height="@dimen/px76"
+            android:layout_marginRight="@dimen/px22"
+            android:background="@drawable/btn_nofly_selector"/>
+
+        <Button
+            android:id="@+id/pixhawk_btn_flight_fires"
+            android:layout_width="@dimen/px76"
+            android:layout_height="@dimen/px76"
+            android:layout_marginRight="@dimen/px22"
+            android:background="@drawable/btn_fires_selector"/>
+
+        <Button
+            android:id="@+id/pixhawk_btn_flight_save_path"
+            android:layout_width="@dimen/px76"
+            android:layout_height="@dimen/px76"
+            android:layout_marginRight="@dimen/px22"
+            android:background="@drawable/btn_save_selector"/>
+    </LinearLayout>
+
+    <!-- RTH  -->
+    <LinearLayout
+        android:id="@+id/layout_flight_rth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/px30"
+        android:layout_marginTop="@dimen/px210"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/pixhawk_btn_flight_takeoff"
+            android:layout_width="@dimen/px56"
+            android:layout_height="@dimen/px56"
+            android:background="@drawable/btn_takeoff_selector"/>
+
+        <Button
+            android:id="@+id/pixhawk_btn_flight_return_home"
+            android:layout_width="@dimen/px56"
+            android:layout_height="@dimen/px56"
+            android:layout_marginTop="@dimen/px50"
+            android:background="@drawable/btn_return_selector"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/pixhawk_layout_flight_cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/px30"
+        android:layout_marginTop="@dimen/px270"
+        android:orientation="vertical"
+        android:visibility="invisible">
+        <Button
+            android:id="@+id/pixhawk_btn_flight_cancel"
+            android:layout_width="@dimen/px56"
+            android:layout_height="@dimen/px56"
+            android:layout_marginTop="@dimen/px50"
+            android:background="@drawable/btn_landing_cancel_selector"/>
+    </LinearLayout>
+
+    <!-- 드론비행정보  -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/px40"
+        android:layout_marginLeft="@dimen/px390"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/px24"
+            android:textColor="#ffffff"
+            android:alpha="0.7"
+            android:text="거리"/>
+
+        <TextView
+            android:id="@+id/pixhawk_tv_flight_distance_from_home"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px12"
+            android:textSize="@dimen/px40"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:text="0.0"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/px24"
+            android:textColor="#ffffff"
+            android:alpha="0.7"
+            android:text="m"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px40"
+            android:textSize="@dimen/px24"
+            android:textColor="#ffffff"
+            android:alpha="0.7"
+            android:text="고도"/>
+
+        <TextView
+            android:id="@+id/pixhawk_tv_flight_altitude"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px12"
+            android:textSize="@dimen/px40"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:text="0.0"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/px24"
+            android:textColor="#ffffff"
+            android:alpha="0.7"
+            android:text="m"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px40"
+            android:textSize="@dimen/px24"
+            android:textColor="#ffffff"
+            android:alpha="0.7"
+            android:text="수평속도"/>
+
+        <TextView
+            android:id="@+id/pixhawk_tv_flight_horizontal_speed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px12"
+            android:textSize="@dimen/px40"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:text="0.0"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/px24"
+            android:textColor="#ffffff"
+            android:alpha="0.7"
+            android:text="m"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px40"
+            android:textSize="@dimen/px24"
+            android:textColor="#ffffff"
+            android:alpha="0.7"
+            android:text="수직속도"/>
+
+        <TextView
+            android:id="@+id/pixhawk_tv_flight_vertical_speed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/px12"
+            android:textSize="@dimen/px40"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:text="0.0"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/px24"
+            android:textColor="#ffffff"
+            android:alpha="0.7"
+            android:text="m"/>
+    </LinearLayout>
+
+    <include
+        layout="@layout/pixhawk_status_top_layout"
+        android:id="@+id/pixhawk_flight_top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</RelativeLayout>

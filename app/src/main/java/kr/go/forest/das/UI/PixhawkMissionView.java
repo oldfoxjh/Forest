@@ -206,7 +206,7 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
 
         //초기화
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Service.LAYOUT_INFLATER_SERVICE);
-        layoutInflater.inflate(R.layout.content_pixhawk_mission, this, true);
+        layoutInflater.inflate(R.layout.pixhawk_content_mission, this, true);
 
         // Widget Control 설정
         setWidget();
