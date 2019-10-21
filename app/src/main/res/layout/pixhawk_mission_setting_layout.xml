@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:layout_width="@dimen/px330"
-    android:layout_height="@dimen/px664"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:clickable="true"
     android:background="@drawable/mission_bg">
 
@@ -27,10 +27,10 @@
                 android:text="영역 면적"/>
 
             <TextView
-                android:id="@+id/mission_area"
+                android:id="@+id/pixhawk_mission_area"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px8"
+                android:layout_marginTop="@dimen/px6"
                 android:textSize="@dimen/px14"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
@@ -39,16 +39,16 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px16"
+                android:layout_marginTop="@dimen/px10"
                 android:textSize="@dimen/px14"
                 android:textColor="#a5a5a5"
                 android:text="촬영간격(거리)"/>
 
             <TextView
-                android:id="@+id/textview_mission_lap_distance"
+                android:id="@+id/pixhawk_textview_mission_lap_distance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px8"
+                android:layout_marginTop="@dimen/px6"
                 android:textSize="@dimen/px14"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
@@ -57,20 +57,76 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px16"
+                android:layout_marginTop="@dimen/px10"
                 android:textSize="@dimen/px14"
                 android:textColor="#a5a5a5"
-                android:text="미션정보"/>
+                android:text="Sensor Width"/>
 
-            <TextView
-                android:id="@+id/textview_mission_info"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px8"
+                android:layout_marginTop="@dimen/px6"
+                android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/pixhawk_textview_sensor_width"
+                    android:layout_width="@dimen/px56"
+                    android:layout_height="@dimen/px28"
+                    android:layout_marginLeft="@dimen/px28"
+                    android:background="#fff"
+                    android:textSize="@dimen/px18"
+                    android:textColor="#000"
+                    android:inputType="numberDecimal"
+                    android:gravity="center"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/px4"
+                    android:layout_marginTop="@dimen/px4"
+                    android:textSize="@dimen/px14"
+                    android:textColor="#a5a5a5"
+                    android:text="mm"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px10"
                 android:textSize="@dimen/px14"
-                android:textColor="#ffffff"
-                android:textStyle="bold"
-                android:text=""/>
+                android:textColor="#a5a5a5"
+                android:text="이미지 해상도"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px6"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="@dimen/px4"
+                    android:textSize="@dimen/px14"
+                    android:textColor="#a5a5a5"
+                    android:text="가로"/>
+                <EditText
+                    android:id="@+id/pixhawk_textview_image_width"
+                    android:layout_width="@dimen/px56"
+                    android:layout_height="@dimen/px28"
+                    android:background="#fff"
+                    android:textSize="@dimen/px18"
+                    android:textColor="#000"
+                    android:inputType="number"
+                    android:gravity="center"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/px4"
+                    android:layout_marginTop="@dimen/px4"
+                    android:textSize="@dimen/px14"
+                    android:textColor="#a5a5a5"
+                    android:text="px"/>
+            </LinearLayout>
+
         </LinearLayout>
 
         <LinearLayout
@@ -88,10 +144,10 @@
                 android:text="미션 거리/총 거리"/>
 
             <TextView
-                android:id="@+id/mission_distance"
+                android:id="@+id/pixhawk_mission_distance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px8"
+                android:layout_marginTop="@dimen/px6"
                 android:textSize="@dimen/px14"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
@@ -100,21 +156,90 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px16"
+                android:layout_marginTop="@dimen/px10"
                 android:textSize="@dimen/px14"
                 android:textColor="#a5a5a5"
-                android:text="촬영간격(시간)"/>
+                android:text="촬영횟수"/>
 
             <TextView
-                android:id="@+id/textview_mission_shoot_interval"
+                android:id="@+id/pixhawk_textview_mission_shoot_interval"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px8"
+                android:layout_marginTop="@dimen/px6"
                 android:textSize="@dimen/px14"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
                 android:text="-"/>
-
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px10"
+                android:textSize="@dimen/px14"
+                android:textColor="#a5a5a5"
+                android:text="초점거리"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px6"
+                android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/pixhawk_textview_focal_length"
+                    android:layout_width="@dimen/px56"
+                    android:layout_height="@dimen/px28"
+                    android:layout_marginLeft="@dimen/px28"
+                    android:background="#fff"
+                    android:textSize="@dimen/px18"
+                    android:textColor="#000"
+                    android:inputType="numberDecimal"
+                    android:gravity="center"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/px4"
+                    android:layout_marginTop="@dimen/px4"
+                    android:textSize="@dimen/px14"
+                    android:textColor="#a5a5a5"
+                    android:text="mm"/>
+            </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px10"
+                android:textSize="@dimen/px14"
+                android:textColor="#a5a5a5"
+                android:text=" "/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px6"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="@dimen/px4"
+                    android:textSize="@dimen/px14"
+                    android:textColor="#a5a5a5"
+                    android:text="세로"/>
+                <EditText
+                    android:id="@+id/pixhawk_textview_image_height"
+                    android:layout_width="@dimen/px56"
+                    android:layout_height="@dimen/px28"
+                    android:background="#fff"
+                    android:textSize="@dimen/px18"
+                    android:textColor="#000"
+                    android:inputType="number"
+                    android:gravity="center"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/px4"
+                    android:layout_marginTop="@dimen/px4"
+                    android:textSize="@dimen/px14"
+                    android:textColor="#a5a5a5"
+                    android:text="px"/>
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
@@ -135,7 +260,6 @@
                 android:layout_width="@dimen/px28"
                 android:layout_height="@dimen/px22"
                 android:background="@mipmap/ico_mission_1"/>
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/px22"
@@ -144,7 +268,7 @@
                 android:textColor="#a5a5a5"
                 android:text="비행속도"/>
             <TextView
-                android:id="@+id/textview_mission_flight_speed"
+                android:id="@+id/pixhawk_textview_mission_flight_speed"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/px22"
                 android:layout_alignParentRight="true"
@@ -152,19 +276,18 @@
                 android:textColor="#ffffff"
                 android:textStyle="bold"
                 android:text=""/>
-
             <SeekBar
-                android:id="@+id/seekbar_mission_flight_speed"
+                android:id="@+id/pixhawk_seekbar_mission_flight_speed"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px26"
-                android:paddingStart="@dimen/px14"
-                android:paddingEnd="@dimen/px14"
+                android:layout_marginTop="@dimen/px32"
+                android:paddingStart="@dimen/px18"
+                android:paddingEnd="@dimen/px18"
                 android:splitTrack="false"
                 android:maxHeight="@dimen/px4"
                 android:thumb="@mipmap/setting_handle"
                 android:min="10"
-                android:max="200"
+                android:max="140"
                 android:progressDrawable="@drawable/setting_progress"/>
         </RelativeLayout>
 
@@ -186,7 +309,7 @@
                 android:textColor="#a5a5a5"
                 android:text="영역회전"/>
             <TextView
-                android:id="@+id/textview_mission_angle"
+                android:id="@+id/pixhawk_textview_mission_angle"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/px22"
                 android:layout_alignParentRight="true"
@@ -196,12 +319,12 @@
                 android:text="0°"/>
 
             <SeekBar
-                android:id="@+id/seekbar_mission_angle"
+                android:id="@+id/pixhawk_seekbar_mission_angle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px26"
-                android:paddingStart="@dimen/px14"
-                android:paddingEnd="@dimen/px14"
+                android:layout_marginTop="@dimen/px32"
+                android:paddingStart="@dimen/px18"
+                android:paddingEnd="@dimen/px18"
                 android:splitTrack="false"
                 android:maxHeight="@dimen/px4"
                 android:thumb="@mipmap/setting_handle"
@@ -228,7 +351,7 @@
                 android:textColor="#a5a5a5"
                 android:text="비행고도"/>
             <TextView
-                android:id="@+id/textview_mission_flight_altitude"
+                android:id="@+id/pixhawk_textview_mission_flight_altitude"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/px22"
                 android:layout_alignParentRight="true"
@@ -236,18 +359,17 @@
                 android:textColor="#ffffff"
                 android:textStyle="bold"
                 android:text=""/>
-
             <SeekBar
-                android:id="@+id/seekbar_mission_flight_altitude"
+                android:id="@+id/pixhawk_seekbar_mission_flight_altitude"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px26"
-                android:paddingStart="@dimen/px14"
-                android:paddingEnd="@dimen/px14"
+                android:layout_marginTop="@dimen/px32"
+                android:paddingStart="@dimen/px18"
+                android:paddingEnd="@dimen/px18"
                 android:splitTrack="false"
                 android:maxHeight="@dimen/px4"
                 android:thumb="@mipmap/setting_handle"
-                android:min="0"
+                android:min="10"
                 android:max="450"
                 android:progressDrawable="@drawable/setting_progress"/>
         </RelativeLayout>
@@ -270,7 +392,7 @@
                 android:textColor="#a5a5a5"
                 android:text="종중복도"/>
             <TextView
-                android:id="@+id/textview_mission_overlap"
+                android:id="@+id/pixhawk_textview_mission_overlap"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/px22"
                 android:layout_alignParentRight="true"
@@ -280,16 +402,16 @@
                 android:text="60%"/>
 
             <SeekBar
-                android:id="@+id/seekbar_mission_overlap"
+                android:id="@+id/pixhawk_seekbar_mission_overlap"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px26"
-                android:paddingStart="@dimen/px14"
-                android:paddingEnd="@dimen/px14"
+                android:layout_marginTop="@dimen/px32"
+                android:paddingStart="@dimen/px18"
+                android:paddingEnd="@dimen/px18"
                 android:splitTrack="false"
                 android:maxHeight="@dimen/px4"
                 android:thumb="@mipmap/setting_handle"
-                android:min="0"
+                android:min="10"
                 android:max="85"
                 android:progressDrawable="@drawable/setting_progress"/>
         </RelativeLayout>
@@ -312,7 +434,7 @@
                 android:textColor="#a5a5a5"
                 android:text="횡중복도"/>
             <TextView
-                android:id="@+id/textview_mission_sidelap"
+                android:id="@+id/pixhawk_textview_mission_sidelap"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/px22"
                 android:layout_alignParentRight="true"
@@ -322,20 +444,18 @@
                 android:text="60%"/>
 
             <SeekBar
-                android:id="@+id/seekbar_mission_sidelap"
+                android:id="@+id/pixhawk_seekbar_mission_sidelap"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/px26"
-                android:paddingStart="@dimen/px14"
-                android:paddingEnd="@dimen/px14"
+                android:layout_marginTop="@dimen/px32"
+                android:paddingStart="@dimen/px18"
+                android:paddingEnd="@dimen/px18"
                 android:splitTrack="false"
                 android:maxHeight="@dimen/px4"
                 android:thumb="@mipmap/setting_handle"
-                android:min="0"
+                android:min="10"
                 android:max="85"
                 android:progressDrawable="@drawable/setting_progress"/>
         </RelativeLayout>
     </LinearLayout>
-
-
 </LinearLayout>

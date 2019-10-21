@@ -46,7 +46,7 @@ public class LiveViewStream {
         }.start();
     }
 
-    public void stopLiveShow() {
+    public void stopLiveViewStream() {
         if (DJISDKManager.getInstance().getLiveStreamManager() == null) {
             return;
         }

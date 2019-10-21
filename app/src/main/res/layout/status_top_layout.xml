@@ -98,16 +98,6 @@
             android:layout_centerVertical="true"
             android:background="@drawable/btn_upload_selector"
             />
-        <Button
-            android:id="@+id/btn_mission_start"
-            android:layout_width="@dimen/px80"
-            android:layout_height="@dimen/px80"
-            android:layout_marginRight="@dimen/px26"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:background="@drawable/btn_mission_start_selector"
-            android:visibility="invisible"
-            />
     </RelativeLayout>
 
     <Button

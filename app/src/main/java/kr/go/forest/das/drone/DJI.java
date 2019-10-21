@@ -293,7 +293,7 @@ public class DJI extends Drone{
     @Override
     public void getCameraFocalLength(){
         Model m = getAircaftModel();
-
+        LogWrapper.i(TAG, "Model : " + m.getDisplayName() );
         BaseProduct _product = DJISDKManager.getInstance().getProduct();
         if (_product != null && _product.isConnected()) {
 
@@ -1096,8 +1096,6 @@ public class DJI extends Drone{
             flight_points = null;
             return;
         }
-
-
 
         flight_points.clear();
         flight_points.addAll(points);

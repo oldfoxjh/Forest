@@ -10,6 +10,7 @@ import com.squareup.otto.ThreadEnforcer;
 import dji.sdk.products.Aircraft;
 import kr.go.forest.das.drone.DJI;
 import kr.go.forest.das.drone.Drone;
+import kr.go.forest.das.drone.Px4;
 
 public class DroneApplication extends Application{
     private static Application app = null;
@@ -34,11 +35,12 @@ public class DroneApplication extends Application{
     }
 
     public static synchronized void setDroneInstance(int type) {
+        if(drone != null) drone = null;
+
         if(type == Drone.DRONE_MANUFACTURE_DJI) {
-            if(drone != null) drone = null;
             drone = new DJI();
         }else{
-
+            drone = new Px4();
         }
     }
 

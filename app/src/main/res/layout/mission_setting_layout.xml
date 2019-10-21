@@ -103,7 +103,7 @@
                 android:layout_marginTop="@dimen/px16"
                 android:textSize="@dimen/px14"
                 android:textColor="#a5a5a5"
-                android:text="촬영간격(시간)"/>
+                android:text="촬영횟수"/>
 
             <TextView
                 android:id="@+id/textview_mission_shoot_interval"
@@ -334,6 +334,4 @@
                 android:progressDrawable="@drawable/setting_progress"/>
         </RelativeLayout>
     </LinearLayout>
-
-
 </LinearLayout>

@@ -78,7 +78,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
     private SharedPreferences pref;
     private ProgressDialog progress;
 
-    private int mission_angle = 0;
+    private int mission_angle = 0;                              // 임무비행 영역회전
     private float mission_altitude = 0.0f;                      // 임무비행 고도
     private float mission_flight_speed = 0.0f;                  // 임무비행 속도
     private float mission_side_lap = 0.0f;                      // 임무비행 횡중복도
@@ -87,7 +87,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
     int shoot_count = 0;                                        // 임무비행 촬영횟수
     float side_distance = 0;                                    // 임무비행 횡간격
     float front_distance = 0;                                   // 임무비행 종간격
-    float ascend_speed_in_meters = 0;                           // 비행속도에 비례하는 1m당 상승속도
 
     Timer timer = null;                                         // 드론정보 수집 타이머
 
@@ -112,7 +111,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
     Button mBtnNew;
     Button btn_upload;
 	Button mBtnBack;
-	Button btn_mission_start;
 
 	TextView tv_mission_area;
 	TextView tv_mission_distance;
@@ -157,7 +155,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         }
         timer.schedule(new MissionView.CollectDroneInformationTimer(), 0, period);
 
-        // 드론 촬영 종횡비값 가져오기
+        // 드론 촬영 종횡비값 가져오기 및 비행경로 초기화
         if(DroneApplication.getDroneInstance() != null) {
             DroneApplication.getDroneInstance().getPhotoAspectRatio();
             DroneApplication.getDroneInstance().setMissionPoints(null);
@@ -373,19 +371,16 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         btn_upload = (Button)findViewById(R.id.btn_mission_upload);
         btn_upload.setOnClickListener(this);
 
-        btn_mission_start = (Button)findViewById(R.id.btn_mission_start);
-        btn_mission_start.setOnClickListener(this);
-
         // TextView
-        tv_mission_area = (TextView)findViewById(R.id.mission_area);
-        tv_mission_distance = (TextView)findViewById(R.id.mission_distance);
-        tv_mission_flight_speed = (TextView)findViewById(R.id.textview_mission_flight_speed);
-        tv_mission_angle = (TextView)findViewById(R.id.textview_mission_angle);
-        tv_mission_flight_altitude = (TextView)findViewById(R.id.textview_mission_flight_altitude);
-        tv_mission_overlap = (TextView)findViewById(R.id.textview_mission_overlap);
-        tv_mission_sidelap = (TextView)findViewById(R.id.textview_mission_sidelap);
-        tv_mission_lap_distance = (TextView)findViewById(R.id.textview_mission_lap_distance);
-        tv_mission_shoot_interval = (TextView)findViewById(R.id.textview_mission_shoot_interval);
+        tv_mission_area = findViewById(R.id.mission_area);
+        tv_mission_distance = findViewById(R.id.mission_distance);
+        tv_mission_flight_speed = findViewById(R.id.textview_mission_flight_speed);
+        tv_mission_angle = findViewById(R.id.textview_mission_angle);
+        tv_mission_flight_altitude = findViewById(R.id.textview_mission_flight_altitude);
+        tv_mission_overlap = findViewById(R.id.textview_mission_overlap);
+        tv_mission_sidelap = findViewById(R.id.textview_mission_sidelap);
+        tv_mission_lap_distance = findViewById(R.id.textview_mission_lap_distance);
+        tv_mission_shoot_interval = findViewById(R.id.textview_mission_shoot_interval);
 
         // Seekbar
         sb_mission_flight_speed = (SeekBar)findViewById(R.id.seekbar_mission_flight_speed);
@@ -553,7 +548,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 }else{
                     // 위치 확인 팝업
                     DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.search_location));
-                    mission_status += MISSION_SEARCH_LOCATION;
                 }
                 setMissionPolygon();
                 break;
@@ -563,7 +557,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 break;
             case R.id.btn_load_shape:
                 // Mission 파일 목록 팝업
-               DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_LOAD_SHAPE, 0,0));
+                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_LOAD_SHAPE, 0,0));
                 break;
             case R.id.btn_mission_upload:
                 if(DroneApplication.getDroneInstance() == null){
@@ -592,9 +586,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 }
 
                 break;
-            case R.id.btn_mission_start:
-                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.mission_start_title, R.string.mission_start_content, ""));
-                break;
         }
     }
 
@@ -602,8 +593,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
      * 비행경로를 촬영거리만큼 나눈다.
      * @return 촬영거리만큼 분할된 경로
      */
-    private List<GeoPoint> devideFlightPath()
-    {
+    private List<GeoPoint> devideFlightPath() {
         // 경로 나누기
         List<GeoPoint> upload_mission = new ArrayList<>();
         for(int i = 0; i < flight_points.size(); i++){
@@ -745,6 +735,12 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         return  _marker;
     }
 
+    /**
+     * 선택한 좌표의 마커를 생성한다.
+     * @param p 터치한 위치 좌표
+     * @param text 마커 텍스트
+     * @return 마커
+     */
     private Marker getDefaultMarker(GeoPoint p, String text) {
         Marker _marker = new Marker(map_view);
         _marker.setPosition(new GeoPoint(p.getLatitude(), p.getLongitude()));
@@ -951,8 +947,38 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         // 촬영간격 계산
         shoot_time_interval = (int)(front_distance/mission_flight_speed);
         shoot_time_interval = Math.max(2, shoot_time_interval);
-        shoot_count = (int)(_dist_mission/front_distance) + 1;
-        tv_mission_shoot_interval.setText(String.format("%d초/%d",shoot_time_interval, shoot_count));
+        shoot_count = 0;
+        // 경로 나누기
+        for(int i = 0; i < flight_points.size(); i++){
+            // 시작점
+            GeoPoint _start = flight_points.get(i);
+            // 끝점
+            GeoPoint _end = flight_points.get(++i);
+
+            // 진행방향(남북)
+            int direction_ns = (_start.getLatitude() > _end.getLatitude()) ? -1 : 1;
+            int direction_ew = (_start.getLongitude() > _end.getLongitude()) ? -1 : 1;
+
+            // 시작점과 끝점 사이 거리
+            for(int j = 1; ; j++)
+            {
+                // 시작점부터 거리 구하기
+                double _sin = Math.abs(Math.sin(Math.toRadians(mission_angle)));
+                double _cos = Math.abs(Math.cos(Math.toRadians(mission_angle)));
+                double _east_west = front_distance*j*_sin*direction_ew;
+                double _north_south = front_distance*j*_cos*direction_ns;
+
+                GeoPoint _next = GeoManager.getInstance().getPositionFromDistance(_start, _east_west, _north_south);
+
+                // 남은 거리가 단위거리보다 작을경우 나가기
+                double _temp = GeoManager.getInstance().distance(_next.getLatitude(), _next.getLongitude(), _end.getLatitude(), _end.getLongitude());
+
+                shoot_count++;
+                if(_temp < front_distance) break;
+            }
+        }
+
+        tv_mission_shoot_interval.setText(String.format("%d", shoot_count));
         // 종간격, 횡간격 정보 업데이트
         tv_mission_lap_distance.setText(String.format("F:%.1f m/S:%.1f m", front_distance, side_distance));
     }

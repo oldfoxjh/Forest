@@ -1,53 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:background="#FF0000"
     android:layout_width="match_parent"
     android:layout_height="@dimen/px80">
-
-    <ImageView
-        android:id="@+id/pixhawk_disconnected"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/px80"
-        android:background="@mipmap/top_bg_discon"
-        android:visibility="invisible"/>
-
     <RelativeLayout
         android:id="@+id/pixhawk_connected"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/px60"
-        android:background="@mipmap/top_bg_con">
+        android:layout_height="@dimen/px80"
+        android:background="@mipmap/top_bg_discon">
         <TextView
             android:id="@+id/pixhawk_connect_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/px130"
-            android:textSize="@dimen/px26"
-            android:textColor="#ffffff"
+            android:layout_marginLeft="@dimen/px80"
+            android:textSize="@dimen/px34"
+            android:textColor="#fff"
             android:layout_centerVertical="true"
-            android:text="비행준비 완료"/>
+            android:background="@mipmap/top_bg_gray"
+            android:paddingLeft="@dimen/px40"
+            android:gravity="center_vertical"
+            android:text="기기 연결 끊김"/>
         <ImageView
-            android:layout_width="@dimen/px76"
-            android:layout_height="@dimen/px34"
+            android:layout_width="@dimen/px48"
+            android:layout_height="@dimen/px42"
             android:layout_alignParentRight="true"
             android:layout_marginRight="@dimen/px690"
             android:layout_centerVertical="true"
             android:background="@mipmap/btn_move_n"/>
+        <TextView
+            android:id="@+id/textview_flight_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/px24"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="@dimen/px590"
+            android:textSize="@dimen/px24"
+            android:textColor="#ffffff"
+            android:layout_gravity="center"
+            android:text="Altitude"/>
         <LinearLayout
             android:layout_alignParentRight="true"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/px60"
-            android:layout_marginRight="@dimen/px600"
+            android:layout_marginRight="@dimen/px440"
+            android:layout_marginTop="@dimen/px6"
             android:orientation="horizontal">
             <ImageView
-                android:layout_width="@dimen/px38"
-                android:layout_height="@dimen/px34"
+                android:layout_width="@dimen/px48"
+                android:layout_height="@dimen/px42"
                 android:layout_gravity="center"
                 android:background="@mipmap/ico_gps"/>
             <ImageView
                 android:id="@+id/px4_gps_signal"
-                android:layout_width="@dimen/px24"
-                android:layout_height="@dimen/px34"
+                android:layout_width="@dimen/px30"
+                android:layout_height="@dimen/px42"
                 android:layout_gravity="center"
                 android:background="@mipmap/signal_3"/>
         </LinearLayout>
@@ -55,17 +61,18 @@
             android:layout_alignParentRight="true"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/px60"
-            android:layout_marginRight="@dimen/px510"
+            android:layout_marginRight="@dimen/px340"
+            android:layout_marginTop="@dimen/px6"
             android:orientation="horizontal">
             <ImageView
-                android:layout_width="@dimen/px38"
-                android:layout_height="@dimen/px34"
+                android:layout_width="@dimen/px48"
+                android:layout_height="@dimen/px42"
                 android:layout_gravity="center"
                 android:background="@mipmap/ico_controller"/>
             <ImageView
                 android:id="@+id/pixhawk_rc_signal"
-                android:layout_width="@dimen/px24"
-                android:layout_height="@dimen/px34"
+                android:layout_width="@dimen/px30"
+                android:layout_height="@dimen/px42"
                 android:layout_gravity="center"
                 android:background="@mipmap/signal_3"/>
         </LinearLayout>
@@ -74,14 +81,13 @@
             android:layout_marginRight="@dimen/px220"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/px60"
+            android:layout_marginTop="@dimen/px6"
             android:orientation="horizontal">
-
             <ImageView
-                android:layout_width="@dimen/px38"
-                android:layout_height="@dimen/px34"
+                android:layout_width="@dimen/px48"
+                android:layout_height="@dimen/px42"
                 android:layout_gravity="center"
                 android:background="@mipmap/ico_dbattery"/>
-
             <TextView
                 android:id="@+id/textview_battery_remain_percent"
                 android:layout_width="wrap_content"
@@ -99,22 +105,22 @@
             android:layout_marginRight="@dimen/px90"
             android:background="@mipmap/top_line"/>
         <Button
-            android:id="@+id/btn_pixhawk_mission_upload"
-            android:layout_width="@dimen/px34"
-            android:layout_height="@dimen/px34"
+            android:id="@+id/pixhawk_btn_mission_upload"
+            android:layout_width="@dimen/px80"
+            android:layout_height="@dimen/px80"
             android:layout_marginRight="@dimen/px26"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:background="@drawable/btn_upload_selector"
-            android:onClick="missionUpload"/>
+            />
     </RelativeLayout>
 
     <Button
-        android:id="@+id/btn_pixhawk_back"
-        android:layout_width="@dimen/px34"
-        android:layout_height="@dimen/px34"
+        android:id="@+id/pixhawk_btn_mission_back"
+        android:layout_width="@dimen/px80"
+        android:layout_height="@dimen/px80"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="@dimen/px26"
+        android:layout_marginLeft="@dimen/top16"
         android:background="@drawable/btn_pre_selector"
-        android:onClick="missionBack"/>
+        />
 </RelativeLayout>

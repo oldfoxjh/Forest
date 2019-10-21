@@ -12,6 +12,7 @@ import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
+import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.drone.Px4;
 
 public class MenuView extends RelativeLayout implements View.OnClickListener {
@@ -62,19 +63,29 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
+        if(DroneApplication.getDroneInstance() == null) DroneApplication.setDroneInstance(Drone.DRONE_MANUFACTURE_PIXHWAK);
         //연결된 드론이 없을 경우 연결 요청
-//        if(DroneApplication.getDroneInstance() == null){
-//            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_drone_connection));
-//            return;
-//        }
+        if(DroneApplication.getDroneInstance() == null){
+            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_drone_connection));
+            return;
+        }
+
         ViewWrapper wrapper = null;
         switch (v.getId())
         {
             case R.id.missionButton:
-                wrapper = new ViewWrapper(new MissionView(context), false);
+                if(DroneApplication.getDroneInstance().getManufacturer().equals("DJI")) {
+                    wrapper = new ViewWrapper(new MissionView(context), false);
+                }else{
+                    wrapper = new ViewWrapper(new PixhawkMissionView(context), false);
+                }
                 break;
             case R.id.flightButton:
-                wrapper = new ViewWrapper(new FlightView(context), false);
+                if(DroneApplication.getDroneInstance().getManufacturer().equals("DJI")) {
+                    wrapper = new ViewWrapper(new FlightView(context), false);
+                }else{
+                    wrapper = new ViewWrapper(new PixhawkFlightView(context), false);
+                }
                 break;
             case R.id.settingButton:
                 wrapper = null; return;

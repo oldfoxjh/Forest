@@ -31,7 +31,7 @@ import kr.go.forest.das.Model.DroneInfo;
 public abstract class Drone {
 
     public static final int DRONE_MANUFACTURE_DJI = 0;
-    public static final int DRONE_MANUFACTURE_PIXHWAK = 0;
+    public static final int DRONE_MANUFACTURE_PIXHWAK = 1;
 
     public static final int DRONE_STATUS_DISCONNECT = 0x00;
     public static final int DRONE_STATUS_CONNECT = 0x01;

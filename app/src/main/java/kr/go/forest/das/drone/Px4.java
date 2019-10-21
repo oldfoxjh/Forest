@@ -44,7 +44,7 @@ public class Px4 extends Drone {
      */
     @Override
     public String getManufacturer(){
-        return  null;
+        return  "Pixhawk";
     }
 
     /**
@@ -140,6 +140,7 @@ public class Px4 extends Drone {
 
     @Override
     public CameraInfo getStorageInfo() {
+
         return null;
     }
     //endregion
@@ -486,8 +487,15 @@ public class Px4 extends Drone {
      * @param points 임무비행 경로
      */
     public void setMissionPoints(List<GeoPoint> points){
+
         if(flight_points == null){
             flight_points = new ArrayList<>();
+        }
+
+        if(points == null) {
+            flight_points.clear();
+            flight_points = null;
+            return;
         }
 
         flight_points.clear();

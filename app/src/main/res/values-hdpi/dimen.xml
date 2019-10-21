@@ -24,6 +24,7 @@
     <dimen name="px42">28dp</dimen>
     <dimen name="px44">29.3dp</dimen>
     <dimen name="px46">30.7dp</dimen>
+    <dimen name="px48">32dp</dimen>
     <dimen name="px50">33.3dp</dimen>
     <dimen name="px52">34.7dp</dimen>
     <dimen name="px54">36dp</dimen>
@@ -72,6 +73,7 @@
     <dimen name="px420">280dp</dimen>
     <dimen name="px422">281.3dp</dimen>
     <dimen name="px440">293.3dp</dimen>
+    <dimen name="px460">306.7dp</dimen>
     <dimen name="px500">333.3dp</dimen>
     <dimen name="px510">340dp</dimen>
     <dimen name="px516">344dp</dimen>
@@ -87,6 +89,7 @@
     <dimen name="px664">442.7dp</dimen>
     <dimen name="px680">453.3dp</dimen>
     <dimen name="px690">460dp</dimen>
+    <dimen name="px720">480dp</dimen>
     <dimen name="px1040">693.3dp</dimen>
     <dimen name="px1280">853.3dp</dimen>
     <dimen name="dji50">33.7dp</dimen>
