@@ -236,7 +236,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         }else{
             mapController.setCenter(new GeoPoint(Double.parseDouble(_lat), Double.parseDouble(_lon)));
         }
-
+  //      mapController.setCenter(new GeoPoint(36.352977, 127.21948));
         // 내위치
         marker_my_location = new Marker(map_view);
         marker_my_location.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
@@ -431,7 +431,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
      */
     @Subscribe
     public void onMissionLoad(final MainActivity.Mission mission) {
-        LogWrapper.i("MissionView", "cmd : " + mission.command);
         if(mission.command == MainActivity.Mission.MISSION_FROM_FILE || mission.command == MainActivity.Mission.MISSION_FROM_ONLINE){
             // 임무정보 초기화
             clearMission();
@@ -972,10 +971,10 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
                 // 남은 거리가 단위거리보다 작을경우 나가기
                 double _temp = GeoManager.getInstance().distance(_next.getLatitude(), _next.getLongitude(), _end.getLatitude(), _end.getLongitude());
-
                 shoot_count++;
                 if(_temp < front_distance) break;
             }
+            shoot_count++;
         }
 
         tv_mission_shoot_interval.setText(String.format("%d", shoot_count));

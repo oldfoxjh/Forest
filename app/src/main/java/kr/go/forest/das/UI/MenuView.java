@@ -63,7 +63,7 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if(DroneApplication.getDroneInstance() == null) DroneApplication.setDroneInstance(Drone.DRONE_MANUFACTURE_PIXHWAK);
+        //if(DroneApplication.getDroneInstance() == null) DroneApplication.setDroneInstance(Drone.DRONE_MANUFACTURE_PIXHWAK);
         //연결된 드론이 없을 경우 연결 요청
         if(DroneApplication.getDroneInstance() == null){
             DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_drone_connection));

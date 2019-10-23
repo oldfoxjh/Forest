@@ -193,10 +193,12 @@ public class DJI extends Drone{
                 gimbals = ((Aircraft) _product).getGimbals();
                 batteries = _product.getBatteries();
 
+                if(flight_controller != null)
                 flight_controller.setStateCallback(status_callback);
 
                 // 조종기 callback
                 remote_controller = ((Aircraft) _product).getRemoteController();
+                if(remote_controller != null)
                 remote_controller.setHardwareStateCallback(rc_hardware_callback);
 
                 // 짐벌 callback
@@ -1232,8 +1234,9 @@ public class DJI extends Drone{
         public void onRegister(DJIError error) {
             if (error == DJISDKError.REGISTRATION_SUCCESS) {
                 DJISDKManager.getInstance().startConnectionToProduct();
+                LogWrapper.i("onRegister", "Success");
             } else {
-
+                LogWrapper.i("onRegister", "Error : " + error.getDescription());
             }
         }
 
@@ -1272,6 +1275,9 @@ public class DJI extends Drone{
                     @Override
                     public void onConnectivityChange(boolean isConnected) {
                         LogWrapper.i("onComponentChange", "isConnected : " + isConnected);
+                        if(isConnected == false){
+                            DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_DISCONNECT));
+                        }
                     }
                 });
             }

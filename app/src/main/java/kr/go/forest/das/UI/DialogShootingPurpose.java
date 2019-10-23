@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +57,8 @@ public class DialogShootingPurpose extends RelativeLayout implements View.OnClic
         layoutInflater.inflate(R.layout.dialog_shooting_purpose, this, true);
 
         spinner_purpose = findViewById(R.id.spinner_purpose);
+        if(list_purpose != null) list_purpose.clear();
+
         list_purpose.addAll(purpose);
         arrayAdapter = new ArrayAdapter<>(context, R.layout.spinner_item, list_purpose);
         spinner_purpose.setAdapter(arrayAdapter);

@@ -24,7 +24,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.MediaPlayer;
-import android.nfc.Tag;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.ContextCompat;
@@ -33,7 +32,6 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -42,8 +40,8 @@ import android.view.animation.Transformation;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.squareup.otto.Subscribe;
@@ -68,8 +66,9 @@ import java.util.TimerTask;
 
 import dji.common.camera.SettingsDefinitions;
 import dji.common.model.LocationCoordinate2D;
-import dji.sdk.codec.DJICodecManager;
-import dji.ux.widget.FPVWidget;
+import dji.sdk.camera.VideoFeeder;
+import dji.sdk.sdkmanager.DJISDKManager;
+import dji.sdk.sdkmanager.LiveStreamManager;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MainActivity;
@@ -93,6 +92,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     private boolean is_recording = false;                       // 녹화 여부
     MediaPlayer media_player = null;
     private SharedPreferences pref;
+    private LiveStreamManager.OnLiveChangeListener listener;    // 실시간..
+    int _result = -99;
 
     // 배경지도 & 카메라 전환
     private int device_width;                                   // 화면 폭
@@ -128,7 +129,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     // 카메라 정보
     ViewGroup root_view;
     ViewGroup parent_ae;
-    FPVWidget primary_camera;
+    //FPVWidget primary_camera;
+    DjiVideoFeedView primary_camera;
     TextView tv_iso;                                                        // ISO 정보
     TextView tv_shutter;                                                    // 셔터 속도 정보
     TextView tv_aperture;                                                   // 조리개 정보
@@ -171,9 +173,13 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      */
     @Override
     protected void onAttachedToWindow() {
-        LogWrapper.i(TAG, "onAttachedToWindow");
         ((Activity)context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         handler_ui = new Handler(Looper.getMainLooper());
+
+        // 실시간 영상 리스너 등록
+        if (isLiveStreamManagerOn()){
+            DJISDKManager.getInstance().getLiveStreamManager().registerListener(listener);
+        }
 
         // 드론 상태 체크
         if(DroneApplication.getDroneInstance() != null) {
@@ -199,7 +205,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
 
             // 임무비행 경로
             List<GeoPoint> flight_path = DroneApplication.getDroneInstance().getMissionPoints();
-            if(flight_path != null && flight_path.size() > 2){
+            if(flight_path != null && flight_path.size() > 0){
                 // 비행경로
                 mission_flight_path_line.setPoints(flight_path);
 
@@ -262,6 +268,11 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             DroneApplication.getDroneInstance().setMissionPoints(null);
         }
 
+        // 실시간 영상 리스너 해제
+        if (isLiveStreamManagerOn()){
+            DJISDKManager.getInstance().getLiveStreamManager().unregisterListener(listener);
+        }
+
         super.onDetachedFromWindow();
     }
 
@@ -269,7 +280,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      * 지도 및 기타 컨트롤 설정
      */
     protected void initUI() {
-        LogWrapper.i(TAG, "initUI");
         pref = context.getSharedPreferences("drone", Context.MODE_PRIVATE);
         DroneApplication.getEventBus().register(this);
 
@@ -369,6 +379,14 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         margin = (int) getResources().getDimension(R.dimen.px30);
 
         setClickable(true);
+
+        // 실시간 전송
+        listener = new LiveStreamManager.OnLiveChangeListener() {
+            @Override
+            public void onStatusChanged(int i) {
+                Toast.makeText(context, "실시간 상태 : " + i, Toast.LENGTH_SHORT).show();
+            }
+        };
     }
 
     /**
@@ -388,7 +406,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
 
         // 카메라 정보
         root_view = findViewById(R.id.root_view);
-        primary_camera = (FPVWidget) findViewById(R.id.dji_primary_widget);
+        primary_camera = findViewById(R.id.dji_primary_widget);
+        primary_camera.registerLiveVideo(VideoFeeder.getInstance().getPrimaryVideoFeed(), true);
         primary_camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -1026,9 +1045,49 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     public void onRealtimeVideo(final MainActivity.Realtime realtime){
         // 실시간 동영상 전송
         if(realtime.is_realtime == true){
+            if (!isLiveStreamManagerOn()) {
+                return;
+            }
+            if (DJISDKManager.getInstance().getLiveStreamManager().isStreaming()) {
+                return;
+            }
 
+            Toast.makeText(context, "Start Live Show", Toast.LENGTH_SHORT).show();
+
+            new Thread() {
+                @Override
+                public void run() {
+                    DJISDKManager.getInstance().getLiveStreamManager().setLiveUrl("rtmp://57e471.entrypoint.cloud.wowza.com/app-4c25/a6aa3218");
+                    _result = DJISDKManager.getInstance().getLiveStreamManager().startStream();
+                    DJISDKManager.getInstance().getLiveStreamManager().setStartTime();
+                    if (handler_ui != null) {
+                        handler_ui.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "startLive:" + _result +
+                                        "\n isVideoStreamSpeedConfigurable:" + DJISDKManager.getInstance().getLiveStreamManager().isVideoStreamSpeedConfigurable() +
+                                        "\n isLiveAudioEnabled:" + DJISDKManager.getInstance().getLiveStreamManager().isLiveAudioEnabled(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            }.start();
         }
+
+       // DroneApplication.getDroneInstance().startRecordVideo();
     }
+
+    /**
+     * 실시간 동영상 중계를 멈춘다.
+     */
+    private void stopLiveShow() {
+        if (!isLiveStreamManagerOn()) {
+            return;
+        }
+        DJISDKManager.getInstance().getLiveStreamManager().stopStream();
+        Toast.makeText(context, "Stop Live Show", Toast.LENGTH_SHORT).show();
+    }
+
     /**
      * 카메라와 지도 View 전환 애니메이션
      */
@@ -1152,5 +1211,20 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
 
         Marker _exit = getDefaultMarker(points.get(points.size() - 1), "E");
         map_view.getOverlays().add(_exit);
+    }
+
+    private boolean isLiveStreamManagerOn() {
+        if (DJISDKManager.getInstance().getLiveStreamManager() == null) {
+            if (handler_ui != null) {
+                handler_ui.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, "No live stream manager!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+            return false;
+        }
+        return true;
     }
 }

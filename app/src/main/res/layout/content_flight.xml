@@ -14,13 +14,20 @@
         android:layout_centerInParent="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <dji.ux.widget.FPVWidget
+        <kr.go.forest.das.UI.DjiVideoFeedView
             android:id="@+id/dji_primary_widget"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_centerInParent="true"
-            custom:sourceCameraNameVisibility="false"
-            custom:videoSource="primary"/>
+            custom:sourceCameraNameVisibility="false" />
+
+<!--        <dji.ux.widget.FPVWidget-->
+<!--            android:id="@+id/dji_primary_widget"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_centerInParent="true"-->
+<!--            custom:sourceCameraNameVisibility="false"-->
+<!--            custom:videoSource="primary"/>-->
     </RelativeLayout>
     <!-- MAP  -->
     <RelativeLayout

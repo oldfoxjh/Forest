@@ -38,7 +38,7 @@ public class DJIWaypointMission {
         builder.gotoFirstWaypointMode(WaypointMissionGotoWaypointMode.SAFELY);
         builder.finishedAction(WaypointMissionFinishedAction.NO_ACTION);
         builder.flightPathMode(WaypointMissionFlightPathMode.NORMAL);
-        builder.headingMode(WaypointMissionHeadingMode.USING_WAYPOINT_HEADING);
+        builder.headingMode(WaypointMissionHeadingMode.AUTO);
         builder.repeatTimes(0);
 
         // 3D 정보 반영
@@ -56,10 +56,6 @@ public class DJIWaypointMission {
                 GeoPoint _point = waypoints.get(_index);
                 float _altitude = (float)_point.getAltitude();
                 Waypoint waypoint = new Waypoint(_point.getLatitude(), _point.getLongitude(), _altitude);
-
-                if(i == 0 && j == 0) {
-                    waypoint.addAction(new WaypointAction(WaypointActionType.GIMBAL_PITCH, -90));
-                }
                 waypoint.addAction(new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 1));
                 LogWrapper.i("Waypoint", String.format("lat : %f, lng : %f, alt : %f",_point.getLatitude(), _point.getLongitude(), _altitude));
                 _waypoint_mission.add(waypoint);
