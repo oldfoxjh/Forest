@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#161616"
+    android:paddingLeft="@dimen/px60"
+    android:paddingTop="@dimen/px40"
+    android:paddingRight="@dimen/px60"
+    android:paddingBottom="@dimen/px40">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="@dimen/px4"
+            android:background="@drawable/setting_device_border">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px90"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="@dimen/px300"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#b8b8b8"
+                    android:textSize="@dimen/px28"
+                    android:text="관리번호"
+                    android:gravity="center_vertical"
+                    android:background="#1d1d1d"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#ffffff"
+                    android:textSize="@dimen/px28"
+                    android:text="FR-01234"
+                    android:gravity="center_vertical"/>
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px2"
+                android:background="#0d0d0d"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px90"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="@dimen/px300"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#b8b8b8"
+                    android:textSize="@dimen/px28"
+                    android:text="기관"
+                    android:gravity="center_vertical"
+                    android:background="#1d1d1d"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#ffffff"
+                    android:textSize="@dimen/px28"
+                    android:text="삼척국유림 관리"
+                    android:gravity="center_vertical"/>
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px2"
+                android:background="#0d0d0d"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px90"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="@dimen/px300"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#b8b8b8"
+                    android:textSize="@dimen/px28"
+                    android:text="기종"
+                    android:gravity="center_vertical"
+                    android:background="#1d1d1d"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#ffffff"
+                    android:textSize="@dimen/px28"
+                    android:text="Phantom4 Pro"
+                    android:gravity="center_vertical"/>
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px2"
+                android:background="#0d0d0d"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px90"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="@dimen/px300"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#b8b8b8"
+                    android:textSize="@dimen/px28"
+                    android:text="제작회"
+                    android:gravity="center_vertical"
+                    android:background="#1d1d1d"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#ffffff"
+                    android:textSize="@dimen/px28"
+                    android:text="DJI"
+                    android:gravity="center_vertical"/>
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px2"
+                android:background="#0d0d0d"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px90"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="@dimen/px300"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#b8b8b8"
+                    android:textSize="@dimen/px28"
+                    android:text="드론종"
+                    android:gravity="center_vertical"
+                    android:background="#1d1d1d"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#ffffff"
+                    android:textSize="@dimen/px28"
+                    android:text="멀리콥터"
+                    android:gravity="center_vertical"/>
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px2"
+                android:background="#0d0d0d"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px90"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="@dimen/px300"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#b8b8b8"
+                    android:textSize="@dimen/px28"
+                    android:text="정착카메"
+                    android:gravity="center_vertical"
+                    android:background="#1d1d1d"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#ffffff"
+                    android:textSize="@dimen/px28"
+                    android:text="Zenmuse X5"
+                    android:gravity="center_vertical"/>
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px2"
+                android:background="#0d0d0d"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px90"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="@dimen/px300"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#b8b8b8"
+                    android:textSize="@dimen/px28"
+                    android:text="비행시간"
+                    android:gravity="center_vertical"
+                    android:background="#1d1d1d"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/px60"
+                    android:textColor="#ffffff"
+                    android:textSize="@dimen/px28"
+                    android:text="2hr 32min"
+                    android:gravity="center_vertical"/>
+            </LinearLayout>
+        </LinearLayout>
+
+    </ScrollView>
+</LinearLayout>

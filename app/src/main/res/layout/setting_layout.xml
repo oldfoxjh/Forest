@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="@dimen/px420"
+        android:layout_height="match_parent"
+        android:background="#0d0d0d">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px80"
+                android:paddingLeft="@dimen/px50"
+                android:gravity="center_vertical"
+                android:textSize="@dimen/px30"
+                android:textColor="#ffffff"
+                android:text="설정"
+                android:background="#0d0d0d"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px250"
+                android:orientation="vertical"
+                android:background="#222222"
+                android:paddingLeft="@dimen/px50">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/px114"
+                    android:gravity="center_vertical"
+                    android:textSize="@dimen/px38"
+                    android:textColor="#ffffff"
+                    android:text="홍길동"/>
+
+                <TextView
+                    android:id="@+id/department1"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/px34"
+                    android:drawableLeft="@mipmap/weather_ico_1"
+                    android:textColor="#9f9f9f"
+                    android:textSize="@dimen/px30"
+                    android:gravity="center_vertical"
+                    android:text=" 남부지방산림청"/>
+
+                <TextView
+                    android:id="@+id/department2"
+                    android:layout_marginTop="@dimen/px22"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/px34"
+                    android:drawableLeft="@mipmap/weather_ico_2"
+                    android:textColor="#9f9f9f"
+                    android:textSize="@dimen/px30"
+                    android:gravity="center_vertical"
+                    android:text=" 산림방재"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="#0d0d0d">
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/px116"
+                    android:paddingLeft="@dimen/px50"
+                    android:drawableLeft="@drawable/setting_menu1_icon_selector"
+                    android:textSize="@dimen/px30"
+                    android:textColor="@drawable/setting_menu_color_selector"
+                    android:text="기체정보"
+                    android:textAlignment="textStart"
+                    android:background="@android:color/transparent"/>
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/px2"
+                    android:background="#191919"/>
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/px116"
+                    android:paddingLeft="@dimen/px50"
+                    android:drawableLeft="@drawable/setting_menu2_icon_selector"
+                    android:textSize="@dimen/px30"
+                    android:textColor="@drawable/setting_menu_color_selector"
+                    android:text="인터페이스"
+                    android:textAlignment="textStart"
+                    android:background="@android:color/transparent"/>
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/px2"
+                    android:background="#191919"/>
+            </LinearLayout>
+        </LinearLayout>
+
+    </ScrollView>
+
+
+    <include
+        layout="@layout/setting_interface_layout"
+        android:id="@+id/settingInterfaceLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+    </include>
+
+    <include
+        layout="@layout/setting_device_layout"
+        android:id="@+id/settingDeviceLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible">
+    </include>
+
+
+</LinearLayout>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#161616"
+    android:paddingLeft="@dimen/px60"
+    android:paddingTop="@dimen/px30"
+    android:paddingRight="@dimen/px60"
+    android:paddingBottom="@dimen/px40">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="@dimen/px740"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px120">
+
+                <TextView
+                    android:layout_width="@dimen/px300"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="@dimen/px14"
+                    android:textColor="#b8b8b8"
+                    android:textSize="@dimen/px28"
+                    android:text="실시간 설정"
+                    android:gravity="center_vertical"/>
+
+                <Button
+                    android:layout_width="@dimen/px116"
+                    android:layout_height="@dimen/px60"
+                    android:layout_marginTop="@dimen/px30"
+                    android:layout_marginRight="@dimen/px14"
+                    android:background="@drawable/btn_switch_selector"
+                    android:layout_alignParentRight="true"/>
+
+            </RelativeLayout>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px2"
+                android:background="#282828"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+</LinearLayout>
