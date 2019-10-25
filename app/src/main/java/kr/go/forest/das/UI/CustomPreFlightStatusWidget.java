@@ -91,6 +91,7 @@ public class CustomPreFlightStatusWidget extends dji.ux.widget.PreFlightStatusWi
         } else if (type == StatusType.WARNING){
             this.setBackgroundResource(R.mipmap.top_bg_orange);
             if(status.equals("Image Transmission Signal Weak")) drone_status = "영상전송 신호 약함";
+            else if(status.equals("Gimbal Motor Overloaded")) drone_status = "짐벌 모터 과부하";
             LogWrapper.i(TAG, status + " WARNING :  " + drone_status );
         } else if (type == StatusType.ERROR){
             this.setBackgroundResource(R.mipmap.top_bg_red);
@@ -108,6 +109,7 @@ public class CustomPreFlightStatusWidget extends dji.ux.widget.PreFlightStatusWi
             else if(status.equals("IMU Error. Calibrate IMU")) drone_status = "IMU 오류";
             else if(status.equals("Compass Error. Exit GPS Mode")) drone_status = "나침반 오류";
             else if(status.equals("Downward Vision Sensor Calibration Error")) drone_status = "비전센서 오류";
+            else if(status.equals("Low Battery")) drone_status = "배터리 전압 낮음";
             else drone_status = "기기 연결 끊김";
 
             is_good = false;

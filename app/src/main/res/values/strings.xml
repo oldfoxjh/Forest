@@ -45,4 +45,7 @@
     <string name="mission_start_content">임무를 수행합니다. 임무를 중지하려면 자동복귀 버튼을 사용하시기 바랍니다.</string>
     <string name="aircraft_disconnected">드론과의 연결이 끊겼습니다.</string>
     <string name="aircraft_disconnect">드론에 연결할 수 없습니다.</string>
+    <string name="helicopter_warning">10km 이내에 헬기가 운항중입니다.\n즉시 착륙하십시요.</string>
+    <string name="battery_warning">현재 남은 배터리가 30%입니다.\n즉시 귀환 하십시요.</string>
+    <string name="battery_emergency">현재 남은 배터리 20%입니다.\n즉시 착륙하십시요.</string>
 </resources>

@@ -18,14 +18,15 @@
  */
 package kr.go.forest.das.UI;
 
-import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.speech.tts.TextToSpeech;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
@@ -34,7 +35,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.Button;
@@ -91,9 +91,11 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     private Handler handler_ui;                                 // UI 업데이트 핸들러
     private boolean is_recording = false;                       // 녹화 여부
     MediaPlayer media_player = null;
-    private SharedPreferences pref;
-    private LiveStreamManager.OnLiveChangeListener listener;    // 실시간..
-    int _result = -99;
+    private SharedPreferences pref;                             // 상태값 저장
+    private LiveStreamManager.OnLiveChangeListener listener;    // 실시간 전송상태 확인 리스너
+    private int live_status = -1;                               // 실시간 전송상태
+    private int _result = -99;                                  // 실시간 전송 결과
+    private int battery_status = 0;                             // 배터리 남은 상태 체크
 
     // 배경지도 & 카메라 전환
     private int device_width;                                   // 화면 폭
@@ -173,7 +175,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      */
     @Override
     protected void onAttachedToWindow() {
-        ((Activity)context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         handler_ui = new Handler(Looper.getMainLooper());
 
         // 실시간 영상 리스너 등록
@@ -239,7 +241,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      */
     @Override
     protected void onDetachedFromWindow() {
-        ((Activity)context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         DroneApplication.getEventBus().unregister(this);
         handler_ui.removeCallbacksAndMessages(null);
         handler_ui = null;
@@ -268,11 +269,18 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             DroneApplication.getDroneInstance().setMissionPoints(null);
         }
 
+        // 동영상 촬영중이면 멈춤
+        if(is_recording == true) {
+            DroneApplication.getDroneInstance().stopRecordVideo();
+            if (DJISDKManager.getInstance().getLiveStreamManager().isStreaming()) {
+                stopLiveShow();
+            }
+        }
+
         // 실시간 영상 리스너 해제
         if (isLiveStreamManagerOn()){
             DJISDKManager.getInstance().getLiveStreamManager().unregisterListener(listener);
         }
-
         super.onDetachedFromWindow();
     }
 
@@ -325,6 +333,13 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         //임무 비행경로
         mission_flight_path_line.setColor(Color.WHITE);
         mission_flight_path_line.setWidth(6.0f);
+        mission_flight_path_line.setOnClickListener(new Polyline.OnClickListener() {
+            @Override
+            public boolean onClick(Polyline polyline, MapView mapView, GeoPoint eventPos) {
+                singleTapConfirmedHelper(null);
+                return true;
+            }
+        });
         map_view.getOverlayManager().add(mission_flight_path_line);
 
         // 마커 설정
@@ -333,6 +348,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         marker_my_location.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker, MapView mapView) {
+                singleTapConfirmedHelper(null);
                 return true;
             }
         });
@@ -346,6 +362,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         marker_drone_location.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker, MapView mapView) {
+                singleTapConfirmedHelper(null);
                 return true;
             }
         });
@@ -363,6 +380,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         marker_home_location.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker, MapView mapView) {
+                singleTapConfirmedHelper(null);
                 return true;
             }
         });
@@ -384,7 +402,15 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         listener = new LiveStreamManager.OnLiveChangeListener() {
             @Override
             public void onStatusChanged(int i) {
-                Toast.makeText(context, "실시간 상태 : " + i, Toast.LENGTH_SHORT).show();
+                live_status = i;
+                if (handler_ui != null) {
+                    handler_ui.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, "실시간 상태 : " + live_status, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
             }
         };
     }
@@ -407,7 +433,9 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         // 카메라 정보
         root_view = findViewById(R.id.root_view);
         primary_camera = findViewById(R.id.dji_primary_widget);
-        primary_camera.registerLiveVideo(VideoFeeder.getInstance().getPrimaryVideoFeed(), true);
+        if(VideoFeeder.getInstance() != null){
+            primary_camera.registerLiveVideo(VideoFeeder.getInstance().getPrimaryVideoFeed(), true);
+        }
         primary_camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -496,6 +524,10 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                 // 촬영중인지..확인
                 if(is_recording == true) {
                     DroneApplication.getDroneInstance().stopRecordVideo();
+                    if (DJISDKManager.getInstance().getLiveStreamManager().isStreaming()) {
+                        stopLiveShow();
+                    }
+
                 }else{
                     DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_SHOOTING_PURPOSE, 0, 0));
                 }
@@ -748,6 +780,17 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         LocationCoordinate2D _home = DroneApplication.getDroneInstance().getHomeLocation();
                         marker_home_location.setPosition(new GeoPoint(_home.getLatitude(), _home.getLongitude()));
                         map_view.invalidate();
+
+                        // 배터리 정보
+                        if(_info.battery_remain_percent < 31 && battery_status == 0){
+                            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.battery_warning));
+                            DroneApplication.getEventBus().post(new MainActivity.TTS(context.getString(R.string.battery_warning)));
+                            battery_status = 1;
+                        }else if(_info.battery_remain_percent < 21 && battery_status == 1){
+                            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.battery_emergency));
+                            DroneApplication.getEventBus().post(new MainActivity.TTS(context.getString(R.string.battery_emergency)));
+                            battery_status = 2;
+                        }
                     }
                 });
             }
@@ -1074,7 +1117,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             }.start();
         }
 
-       // DroneApplication.getDroneInstance().startRecordVideo();
+        DroneApplication.getDroneInstance().startRecordVideo();
     }
 
     /**
@@ -1213,6 +1256,10 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         map_view.getOverlays().add(_exit);
     }
 
+    /**
+     * 실시간 중계 여부를 확인
+     * @return 실시간 중계 여부
+     */
     private boolean isLiveStreamManagerOn() {
         if (DJISDKManager.getInstance().getLiveStreamManager() == null) {
             if (handler_ui != null) {

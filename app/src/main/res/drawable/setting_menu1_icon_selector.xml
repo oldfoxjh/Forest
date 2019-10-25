@@ -4,7 +4,9 @@
     <item
         android:state_pressed="true"
         android:drawable="@mipmap/setting_menu2_s" />
-
+    <item
+        android:state_selected="true"
+        android:drawable="@mipmap/setting_menu2_s" />
 
     <item
         android:state_pressed="false"

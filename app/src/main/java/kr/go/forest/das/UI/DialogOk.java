@@ -55,6 +55,9 @@ public class DialogOk extends RelativeLayout implements View.OnClickListener{
             || contentId == R.string.save_fail
             || contentId == R.string.max_flight_height_success
             || contentId == R.string.max_flight_height_over
+            || contentId == R.string.helicopter_warning
+            || contentId == R.string.battery_warning
+            || contentId == R.string.battery_emergency
             || msg != null
         ) {
             _params.height += 46;

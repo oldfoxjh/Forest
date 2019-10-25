@@ -1,12 +1,18 @@
 package kr.go.forest.das.UI;
 
 import android.content.Context;
+import android.os.Build;
+import android.speech.tts.TextToSpeech;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
+
+import java.util.Locale;
 
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
@@ -89,14 +95,14 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                 // ID
 //            if(loginIDEditText.length() == 0)
 //            {
-//                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.check_id));
+//                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_id));
 //                return;
 //            }
 
                 // Password
 //            if(loginPWEditText.length() == 0)
 //            {
-//                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, R.string.check_password));
+//                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_password));
 //                return;
 //            }
                 // 로그인 요청
@@ -104,8 +110,6 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                 // 키보드 체크
                 hideSoftInput();
                 DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), false));
-
-               // DroneApplication.getEventBus().post(new ViewWrapper(new PixhawkMissionView(context), true));
             }else{
                 DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.check_internet_title, R.string.check_internet));
             }

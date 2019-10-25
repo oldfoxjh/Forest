@@ -74,11 +74,11 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
         switch (v.getId())
         {
             case R.id.missionButton:
-                if(DroneApplication.getDroneInstance().getManufacturer().equals("DJI")) {
+//                if(DroneApplication.getDroneInstance().getManufacturer().equals("DJI")) {
                     wrapper = new ViewWrapper(new MissionView(context), false);
-                }else{
-                    wrapper = new ViewWrapper(new PixhawkMissionView(context), false);
-                }
+  //              }else{
+  //                  wrapper = new ViewWrapper(new PixhawkMissionView(context), false);
+  //              }
                 break;
             case R.id.flightButton:
                 if(DroneApplication.getDroneInstance().getManufacturer().equals("DJI")) {

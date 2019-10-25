@@ -11,8 +11,10 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.hardware.usb.UsbManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -27,6 +29,7 @@ import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Stack;
 
 import dji.common.camera.SettingsDefinitions;
@@ -51,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     private LayoutTransition popOutTransition;
     LocationManager mManager;
     boolean doubleBackToExitPressedOnce = false;
+    TextToSpeech tts;                                           // Test to Speech
 
     List<String> shooting_purpose = new ArrayList<>();
 
@@ -68,6 +72,17 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     }
 
     @Override
+    protected void onDestroy() {
+        // TTS 해제
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+            tts = null;
+        }
+        super.onDestroy();
+    }
+
+    @Override
     protected void onNewIntent(@NonNull Intent intent) {
         String action = intent.getAction();
         if (UsbManager.ACTION_USB_ACCESSORY_ATTACHED.equals(action)) {
@@ -82,6 +97,26 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         stack = new Stack<ViewWrapper>();
         View view = contentFrameLayout.getChildAt(0);
         stack.push(new ViewWrapper(view, false));
+
+        // TTS 등록
+        tts = new TextToSpeech(MainActivity.this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    //사용할 언어를 설정
+                    int result = tts.setLanguage(Locale.KOREA);
+                    //언어 데이터가 없거나 혹은 언어가 지원하지 않으면...
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Toast.makeText(MainActivity.this, "이 언어는 지원하지 않습니다.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        //음성 톤
+                        tts.setPitch(0.7f);
+                        //읽는 속도
+                        tts.setSpeechRate(1.0f);
+                    }
+                }
+            }
+        });
     }
 
     private void setupInAnimations() {
@@ -158,7 +193,33 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     }
     //endregion
 
+    /**
+     * Text to speech
+     * @param text 텍스트
+     */
+    private void Speech(String text) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+            // API 20
+        else
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
+    }
+
+    @Subscribe
+    public void onTTS(final TTS object) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Speech(object.content);
+            }
+        });
+    }
     //region OTTO Event Subscribe
+
+    /**
+     * 뷰 추가 이벤트
+     * @param wrapper 추가할 뷰
+     */
     @Subscribe
     public void onPushView(final ViewWrapper wrapper) {
         runOnUiThread(new Runnable() {
@@ -169,6 +230,10 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         });
     }
 
+    /**
+     * 팝업창 시작 이벤트
+     * @param popup 팝업창 종류
+     */
     @Subscribe
     public void onPopup(final PopupDialog popup) {
         runOnUiThread(new Runnable() {
@@ -199,6 +264,10 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         });
     }
 
+    /**
+     * 뷰 종료 이벤트
+     * @param popup
+     */
     @Subscribe
     public void onPopdown(final PopdownView popup) {
         runOnUiThread(new Runnable() {
@@ -242,6 +311,10 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         });
     }
 
+    /**
+     * 뷰 추가
+     * @param wrapper 추가할 뷰
+     */
     private void pushView(ViewWrapper wrapper) {
 
         contentFrameLayout.setLayoutTransition(null);
@@ -265,6 +338,9 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         }
     }
 
+    /**
+     * 현재 최상위 뷰 제거
+     */
     private void popView() {
 
         if (stack.size() <= 1) {
@@ -448,6 +524,13 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         public Realtime(boolean realtime){
             is_realtime = realtime;
         }
-    };
+    }
+
+    public static class TTS{
+        private String content;
+        public TTS(String text){
+            content = text;
+        }
+    }
     //endregion
 }

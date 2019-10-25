@@ -20,14 +20,6 @@
             android:layout_height="match_parent"
             android:layout_centerInParent="true"
             custom:sourceCameraNameVisibility="false" />
-
-<!--        <dji.ux.widget.FPVWidget-->
-<!--            android:id="@+id/dji_primary_widget"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="match_parent"-->
-<!--            android:layout_centerInParent="true"-->
-<!--            custom:sourceCameraNameVisibility="false"-->
-<!--            custom:videoSource="primary"/>-->
     </RelativeLayout>
     <!-- MAP  -->
     <RelativeLayout

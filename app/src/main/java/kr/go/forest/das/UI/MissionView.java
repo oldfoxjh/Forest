@@ -142,7 +142,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
     @Override
     protected void onAttachedToWindow() {
-        ((Activity)context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         DroneApplication.getEventBus().register(this);
         handler_ui = new Handler(Looper.getMainLooper());
         progress = new ProgressDialog(context);
@@ -166,8 +165,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
     @Override
     protected void onDetachedFromWindow() {
-
-        ((Activity)context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // Clear Overlays
         map_view.getOverlays().clear();
         DroneApplication.getEventBus().unregister(this);
