@@ -17,9 +17,14 @@ import java.util.Locale;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.DeviceInfo;
+import kr.go.forest.das.Model.LoginRequest;
+import kr.go.forest.das.Model.LoginResponse;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
 import kr.go.forest.das.network.NetworkStatus;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
@@ -93,23 +98,38 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
             if(NetworkStatus.isInternetConnected(context))
             {
                 // ID
-//            if(loginIDEditText.length() == 0)
-//            {
-//                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_id));
-//                return;
-//            }
-
-                // Password
-//            if(loginPWEditText.length() == 0)
-//            {
-//                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_password));
-//                return;
-//            }
+                if(loginIDEditText.length() == 0 && loginPWEditText.length() == 0) {
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.check_login_title, R.string.check_login));
+                    return;
+                }else{
+                    if(loginIDEditText.length() == 0) {
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_id));
+                        return;
+                    }else if(loginPWEditText.length() == 0) {
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_password));
+                        return;
+                    }
+                }
                 // 로그인 요청
+                LoginRequest _user = new LoginRequest();
+                _user.id = loginIDEditText.getText().toString();
+                _user.password = loginPWEditText.getText().toString();
 
-                // 키보드 체크
-                hideSoftInput();
-                DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), false));
+                DroneApplication.getApiInstance().postLogin(_user).enqueue(new Callback<LoginResponse>(){
+                    @Override
+                    public  void onResponse(Call<LoginResponse> call, Response<LoginResponse> response){
+                        LoginResponse _response = response.body();
+                        // 키보드 체크
+                        hideSoftInput();
+                        DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), false));
+                    }
+
+                    @Override
+                    public  void onFailure(Call<LoginResponse> call, Throwable t){
+                        String _t = t.getMessage();
+                    }
+                });
+
             }else{
                 DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.check_internet_title, R.string.check_internet));
             }

@@ -11,11 +11,13 @@ import dji.sdk.products.Aircraft;
 import kr.go.forest.das.drone.DJI;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.drone.Px4;
+import kr.go.forest.das.network.IApiService;
 
 public class DroneApplication extends Application{
     private static Application app = null;
     private static Drone drone = null;
     private static Bus bus = new Bus(ThreadEnforcer.ANY);
+    private static IApiService api = IApiService.retrofit.create(IApiService.class);
 
     @Override
     protected void attachBaseContext(Context paramContext) {
@@ -33,6 +35,8 @@ public class DroneApplication extends Application{
     public static Drone getDroneInstance() {
         return drone;
     }
+
+    public static IApiService getApiInstance(){ return api; }
 
     public static synchronized void setDroneInstance(int type) {
         if(drone != null) drone = null;
