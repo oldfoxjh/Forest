@@ -54,8 +54,8 @@
                     android:gravity="center_vertical"/>
                 <dji.ux.panel.CameraSettingExposurePanel
                     android:id="@+id/flight_camera_setting_panel"
-                    android:layout_width="234dp"
-                    android:layout_height="351dp"
+                    android:layout_width="@dimen/px468"
+                    android:layout_height="@dimen/px702"
                     android:layout_alignParentRight="true"
                     android:background="@color/transparent"
                     android:gravity="center"/>

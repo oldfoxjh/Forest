@@ -227,9 +227,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         public void run() {
                             DroneApplication.getEventBus().post(new MainActivity.PopdownView(0, MainActivity.PopupDialog.REMOVE_PRE_VIEW, null));
                         }
-                    }, 10000);
+                    }, 5000);
                 }
-
             }
         }
 
@@ -990,21 +989,17 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         if(camera.mode == SettingsDefinitions.CameraMode.RECORD_VIDEO){
             if(camera.is_record == true){
                 // 동영상 촬영 시작음
-                media_player = MediaPlayer.create(context, R.raw.shoot_photo);
-                media_player.start();
                 if (handler_ui != null) {
                     handler_ui.post(new Runnable() {
                         @Override
                         public void run() {
                             btn_record.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_recording_selector));
+                            DroneApplication.getEventBus().post(new MainActivity.TTS("동영상 촬영을 시작합니다."));
                         }
                     });
                 }
             }else{
                 // 동영상 촬영 종료음
-                media_player = MediaPlayer.create(context, R.raw.shoot_photo);
-                media_player.start();
-
                 if (handler_ui != null) {
                     handler_ui.post(new Runnable() {
                         @Override
@@ -1036,7 +1031,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         // 이륙요청
                         DroneApplication.getDroneInstance().startTakeoff();
                     }else if(rtl.mode == MainActivity.ReturnHome.REQUEST_TAKEOFF_SUCCESS){
-                        LogWrapper.i(TAG, "REQUEST_TAKEOFF_SUCCESS");
                         // 이륙성공 - 이륙버튼 아이콘 변경
                         btn_flight_takeoff.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_landing_selector));
                         btn_flight_takeoff.setTag("landing");
@@ -1053,7 +1047,9 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         // 자동복귀 요청
                         DroneApplication.getDroneInstance().startGoHome();
                     }else if(rtl.mode == MainActivity.ReturnHome.REQUEST_RETURN_HOME_SUCCESS){
-                        setReturnHomeCancelWidget(true);
+                        if(findViewById(R.id.layout_flight_cancel).getVisibility() == INVISIBLE) {
+                            setReturnHomeCancelWidget(true);
+                        }
                     }else if(rtl.mode == MainActivity.ReturnHome.CANCEL_RETURN_HOME){
                         DroneApplication.getDroneInstance().cancelGoHome();
                     }else if(rtl.mode == MainActivity.ReturnHome.CANCEL_RETURN_HOME_SUCCESS
@@ -1094,8 +1090,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             if (DJISDKManager.getInstance().getLiveStreamManager().isStreaming()) {
                 return;
             }
-
-            Toast.makeText(context, "Start Live Show", Toast.LENGTH_SHORT).show();
 
             new Thread() {
                 @Override

@@ -31,7 +31,7 @@ public class DJITimelineMission {
         // 짐벌 각도 조절
         Attitude attitude = new Attitude(-90, Rotation.NO_ROTATION, Rotation.NO_ROTATION);
         GimbalAttitudeAction gimbalAction = new GimbalAttitudeAction(attitude);
-        gimbalAction.setCompletionTime(2);
+        gimbalAction.setCompletionTime(3);
         elements.add(gimbalAction);
 
         //이륙
@@ -46,14 +46,14 @@ public class DJITimelineMission {
             elements.add(waypointMission);
         }
 
-        //자동복귀
-        elements.add(new GoHomeAction());
-
         //짐벌 원위치
         attitude = new Attitude(0, Rotation.NO_ROTATION, Rotation.NO_ROTATION);
         gimbalAction = new GimbalAttitudeAction(attitude);
         gimbalAction.setCompletionTime(2);
         elements.add(gimbalAction);
+
+        //자동복귀
+        elements.add(new GoHomeAction());
 
         if (missionControl.scheduledCount() > 0) {
             missionControl.unscheduleEverything();

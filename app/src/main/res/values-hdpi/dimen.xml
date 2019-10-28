@@ -78,6 +78,7 @@
     <dimen name="px422">281.3dp</dimen>
     <dimen name="px440">293.3dp</dimen>
     <dimen name="px460">306.7dp</dimen>
+    <dimen name="px468">312dp</dimen>
     <dimen name="px500">333.3dp</dimen>
     <dimen name="px510">340dp</dimen>
     <dimen name="px516">344dp</dimen>
@@ -93,6 +94,7 @@
     <dimen name="px664">442.7dp</dimen>
     <dimen name="px680">453.3dp</dimen>
     <dimen name="px690">460dp</dimen>
+    <dimen name="px702">468dp</dimen>
     <dimen name="px720">480dp</dimen>
     <dimen name="px740">493.3dp</dimen>
     <dimen name="px1040">693.3dp</dimen>

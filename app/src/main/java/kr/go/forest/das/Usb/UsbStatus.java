@@ -35,19 +35,6 @@ public class UsbStatus {
                 if(intent.getExtras().getBoolean("connected") && isConnected == USB_DISCONNECTED)
                 {
                     UsbManager manager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-                    // check accessory for dji
-                    UsbAccessory[] accessories = manager.getAccessoryList();
-
-                    if(accessories != null && accessories.length > 0)
-                    {
-                        UsbAccessory accessory = (accessories == null ? null : accessories[0]);
-
-                        if(accessory.getManufacturer().contains("DJI"))
-                        {
-                            DroneApplication.setDroneInstance(Drone.DRONE_MANUFACTURE_DJI);
-                            isConnected = USB_CONNECTED;
-                        }
-                    }
 
                     // check accessory for pixhawk
                     HashMap<String, UsbDevice> devices = manager.getDeviceList();
