@@ -75,6 +75,8 @@ public class DialogOk extends RelativeLayout implements View.OnClickListener{
             String _content = context.getResources().getText(contentId).toString() + msg;
             mTextView.setText(_content);
         }
+
+        setClickable(true);
     }
 
     @Override

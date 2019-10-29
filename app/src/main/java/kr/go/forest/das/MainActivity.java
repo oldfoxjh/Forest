@@ -32,8 +32,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Stack;
 
+import dji.common.Stick;
 import dji.common.camera.SettingsDefinitions;
 import dji.sdk.sdkmanager.DJISDKManager;
+import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.UI.DialogConfirm;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.UI.DialogLoadMission;
@@ -205,6 +207,26 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
     }
 
+    //region OTTO Event Subscribe
+
+    /**
+     * 음성지원 서비스
+     * @param object TTS 서비스를 사용한 텍스트를 포함한 객체
+     */
+    @Subscribe
+    public void onToast(final ToastOrb object) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, object.content, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * 음성지원 서비스
+     * @param object TTS 서비스를 사용한 텍스트를 포함한 객체
+     */
     @Subscribe
     public void onTTS(final TTS object) {
         runOnUiThread(new Runnable() {
@@ -214,7 +236,6 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
             }
         });
     }
-    //region OTTO Event Subscribe
 
     /**
      * 뷰 추가 이벤트
@@ -280,6 +301,12 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                     popView();
                 }
 
+//                StringBuffer sb = new StringBuffer();
+//                for(int i = 0; i < stack.size(); i++){
+//                    sb.append(stack.get(i).viewInfo() + " : " );
+//                }
+//                LogWrapper.i(TAG, sb.toString());
+
                 if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_SHAPE) {
                     DroneApplication.getEventBus().post(new Mission(Mission.MISSION_FROM_FILE, popup.data));
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_MISSION){
@@ -316,7 +343,6 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
      * @param wrapper 추가할 뷰
      */
     private void pushView(ViewWrapper wrapper) {
-
         contentFrameLayout.setLayoutTransition(null);
 
         View showView = wrapper.getView();
@@ -529,6 +555,13 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     public static class TTS{
         private String content;
         public TTS(String text){
+            content = text;
+        }
+    }
+
+    public static class ToastOrb{
+        public String content;
+        public ToastOrb(String text){
             content = text;
         }
     }

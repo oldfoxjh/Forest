@@ -1,5 +1,6 @@
 package kr.go.forest.das.UI;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Build;
 import android.speech.tts.TextToSpeech;
@@ -41,6 +42,8 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
     private String IMEI = "";
     private String SN = "";
 
+    private ProgressDialog progress;
+
     public LoginView(Context context){
         super(context);
         this.context = context;
@@ -75,6 +78,9 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
      */
     protected void initUI(){
 
+        progress = new ProgressDialog(context);
+        progress.setCancelable(false);
+        progress.setProgressStyle(android.R.style.Widget_ProgressBar_Horizontal);
         imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
 
         loginIDEditText = (EditText)findViewById(R.id.loginIDEditText);
@@ -115,10 +121,14 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                 _user.id = loginIDEditText.getText().toString();
                 _user.password = loginPWEditText.getText().toString();
 
+                progress.setMessage("로그인 요청중입니다.");
+                progress.show();
                 DroneApplication.getApiInstance().postLogin(_user).enqueue(new Callback<LoginResponse>(){
                     @Override
                     public  void onResponse(Call<LoginResponse> call, Response<LoginResponse> response){
                         LoginResponse _response = response.body();
+
+                        progress.dismiss();
                         // 키보드 체크
                         hideSoftInput();
                         DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), false));
@@ -126,7 +136,8 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
 
                     @Override
                     public  void onFailure(Call<LoginResponse> call, Throwable t){
-                        String _t = t.getMessage();
+                        progress.dismiss();
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.check_internet_title, R.string.check_internet));
                     }
                 });
 

@@ -1,6 +1,9 @@
 package kr.go.forest.das.network;
 
 import kr.go.forest.das.Model.DroneInfo;
+import kr.go.forest.das.Model.DroneInfoRequest;
+import kr.go.forest.das.Model.DroneInfoResponse;
+import kr.go.forest.das.Model.FiresResponse;
 import kr.go.forest.das.Model.LoginRequest;
 import kr.go.forest.das.Model.LoginResponse;
 import okhttp3.RequestBody;
@@ -42,7 +45,7 @@ public interface IApiService {
             "accept:application/json"
     })
     @POST("info")
-    Call<LoginResponse> postDroneInfo(@Body LoginRequest info);
+    Call<DroneInfoResponse> postDroneInfo(@Body DroneInfoRequest info);
 
     /**
      * 산불발생위치 요청
@@ -53,18 +56,7 @@ public interface IApiService {
             "accept:application/json"
     })
     @GET("fire")
-    Call<LoginResponse> getFires();
-
-    /**
-     * 기상정보 요청
-     * @return
-     */
-    @Headers({
-            "content-type:application/json",
-            "accept:application/json"
-    })
-    @GET("weather")
-    Call<LoginResponse> getWeather();
+    Call<FiresResponse> getFires();
 
     /**
      * 실시간 동영상 url 요청

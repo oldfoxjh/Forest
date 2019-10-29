@@ -88,6 +88,8 @@ public class DialogLoadShape extends RelativeLayout implements View.OnClickListe
             _radio_button.setTextSize(getResources().getDimension(R.dimen.radio_font));
             _file_list.addView(_radio_button);
         }
+
+        setClickable(true);
     }
 
     @Override

@@ -82,6 +82,8 @@ public class DialogShootingPurpose extends RelativeLayout implements View.OnClic
                 DroneApplication.getEventBus().post(new MainActivity.PopdownView());
             }
         });
+
+        setClickable(true);
     }
 
     @Override

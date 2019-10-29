@@ -19,4 +19,6 @@ public class ViewWrapper {
     public View getView() {
         return view;
     }
+
+    public String viewInfo(){ return view.toString(); }
 }

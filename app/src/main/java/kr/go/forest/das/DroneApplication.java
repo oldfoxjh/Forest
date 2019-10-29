@@ -8,6 +8,7 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
 
 import dji.sdk.products.Aircraft;
+import kr.go.forest.das.Model.BigdataSystemInfo;
 import kr.go.forest.das.drone.DJI;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.drone.Px4;
@@ -18,6 +19,7 @@ public class DroneApplication extends Application{
     private static Drone drone = null;
     private static Bus bus = new Bus(ThreadEnforcer.ANY);
     private static IApiService api = IApiService.retrofit.create(IApiService.class);
+    private static BigdataSystemInfo system_info = new BigdataSystemInfo();
 
     @Override
     protected void attachBaseContext(Context paramContext) {
@@ -51,4 +53,6 @@ public class DroneApplication extends Application{
     public static Bus getEventBus() {
         return bus;
     }
+
+    public static BigdataSystemInfo getSystemInfo(){ return system_info; }
 }

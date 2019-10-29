@@ -7,4 +7,6 @@ public class LoginResponse {
     // 비행계획 리스트
     public FlightPlan plan;
     // 드론 리스트
+    // 기상정보
+    public WeatherInfo weather;
 }

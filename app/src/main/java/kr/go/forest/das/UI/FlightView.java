@@ -18,6 +18,7 @@
  */
 package kr.go.forest.das.UI;
 
+import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -74,10 +75,18 @@ import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
+import kr.go.forest.das.Model.DroneInfoRequest;
+import kr.go.forest.das.Model.DroneInfoResponse;
+import kr.go.forest.das.Model.FiresResponse;
+import kr.go.forest.das.Model.LoginResponse;
+import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.geo.GeoManager;
 import kr.go.forest.das.map.MapLayer;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static kr.go.forest.das.map.MapManager.VWorldStreet;
 
@@ -85,10 +94,13 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
 
     private final String TAG = "FlightView";
     private final int period = 250;                             // 드론정보 수십 주기 0.25 second
+    private final int DRONE_INFO_SEND_SIZE = 20;                // 드론정보 전송 기준
     private Context context;
     Timer timer = null;                                         // 드론정보 수집 타이머
-    List<DroneInfo> drone_flight_log = new ArrayList<>();       // 비행 및 기체정보
+    ArrayList<DroneInfo> drone_flight_log = new ArrayList<>();       // 비행 및 기체정보
     private Handler handler_ui;                                 // UI 업데이트 핸들러
+    private ProgressDialog progress;
+
     private boolean is_recording = false;                       // 녹화 여부
     MediaPlayer media_player = null;
     private SharedPreferences pref;                             // 상태값 저장
@@ -177,6 +189,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     protected void onAttachedToWindow() {
 
         handler_ui = new Handler(Looper.getMainLooper());
+        progress = new ProgressDialog(context);
+        progress.setCancelable(false);
 
         // 실시간 영상 리스너 등록
         if (isLiveStreamManagerOn()){
@@ -185,8 +199,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
 
         // 드론 상태 체크
         if(DroneApplication.getDroneInstance() != null) {
-            if(DroneApplication.getDroneInstance().isFlying())
-            {
+            if(DroneApplication.getDroneInstance().isFlying()) {
                 // 현재 비행중이므로 Takeoff 아이콘 => Landing 아이콘으로 변경
                 btn_flight_takeoff.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_landing_selector));
                 btn_flight_takeoff.setTag("landing");
@@ -225,6 +238,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                     handler_ui.postAtTime(new Runnable() {
                         @Override
                         public void run() {
+                            LogWrapper.i(TAG, "REMOVE_PRE_VIEW 요청 ");
                             DroneApplication.getEventBus().post(new MainActivity.PopdownView(0, MainActivity.PopupDialog.REMOVE_PRE_VIEW, null));
                         }
                     }, 5000);
@@ -566,39 +580,59 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                     no_fly_zone = MapLayer.getInstance().getNoFlyZoneFromValue("");
                 }
 
-                for(String key: no_fly_zone.keySet())
-                {
-                    Polygon _zone = no_fly_zone.get(key);
-                    if(map_view.getOverlayManager().contains(_zone)) map_view.getOverlayManager().remove(_zone);
-                    else map_view.getOverlayManager().add(_zone);
+                if(btn_flight_nofly.isSelected() == false){
+                    for(String key: no_fly_zone.keySet()) {
+                        Polygon _zone = no_fly_zone.get(key);
+                        map_view.getOverlayManager().add(_zone);
+                    }
+                }else{
+                    for(String key: no_fly_zone.keySet()) {
+                        Polygon _zone = no_fly_zone.get(key);
+                        map_view.getOverlayManager().remove(_zone);
+                    }
                 }
 
+                btn_flight_nofly.setSelected(!btn_flight_nofly.isSelected());
                 map_view.invalidate();
                 break;
             case R.id.btn_flight_fires:
-                // 산불발생현황 불러오기
-                // 요청 다이얼로그
-
                 // 기존에 있는 마커 삭제
                 for (Marker _marker : forest_fires) {
                     map_view.getOverlays().remove(_marker);
                 }
                 forest_fires.clear();
 
-                // 마커 생성
-                // request api
-                List<GeoPoint> _response = new ArrayList<GeoPoint>();
-                _response.add(new GeoPoint(36.361481, 127.384841));
-                for( GeoPoint _point : _response){
-                    Marker _marker = new Marker(map_view);
-                    _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.forest_fire, null));
-                    _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
-                    _marker.setPosition(_point);
-                    map_view.getOverlays().add(_marker);
-                    forest_fires.add(_marker);
-                }
-                map_view.invalidate();
+                if(btn_flight_fires.isSelected() == false){
+                    // 산불발생현황 불러오기
+                    progress.setMessage("로그인 요청중입니다.");
+                    progress.show();
+                    DroneApplication.getApiInstance().getFires().enqueue(new Callback<FiresResponse>(){
+                        @Override
+                        public  void onResponse(Call<FiresResponse> call, Response<FiresResponse> response){
+                            FiresResponse _test = response.body();
+                            // 마커 생성
+                            List<GeoPoint> _response = new ArrayList<GeoPoint>();
+                            _response.add(new GeoPoint(36.361481, 127.384841));
+                            for( GeoPoint _point : _response){
+                                Marker _marker = new Marker(map_view);
+                                _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.forest_fire, null));
+                                _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+                                _marker.setPosition(_point);
+                                map_view.getOverlays().add(_marker);
+                                forest_fires.add(_marker);
+                            }
+                            progress.dismiss();
+                        }
 
+                        @Override
+                        public  void onFailure(Call<FiresResponse> call, Throwable t){
+                            progress.dismiss();
+                        }
+                    });
+                }
+
+                btn_flight_fires.setSelected(!btn_flight_fires.isSelected());
+                map_view.invalidate();
                 break;
             case R.id.btn_flight_save_path:
                 // 비행경로 저장하기
@@ -708,12 +742,36 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         root_view.addView(flight_fpv_layout, fpvInsertPosition);
     }
 
-    private String sendFlightLog(){
-        Gson gson = new Gson();
-        String json = gson.toJson(drone_flight_log);
+    private void sendFlightLog(){
+        if( DroneApplication.getSystemInfo().isLogin() && drone_flight_log.size() > 20){
+            DroneInfoRequest _request = new DroneInfoRequest(DroneApplication.getSystemInfo(), drone_flight_log);
+            _request.drone_id = "";
+            _request.mobile_device_id = "";
+            _request.sn = "";
+            _request.imei = "";
+            _request.time = "";
+            _request.drone_id = "";
+            _request.user_id = "";
+            drone_flight_log.subList(0,DRONE_INFO_SEND_SIZE);
+            DroneApplication.getApiInstance().postDroneInfo(_request).enqueue(new Callback<DroneInfoResponse>(){
+                @Override
+                public  void onResponse(Call<DroneInfoResponse> call, Response<DroneInfoResponse> response){
+                    DroneInfoResponse _test = response.body();
+
+                    for(int i = 0; i < DRONE_INFO_SEND_SIZE; i++){
+                        drone_flight_log.remove(0);
+                    }
+                }
+
+                @Override
+                public  void onFailure(Call<DroneInfoResponse> call, Throwable t){
+
+                }
+            });
+        }
 
 
-        return  json;
+        return;
     }
 
     /**
@@ -755,6 +813,17 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                                 flight_paths.add(_dron_location);
                                 flight_path_line.addPoint(_dron_location);
                             }
+
+                            // 비행중일 때만 배터리 부족 알림
+                            if (_info.battery_remain_percent < 31 && battery_status == 0) {
+                                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.battery_warning));
+                                DroneApplication.getEventBus().post(new MainActivity.TTS(context.getString(R.string.battery_warning)));
+                                battery_status = 1;
+                            } else if (_info.battery_remain_percent < 21 && battery_status == 1) {
+                                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.battery_emergency));
+                                DroneApplication.getEventBus().post(new MainActivity.TTS(context.getString(R.string.battery_emergency)));
+                                battery_status = 2;
+                            }
                         }
 
                         CameraInfo _camera_info = DroneApplication.getDroneInstance().getStorageInfo();
@@ -780,16 +849,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         marker_home_location.setPosition(new GeoPoint(_home.getLatitude(), _home.getLongitude()));
                         map_view.invalidate();
 
-                        // 배터리 정보
-                        if(_info.battery_remain_percent < 31 && battery_status == 0){
-                            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.battery_warning));
-                            DroneApplication.getEventBus().post(new MainActivity.TTS(context.getString(R.string.battery_warning)));
-                            battery_status = 1;
-                        }else if(_info.battery_remain_percent < 21 && battery_status == 1){
-                            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.battery_emergency));
-                            DroneApplication.getEventBus().post(new MainActivity.TTS(context.getString(R.string.battery_emergency)));
-                            battery_status = 2;
-                        }
+                        map_view.getController().setCenter(new GeoPoint(_info.drone_latitude, _info.drone_longitude));
+                        map_view.invalidate();
                     }
                 });
             }
@@ -806,8 +867,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             handler_ui.post(new Runnable() {
                 @Override
                 public void run() {
-
-                    Log.e("GPS", String.format("lat : %f, lon : %f", location.latitude, location.longitude));
                     if(my_location == null){
                         my_location = new GeoPoint(location.latitude, location.longitude);
                     }else {
@@ -825,32 +884,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      */
     @Subscribe
     public void onConnectionChange(final MainActivity.DroneStatusChange drone_status) {
-        if(drone_status.status == Drone.DRONE_STATUS_CONNECT) {
-            LogWrapper.i(TAG, "DRONE_STATUS_CONNECT");
-            if (handler_ui != null) {
-                handler_ui.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Data 수집 타이머 시작
-                        if(timer == null) {
-                            timer = new Timer();
-                        }
-
-                        timer.schedule(new CollectDroneInformationTimer(), 0, period);
-                        DroneApplication.getDroneInstance().getCameraMode();
-
-                        if(DroneApplication.getDroneInstance().isFlying())
-                        {
-                            // 현재 비행중이므로 Takeoff 아이콘 => Landing 아이콘으로 변경
-                            btn_flight_takeoff.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_landing_selector));
-                            btn_flight_takeoff.setTag("landing");
-                        }
-                    }
-                });
-            }
-        }else if(drone_status.status == Drone.DRONE_STATUS_ARMING){
+        if(drone_status.status == Drone.DRONE_STATUS_ARMING){
             LogWrapper.i(TAG, "DRONE_STATUS_ARMING");
-
         }else if(drone_status.status == Drone.DRONE_STATUS_MISSION){
             LogWrapper.i(TAG, "DRONE_STATUS_MISSION");
             setCameraWidgetVisible(INVISIBLE);
@@ -864,7 +899,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                     }
                 });
             }
-
         }else if(drone_status.status == Drone.DRONE_STATUS_CANCEL_RETURN_HOME){
             LogWrapper.i(TAG, "DRONE_STATUS_CANCEL_RETURN_HOME");
             if (handler_ui != null) {
@@ -878,8 +912,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                     }
                 });
             }
-        }
-        else if(drone_status.status == Drone.DRONE_STATUS_DISARM){
+        } else if(drone_status.status == Drone.DRONE_STATUS_DISARM){
             if (handler_ui != null) {
                 handler_ui.post(new Runnable() {
                     @Override

@@ -1011,8 +1011,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                     if(_temp < front_distance) {
                         break;
                     }
-
-                    LogWrapper.i("", "1 라인 계산 중 : " + _temp);
                 }
                 shoot_count++;
             }

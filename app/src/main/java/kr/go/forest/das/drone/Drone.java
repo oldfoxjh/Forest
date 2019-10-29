@@ -11,6 +11,8 @@
  */
 package kr.go.forest.das.drone;
 
+import android.content.Context;
+
 import org.osmdroid.util.GeoPoint;
 
 import java.util.List;
@@ -41,13 +43,6 @@ public abstract class Drone {
     public static final int DRONE_STATUS_CANCEL_RETURN_HOME = 0x10;
     public static final int DRONE_STATUS_MISSION = 0x20;
     public static final int DRONE_STATUS_DISARM = 0x40;
-
-    public static final int CAMERA_ISO = 0x00;
-    public static final int CAMERA_SHUTTER_SPEED = 0x01;
-    public static final int CAMERA_APERTURE = 0x02;
-    public static final int CAMERA_EXPOSURE = 0x03;
-    public static final int CAMERA_WHITE_BALANCE = 0x04;
-    public static final int CAMERA_ALL = 0xFF;
 
     int drone_status = DRONE_STATUS_DISCONNECT;
     boolean is_flying = false;

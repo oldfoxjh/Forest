@@ -5,6 +5,9 @@
         android:state_pressed="true"
         android:drawable="@mipmap/btn_nofly_s" />
 
+    <item
+        android:state_selected="true"
+        android:drawable="@mipmap/btn_nofly_s" />
 
     <item
         android:state_enabled="true"

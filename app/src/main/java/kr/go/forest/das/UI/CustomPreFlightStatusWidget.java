@@ -95,6 +95,7 @@ public class CustomPreFlightStatusWidget extends dji.ux.widget.PreFlightStatusWi
             this.setBackgroundResource(R.mipmap.top_bg_orange);
             if(status.equals("Image Transmission Signal Weak")) drone_status = "영상전송 신호 약함";
             else if(status.equals("Gimbal Motor Overloaded")) drone_status = "짐벌 모터 과부하";
+            else if(status.equals("Strong Signal Interference")) drone_status = "강한 외부신호 간섭";
             LogWrapper.i(TAG, status + " WARNING :  " + drone_status );
         } else if (type == StatusType.ERROR){
             this.setBackgroundResource(R.mipmap.top_bg_red);

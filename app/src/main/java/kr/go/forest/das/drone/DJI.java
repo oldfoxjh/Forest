@@ -11,8 +11,10 @@
  */
 package kr.go.forest.das.drone;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import org.osmdroid.util.GeoPoint;
 
@@ -82,7 +84,6 @@ public class DJI extends Drone{
 
     private SettingsDefinitions.CameraMode camera_mode;
 
-
     //region 제품정보
     public synchronized DroneInfo getDroneInfo(){
         DroneInfo _drone = new DroneInfo();
@@ -142,7 +143,8 @@ public class DJI extends Drone{
     public Model getAircaftModel(){
         BaseProduct _product = DJISDKManager.getInstance().getProduct();
         if (_product != null && _product.isConnected()) {
-                return  _product.getModel();
+                this.model = _product.getModel();
+                return this.model;
         }
 
         return Model.UNKNOWN_AIRCRAFT;
@@ -207,7 +209,6 @@ public class DJI extends Drone{
                 }
 
                 // 배터리 callback
-
                 for (Battery battery:batteries) {
                     battery.setStateCallback(battery_callback);
                 }
@@ -294,8 +295,6 @@ public class DJI extends Drone{
 
     @Override
     public void getCameraFocalLength(){
-        Model m = getAircaftModel();
-        LogWrapper.i(TAG, "Model : " + m.getDisplayName() );
         BaseProduct _product = DJISDKManager.getInstance().getProduct();
         if (_product != null && _product.isConnected()) {
 
@@ -315,7 +314,7 @@ public class DJI extends Drone{
                     }
                 });
             }else{
-                if(m == Model.MAVIC_AIR || m == Model.PHANTOM_4 || m == Model.Spark || m == Model.MAVIC_2 || m == Model.MAVIC_PRO){
+                if(model == Model.MAVIC_AIR || model == Model.PHANTOM_4 || model == Model.Spark || model == Model.MAVIC_2 || model == Model.MAVIC_PRO){
                     cmos_factor = (float)(6.17/3.57);
                     LogWrapper.i(TAG, "cmos_factor : 6.17");
                 }else{
@@ -1262,8 +1261,7 @@ public class DJI extends Drone{
                 DroneApplication.getDroneInstance().getCameraFocalLength();     // 드론 카메라 GSD factor 설정
             }
             DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_CONNECT));
-
-            LogWrapper.i("onProductConnect", "isConnected : ");
+            DroneApplication.getEventBus().post(new MainActivity.ToastOrb(DroneApplication.getDroneInstance().getAircaftModel().getDisplayName() + " 연결되었습니다."));
         }
 
         @Override
@@ -1274,7 +1272,6 @@ public class DJI extends Drone{
                 newComponent.setComponentListener(new BaseComponent.ComponentListener() {
                     @Override
                     public void onConnectivityChange(boolean isConnected) {
-                        LogWrapper.i("onComponentChange", "isConnected : " + isConnected);
                         if(isConnected == false){
                             DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_DISCONNECT));
                         }

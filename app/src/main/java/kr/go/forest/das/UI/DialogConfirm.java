@@ -101,6 +101,8 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
             mTextView = (TextView) findViewById(R.id.dialog_confirm_text);
             mTextView.setText(content_id);
         }
+
+        setClickable(true);
     }
 
     @Override
@@ -124,9 +126,9 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
             DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_MAX_FLIGHT_HEIGHT_LOW, null));
         }else if(title_id == R.string.mission_start_title) {
             DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_START_MISSION, null));
-        }else if(title_id == R.string.check_internet_title){
+        }else if(title_id == R.string.check_internet_title || title_id == R.string.check_login_title){
+            DroneApplication.getEventBus().post(new MainActivity.PopdownView());
             DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), true));
-            DroneApplication.getEventBus().post(new MainActivity.PopdownView(0, MainActivity.PopupDialog.REMOVE_PRE_VIEW, null));
         }
     }
 }

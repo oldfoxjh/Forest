@@ -76,6 +76,8 @@ public class DialogUploadMission extends RelativeLayout implements View.OnClickL
         group.addView(_continue);
 
         group.check(stop_and_rth.getId());
+
+        setClickable(true);
     }
 
     @Override
