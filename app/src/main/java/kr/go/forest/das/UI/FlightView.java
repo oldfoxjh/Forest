@@ -139,6 +139,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     TextView tv_altitude;                                                   // 드론 고도
     TextView tv_horizontal_speed;                                           // 드론 수평속도
     TextView tv_vertical_speed;                                             // 드론 수직속도
+    TextView tv_battery_temperature;                                        // 배터리 온도
 
     // 카메라 정보
     ViewGroup root_view;
@@ -238,7 +239,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                     handler_ui.postAtTime(new Runnable() {
                         @Override
                         public void run() {
-                            LogWrapper.i(TAG, "REMOVE_PRE_VIEW 요청 ");
                             DroneApplication.getEventBus().post(new MainActivity.PopdownView(0, MainActivity.PopupDialog.REMOVE_PRE_VIEW, null));
                         }
                     }, 5000);
@@ -438,10 +438,11 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         findViewById(R.id.btn_mission_upload).setVisibility(INVISIBLE);
 
         // 드론 정보
-        tv_distance = (TextView) findViewById(R.id.tv_flight_distance_from_home);
-        tv_altitude = (TextView) findViewById(R.id.tv_flight_altitude);
-        tv_horizontal_speed = (TextView) findViewById(R.id.tv_flight_horizontal_speed);
-        tv_vertical_speed = (TextView) findViewById(R.id.tv_flight_vertical_speed);
+        tv_distance =  findViewById(R.id.tv_flight_distance_from_home);
+        tv_altitude =  findViewById(R.id.tv_flight_altitude);
+        tv_horizontal_speed =  findViewById(R.id.tv_flight_horizontal_speed);
+        tv_vertical_speed =  findViewById(R.id.tv_flight_vertical_speed);
+        tv_battery_temperature = findViewById(R.id.tv_battery_temperature);
 
         // 카메라 정보
         root_view = findViewById(R.id.root_view);
@@ -540,7 +541,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                     if (DJISDKManager.getInstance().getLiveStreamManager().isStreaming()) {
                         stopLiveShow();
                     }
-
                 }else{
                     DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_SHOOTING_PURPOSE, 0, 0));
                 }
@@ -805,6 +805,9 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         marker_drone_location.setIcon(MapLayer.getInstance().getRotateDrawable(context, R.mipmap.map_ico_drone, _info.heading));
                         marker_drone_location.setPosition(new GeoPoint(_info.drone_latitude, _info.drone_longitude));
 
+                        // 6. 배터리 온도
+                        tv_battery_temperature.setText(_info.battery_temperature + "\\u2109");
+
                         // 6. 비행경로(비행중일때만)
                         if(DroneApplication.getDroneInstance().isFlying()) {
                             GeoPoint _dron_location = new GeoPoint(_info.drone_latitude, _info.drone_longitude, _info.drone_altitude);
@@ -1000,6 +1003,11 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
 
                         btn_select_movie.setVisibility(VISIBLE);
                         btn_record.setVisibility(VISIBLE);
+
+                        if(!_info.recording_time.equals("00:00") && is_recording == false) {
+                            btn_record.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_recording_selector));
+                            is_recording = true;
+                        }
                         btn_camera_setting.setVisibility(VISIBLE);
                         tv_record_time.setVisibility(VISIBLE);
                         //sb_flight_gimbal_pitch.setVisibility(VISIBLE);
@@ -1038,6 +1046,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         @Override
                         public void run() {
                             btn_record.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_record_selector));
+                            DroneApplication.getEventBus().post(new MainActivity.TTS("동영상 촬영을 종료합니다."));
                         }
                     });
                 }

@@ -57,7 +57,7 @@ public class DJIWaypointMission {
                 float _altitude = (float)_point.getAltitude();
                 Waypoint waypoint = new Waypoint(_point.getLatitude(), _point.getLongitude(), _altitude);
                 waypoint.addAction(new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 1));
-                LogWrapper.i("Waypoint", String.format("lat : %f, lng : %f, alt : %f",_point.getLatitude(), _point.getLongitude(), _altitude));
+                LogWrapper.i("임무정보", String.format("lat : %f, lng : %f, alt : %f",_point.getLatitude(), _point.getLongitude(), _altitude));
                 _waypoint_mission.add(waypoint);
 
                 if(max_flight_altitude < _altitude) {

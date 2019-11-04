@@ -28,14 +28,14 @@ public class DJITimelineMission {
 
         final TimelineEvent preEvent = null;
 
+        //이륙
+        elements.add(new TakeOffAction());
+
         // 짐벌 각도 조절
         Attitude attitude = new Attitude(-90, Rotation.NO_ROTATION, Rotation.NO_ROTATION);
         GimbalAttitudeAction gimbalAction = new GimbalAttitudeAction(attitude);
         gimbalAction.setCompletionTime(3);
         elements.add(gimbalAction);
-
-        //이륙
-        elements.add(new TakeOffAction());
 
         //비행고도까지 상승
         elements.add(new GoToAction(new LocationCoordinate2D(base_point.getLatitude(), base_point.getLongitude()), (float)base_point.getAltitude()));

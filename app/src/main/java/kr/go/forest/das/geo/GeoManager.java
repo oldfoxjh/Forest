@@ -105,6 +105,8 @@ public class GeoManager {
             _complete = false;
         }
 
+        LogWrapper.i("임무정보", String.format("Home point altitude : %f",base_altitude[0]));
+
         // 각각의 웨이포인트 고도 적용
         for (int i = 0 ; i < points.size(); i++) {
             GeoPoint point = points.get(i);

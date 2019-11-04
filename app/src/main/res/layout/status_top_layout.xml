@@ -88,6 +88,13 @@
                 android:layout_width="@dimen/px112"
                 android:layout_height="@dimen/px44"
                 custom:excludeView="singleVoltage"/>
+            <TextView
+                android:id="@+id/tv_battery_temperature"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/px14"
+                android:textColor="#fff"
+                />
         </LinearLayout>
         <Button
             android:id="@+id/btn_mission_upload"

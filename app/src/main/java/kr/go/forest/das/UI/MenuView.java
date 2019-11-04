@@ -18,9 +18,6 @@ import kr.go.forest.das.drone.Px4;
 public class MenuView extends RelativeLayout implements View.OnClickListener {
 
     private Context context;
-    private Button mBtnMission;
-    private Button mBtnFlight;
-    private Button mBtnSetting;
 
     public MenuView(Context context){
         super(context);
@@ -51,13 +48,9 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Service.LAYOUT_INFLATER_SERVICE);
         layoutInflater.inflate(R.layout.content_menu, this, true);
 
-        mBtnMission = (Button)findViewById(R.id.missionButton);
-        mBtnMission.setOnClickListener(this);
-        mBtnFlight = (Button)findViewById(R.id.flightButton);
-        mBtnFlight.setOnClickListener(this);
-        mBtnSetting = (Button)findViewById(R.id.settingButton);
-        mBtnSetting.setOnClickListener(this);
-
+        findViewById(R.id.missionButton).setOnClickListener(this);
+        findViewById(R.id.flightButton).setOnClickListener(this);
+        findViewById(R.id.settingButton).setOnClickListener(this);
         setClickable(true);
     }
 

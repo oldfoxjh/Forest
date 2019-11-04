@@ -618,6 +618,9 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
     private List<GeoPoint> devideFlightPath() {
         // 경로 나누기
         List<GeoPoint> upload_mission = new ArrayList<>();
+        double _sin = Math.abs(Math.sin(Math.toRadians(mission_angle)));
+        double _cos = Math.abs(Math.cos(Math.toRadians(mission_angle)));
+
         for(int i = 0; i < flight_points.size(); i++){
             // 시작점
             GeoPoint _start = flight_points.get(i);
@@ -633,8 +636,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
             for(int j = 1; ; j++)
             {
                 // 시작점부터 거리 구하기
-                double _sin = Math.abs(Math.sin(Math.toRadians(mission_angle)));
-                double _cos = Math.abs(Math.cos(Math.toRadians(mission_angle)));
                 double _east_west = front_distance*j*_sin*direction_ew;
                 double _north_south = front_distance*j*_cos*direction_ns;
 
@@ -983,6 +984,9 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
             shoot_time_interval = (int)(front_distance/mission_flight_speed);
             shoot_time_interval = Math.max(2, shoot_time_interval);
             shoot_count = 0;
+            double _sin = Math.abs(Math.sin(Math.toRadians(mission_angle)));
+            double _cos = Math.abs(Math.cos(Math.toRadians(mission_angle)));
+
             // 경로 나누기
             for(int i = 0; i < flight_points.size(); i++){
                 // 시작점
@@ -998,8 +1002,6 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 for(int j = 1; ; j++)
                 {
                     // 시작점부터 거리 구하기
-                    double _sin = Math.abs(Math.sin(Math.toRadians(mission_angle)));
-                    double _cos = Math.abs(Math.cos(Math.toRadians(mission_angle)));
                     double _east_west = front_distance*j*_sin*direction_ew;
                     double _north_south = front_distance*j*_cos*direction_ns;
 
