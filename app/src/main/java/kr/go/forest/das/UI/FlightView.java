@@ -96,9 +96,10 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     private final int period = 250;                             // 드론정보 수십 주기 0.25 second
     private final int DRONE_INFO_SEND_SIZE = 20;                // 드론정보 전송 기준
     private Context context;
-    Timer timer = null;                                         // 드론정보 수집 타이머
-    ArrayList<DroneInfo> drone_flight_log = new ArrayList<>();       // 비행 및 기체정보
-    private Handler handler_ui;                                 // UI 업데이트 핸들러
+    Timer timer = null;                                                     // 드론정보 수집 타이머
+    ArrayList<DroneInfo> drone_flight_log_4_realtime = new ArrayList<>();   // 실시간 전송용 비행 및 기체정보
+    ArrayList<DroneInfo> drone_flight_log_4_bigdata = new ArrayList<>();    // 빅데이터 업로드용 비행 및 기체정보
+    private Handler handler_ui;                                             // UI 업데이트 핸들러
     private ProgressDialog progress;
 
     private boolean is_recording = false;                       // 녹화 여부
@@ -743,31 +744,26 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     }
 
     private void sendFlightLog(){
-        if( DroneApplication.getSystemInfo().isLogin() && drone_flight_log.size() > 20){
-            DroneInfoRequest _request = new DroneInfoRequest(DroneApplication.getSystemInfo(), drone_flight_log);
-            _request.drone_id = "";
-            _request.mobile_device_id = "";
-            _request.sn = "";
-            _request.imei = "";
-            _request.time = "";
-            _request.drone_id = "";
-            _request.user_id = "";
-            drone_flight_log.subList(0,DRONE_INFO_SEND_SIZE);
-            DroneApplication.getApiInstance().postDroneInfo(_request).enqueue(new Callback<DroneInfoResponse>(){
-                @Override
-                public  void onResponse(Call<DroneInfoResponse> call, Response<DroneInfoResponse> response){
-                    DroneInfoResponse _test = response.body();
+        if( DroneApplication.getSystemInfo().isLogin() && drone_flight_log_4_realtime.size() > DRONE_INFO_SEND_SIZE){
+            DroneInfoRequest _request = new DroneInfoRequest(DroneApplication.getSystemInfo(),  drone_flight_log_4_realtime.subList(0,DRONE_INFO_SEND_SIZE));
 
-                    for(int i = 0; i < DRONE_INFO_SEND_SIZE; i++){
-                        drone_flight_log.remove(0);
+            if(!DroneApplication.getApiInstance().postDroneInfo(_request).isExecuted()) {
+                DroneApplication.getApiInstance().postDroneInfo(_request).enqueue(new Callback<DroneInfoResponse>() {
+                    @Override
+                    public void onResponse(Call<DroneInfoResponse> call, Response<DroneInfoResponse> response) {
+                        DroneInfoResponse _test = response.body();
+
+                        for (int i = 0; i < DRONE_INFO_SEND_SIZE; i++) {
+                            drone_flight_log_4_realtime.remove(0);
+                        }
                     }
-                }
 
-                @Override
-                public  void onFailure(Call<DroneInfoResponse> call, Throwable t){
+                    @Override
+                    public void onFailure(Call<DroneInfoResponse> call, Throwable t) {
 
-                }
-            });
+                    }
+                });
+            }
         }
 
 
@@ -806,7 +802,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         marker_drone_location.setPosition(new GeoPoint(_info.drone_latitude, _info.drone_longitude));
 
                         // 6. 배터리 온도
-                        tv_battery_temperature.setText(_info.battery_temperature + "\\u2109");
+                        tv_battery_temperature.setText((int)_info.battery_temperature + "C");
 
                         // 6. 비행경로(비행중일때만)
                         if(DroneApplication.getDroneInstance().isFlying()) {
@@ -850,10 +846,19 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
 
                         LocationCoordinate2D _home = DroneApplication.getDroneInstance().getHomeLocation();
                         marker_home_location.setPosition(new GeoPoint(_home.getLatitude(), _home.getLongitude()));
+
+                        //map_view.getController().setCenter(new GeoPoint(_info.drone_latitude, _info.drone_longitude));
                         map_view.invalidate();
 
-                        map_view.getController().setCenter(new GeoPoint(_info.drone_latitude, _info.drone_longitude));
-                        map_view.invalidate();
+                        if(DroneApplication.getDroneInstance().isFlying()){
+                            drone_flight_log_4_realtime.add(_info);
+                            drone_flight_log_4_bigdata.add(_info);
+
+                            // 재난상황일 때는 전송
+                            if(DroneApplication.getSystemInfo().is_realtime){
+                                sendFlightLog();
+                            }
+                        }
                     }
                 });
             }
@@ -908,9 +913,9 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                 handler_ui.post(new Runnable() {
                     @Override
                     public void run() {
-                        LinearLayout _layout = (LinearLayout) findViewById(R.id.layout_flight_cancel);
+                        LinearLayout _layout = findViewById(R.id.layout_flight_cancel);
                         _layout.setVisibility(INVISIBLE);
-                        LinearLayout _layout_rth = (LinearLayout) findViewById(R.id.layout_flight_rth);
+                        LinearLayout _layout_rth = findViewById(R.id.layout_flight_rth);
                         _layout_rth.setVisibility(VISIBLE);
                     }
                 });
@@ -920,15 +925,20 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                 handler_ui.post(new Runnable() {
                     @Override
                     public void run() {
-                        LinearLayout _layout = (LinearLayout) findViewById(R.id.layout_flight_cancel);
+                        LinearLayout _layout = findViewById(R.id.layout_flight_cancel);
                         _layout.setVisibility(INVISIBLE);
-                        LinearLayout _layout_rth = (LinearLayout) findViewById(R.id.layout_flight_rth);
+                        LinearLayout _layout_rth = findViewById(R.id.layout_flight_rth);
                         _layout_rth.setVisibility(VISIBLE);
+
+                        // 드론 비행정보 json 형태로 저장
+                        if(drone_flight_log_4_bigdata.size() > 0){
+                            DroneInfoRequest _info = new DroneInfoRequest(DroneApplication.getSystemInfo(), drone_flight_log_4_bigdata.subList(0, drone_flight_log_4_bigdata.size() - 1));
+                            _info.save_flight_log();
+                            drone_flight_log_4_bigdata.clear();
+                        }
                     }
                 });
             }
-            LogWrapper.i(TAG, "DRONE_STATUS_LANDING");
-
         }else if(drone_status.status == Drone.DRONE_STATUS_DISCONNECT){
             // Data 수집 타이머 종료
 
@@ -1136,9 +1146,11 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             new Thread() {
                 @Override
                 public void run() {
-                    DJISDKManager.getInstance().getLiveStreamManager().setLiveUrl("rtmp://57e471.entrypoint.cloud.wowza.com/app-4c25/a6aa3218");
+                    //DJISDKManager.getInstance().getLiveStreamManager().setLiveUrl("rtmp://57e471.entrypoint.cloud.wowza.com/app-4c25/a6aa3218");
+                    DJISDKManager.getInstance().getLiveStreamManager().setLiveUrl(DroneApplication.getSystemInfo().live_url);
                     _result = DJISDKManager.getInstance().getLiveStreamManager().startStream();
                     DJISDKManager.getInstance().getLiveStreamManager().setStartTime();
+
                     if (handler_ui != null) {
                         handler_ui.post(new Runnable() {
                             @Override

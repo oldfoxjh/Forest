@@ -88,12 +88,21 @@
                 android:layout_width="@dimen/px112"
                 android:layout_height="@dimen/px44"
                 custom:excludeView="singleVoltage"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="@dimen/px204"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/px80"
+            android:layout_marginTop="@dimen/px18"
+            android:orientation="horizontal">
             <TextView
                 android:id="@+id/tv_battery_temperature"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/px14"
-                android:textColor="#fff"
+                android:textSize="@dimen/px22"
+                android:textColor="#0f0"
+                android:text=""
                 />
         </LinearLayout>
         <Button

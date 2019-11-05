@@ -138,7 +138,9 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     @Override
     public void onBackPressed() {
         if (doubleBackToExitPressedOnce) {
-            super.onBackPressed();
+            finishAffinity();
+            System.runFinalization();
+            System.exit(0);
             return;
         }
 

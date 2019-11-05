@@ -4,8 +4,13 @@ import android.os.Binder;
 import android.os.Environment;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Formatter;
@@ -16,12 +21,15 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import kr.go.forest.das.Model.BigdataSystemInfo;
+import kr.go.forest.das.Model.DroneInfoRequest;
+
 public class LogWrapper {
     private static final String TAG = "LogWrapper";
     private static final int LOG_FILE_SIZE_LIMIT = 512*1024;
     private static final int LOG_FILE_MAX_COUNT = 9;
     private static final String LOG_DIRECTORY = "DroneAppService/Log";
-    private static final String LOG_FILE_NAME = "FileLog%g.txt";
+    private static final String LOG_FILE_NAME = "ErrorLog%g.txt";
     private static final SimpleDateFormat formatter =
             new SimpleDateFormat("MM-dd HH:mm:ss.SSS: ", Locale.getDefault());
     private static final Date date = new Date();
@@ -55,9 +63,7 @@ public class LogWrapper {
             logger.addHandler(fileHandler);
             logger.setLevel(Level.ALL);
             logger.setUseParentHandlers(false);
-            Log.d(TAG, "init success");
         } catch (IOException e) {
-            Log.d(TAG, "init failure");
         }
     }
 

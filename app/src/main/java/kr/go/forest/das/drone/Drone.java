@@ -74,8 +74,6 @@ public abstract class Drone {
     boolean home_set = false;       /** 자동복귀지점 설정여부 */
 
     float heading;
-
-    String seral_number = "";
     Model model = Model.UNKNOWN_AIRCRAFT;
 
     /**

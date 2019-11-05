@@ -55,6 +55,7 @@
     <dimen name="px168">84dp</dimen>
     <dimen name="px180">90dp</dimen>
     <dimen name="px192">96dp</dimen>
+    <dimen name="px204">102dp</dimen>
     <dimen name="px210">105dp</dimen>
     <dimen name="px218">109dp</dimen>
     <dimen name="px220">110dp</dimen>

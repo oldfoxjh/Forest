@@ -66,6 +66,7 @@ import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MainActivity;
+import kr.go.forest.das.Model.BigdataSystemInfo;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
 import kr.go.forest.das.R;
@@ -161,13 +162,13 @@ public class DJI extends Drone{
             flight_controller.getSerialNumber(new CommonCallbacks.CompletionCallbackWith<String>() {
                 @Override
                 public void onSuccess(String s) {
-                    LogWrapper.i(TAG, "SN : " + s);
-                    seral_number = s;
+                    BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+                    _info.drone_sn = s;
                 }
 
                 @Override
                 public void onFailure(DJIError djiError) {
-                    // Error
+                    LogWrapper.i(TAG, "SN Error : " + djiError.getDescription());
                 }
             });
         }
@@ -433,6 +434,7 @@ public class DJI extends Drone{
         _storage_info.camera_whitebalance = camera_whitebalance;
         _storage_info.camera_ae_lock = camera_ae_lock;
         _storage_info.is_camera_auto_exposure_unlock_enabled = is_camera_auto_exposure_unlock_enabled;
+
         _storage_info.camera_aspect_ratio = camera_aspect_ratio;
         _storage_info.cmos_factor = cmos_factor;
 
@@ -1282,7 +1284,7 @@ public class DJI extends Drone{
 
         @Override
         public void onInitProcess(DJISDKInitEvent event, int totalProcess) {
-
+            LogWrapper.i("onInitProcess", "Success");
         }
     };
 

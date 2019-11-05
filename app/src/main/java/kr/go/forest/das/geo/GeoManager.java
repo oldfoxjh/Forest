@@ -42,7 +42,7 @@ public class GeoManager {
     private static double EarthCircumFence = 2* WGS84_RADIUS * Math.PI;
     private static int TURNAROUND_DISTANCE = 50;
 
-    private static final String LOG_DIRECTORY = "DroneAppService/Flight_Log";
+    private final String LOG_DIRECTORY = "DroneAppService/Flight_Log";
     private static final GeoManager ourInstance = new GeoManager();
 
     public static GeoManager getInstance() {

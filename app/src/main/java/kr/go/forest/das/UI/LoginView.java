@@ -2,21 +2,16 @@ package kr.go.forest.das.UI;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.os.Build;
-import android.speech.tts.TextToSpeech;
-import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
-
-import java.util.Locale;
 
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
+import kr.go.forest.das.Model.BigdataSystemInfo;
 import kr.go.forest.das.Model.DeviceInfo;
 import kr.go.forest.das.Model.LoginRequest;
 import kr.go.forest.das.Model.LoginResponse;
@@ -38,9 +33,6 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
     private InputMethodManager imm;                 // 입력방법 관리 인스턴스
     private EditText loginIDEditText;               // 텍스트 입력 : ID
     private EditText loginPWEditText;               // 텍스트 입력 : 비밀번호
-
-    private String IMEI = "";
-    private String SN = "";
 
     private ProgressDialog progress;
 
@@ -96,8 +88,10 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
     @Override
     public void onClick(View v) {
 
-        IMEI = DeviceInfo.getIMEI(context);
-        SN = DeviceInfo.getSerialNumber();
+        // 사용자 정보 저장
+        BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+        _info.imei = DeviceInfo.getIMEI(context);
+        _info.sn = DeviceInfo.getSerialNumber();
 
         if(v.getId() == R.id.loginProcessButton)
         {
@@ -127,8 +121,10 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                     @Override
                     public  void onResponse(Call<LoginResponse> call, Response<LoginResponse> response){
                         LoginResponse _response = response.body();
-
+                        BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+                        _info.live_url = "rtmp://57e471.entrypoint.cloud.wowza.com/app-4c25/a6aa3218";
                         progress.dismiss();
+
                         // 키보드 체크
                         hideSoftInput();
                         DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), false));

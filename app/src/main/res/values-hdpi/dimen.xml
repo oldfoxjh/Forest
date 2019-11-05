@@ -53,6 +53,7 @@
     <dimen name="px168">112dp</dimen>
     <dimen name="px180">120dp</dimen>
     <dimen name="px192">128dp</dimen>
+    <dimen name="px204">136dp</dimen>
     <dimen name="px210">140dp</dimen>
     <dimen name="px218">145.3dp</dimen>
     <dimen name="px220">146.7dp</dimen>

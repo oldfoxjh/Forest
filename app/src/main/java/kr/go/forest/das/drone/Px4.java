@@ -62,7 +62,6 @@ public class Px4 extends Drone {
      */
     @Override
     public void getSerialNumber(){
-
     }
 
     /**
