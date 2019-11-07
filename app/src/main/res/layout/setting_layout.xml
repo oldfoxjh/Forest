@@ -32,6 +32,7 @@
 <!--                android:background="#0d0d0d"/>-->
 
             <LinearLayout
+                android:id="@+id/setting_login_info"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/px250"
                 android:orientation="vertical"
@@ -39,6 +40,7 @@
                 android:paddingLeft="@dimen/px50">
 
                 <TextView
+                    android:id="@+id/setting_name"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/px114"
                     android:gravity="center_vertical"
@@ -47,7 +49,7 @@
                     android:text="홍길동"/>
 
                 <TextView
-                    android:id="@+id/department1"
+                    android:id="@+id/setting_service"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/px34"
                     android:drawableLeft="@mipmap/weather_ico_1"
@@ -57,7 +59,7 @@
                     android:text=" 남부지방산림청"/>
 
                 <TextView
-                    android:id="@+id/department2"
+                    android:id="@+id/setting_department"
                     android:layout_marginTop="@dimen/px22"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/px34"
@@ -73,7 +75,6 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:background="#0d0d0d">
-
                 <Button
                     android:id="@+id/setting_drone_info"
                     android:layout_width="match_parent"

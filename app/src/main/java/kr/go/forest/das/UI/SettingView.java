@@ -26,6 +26,7 @@ public class SettingView extends RelativeLayout implements View.OnClickListener 
     Button setting_real_time;
     LinearLayout setting_interface_layout;
     LinearLayout setting_device_layout;
+    LinearLayout setting_login_info;
 
     public SettingView(Context context){
         super(context);
@@ -57,11 +58,21 @@ public class SettingView extends RelativeLayout implements View.OnClickListener 
 
         setting_interface_layout = findViewById(R.id.setting_interface_layout);
         setting_device_layout = findViewById(R.id.setting_device_layout);
+        setting_login_info = findViewById(R.id.setting_login_info);
 
         findViewById(R.id.btn_setting_back).setOnClickListener(this);
+
         setting_drone_info = findViewById(R.id.setting_drone_info);
-        setting_drone_info.setOnClickListener(this);
-        setting_drone_info.setSelected(true);
+        boolean is_login = DroneApplication.getSystemInfo().isLogin();
+        if(is_login == true) {
+            setting_drone_info.setOnClickListener(this);
+            setting_drone_info.setSelected(true);
+        }else{
+            setting_login_info.setVisibility(GONE);
+            setting_drone_info.setVisibility(GONE);
+            setting_device_layout.setVisibility(GONE);
+            setting_interface_layout.setVisibility(VISIBLE);
+        }
 
         setting_drone_interface = findViewById(R.id.setting_drone_interface);
         setting_drone_interface.setOnClickListener(this);

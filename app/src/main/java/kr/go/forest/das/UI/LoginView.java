@@ -13,10 +13,13 @@ import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.BigdataSystemInfo;
 import kr.go.forest.das.Model.DeviceInfo;
+import kr.go.forest.das.Model.DroneInfo;
+import kr.go.forest.das.Model.DroneInfoRequest;
 import kr.go.forest.das.Model.LoginRequest;
 import kr.go.forest.das.Model.LoginResponse;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
+import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.network.NetworkStatus;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -57,6 +60,12 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
 
     @Override
     protected void onAttachedToWindow() {
+        // 사용자 정보 저장
+        BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+        _info.imei = DeviceInfo.getIMEI(context);
+        _info.sn = DeviceInfo.getSerialNumber();
+        _info.phone_number = DeviceInfo.getPhoneNumber(context);
+
         super.onAttachedToWindow();
     }
 
@@ -87,14 +96,12 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
      */
     @Override
     public void onClick(View v) {
-
-        // 사용자 정보 저장
-        BigdataSystemInfo _info = DroneApplication.getSystemInfo();
-        _info.imei = DeviceInfo.getIMEI(context);
-        _info.sn = DeviceInfo.getSerialNumber();
-
         if(v.getId() == R.id.loginProcessButton)
         {
+            DroneInfoRequest _info = new DroneInfoRequest(new BigdataSystemInfo(), null);
+            _info.user_id = "test";
+            _info.mobile_device_id = "1234";
+            _info.save_flight_log();
             if(NetworkStatus.isInternetConnected(context))
             {
                 // ID
@@ -114,6 +121,9 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                 LoginRequest _user = new LoginRequest();
                 _user.id = loginIDEditText.getText().toString();
                 _user.password = loginPWEditText.getText().toString();
+                _user.phone = DroneApplication.getSystemInfo().phone_number;
+                _user.sn = DroneApplication.getSystemInfo().sn;
+                _user.imei = DroneApplication.getSystemInfo().imei;
 
                 progress.setMessage("로그인 요청중입니다.");
                 progress.show();
@@ -122,7 +132,11 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                     public  void onResponse(Call<LoginResponse> call, Response<LoginResponse> response){
                         LoginResponse _response = response.body();
                         BigdataSystemInfo _info = DroneApplication.getSystemInfo();
-                        _info.live_url = "rtmp://57e471.entrypoint.cloud.wowza.com/app-4c25/a6aa3218";
+                        _info.user_id = loginIDEditText.getText().toString();
+                        //_info.live_url = "rtmp://57e471.entrypoint.cloud.wowza.com/app-4c25/a6aa3218";
+
+                        _info.setDroneInfo(_response.drone_list);
+                        _info.setFlightPlan(_response.plan);
                         progress.dismiss();
 
                         // 키보드 체크

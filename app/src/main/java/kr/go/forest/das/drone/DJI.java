@@ -162,8 +162,6 @@ public class DJI extends Drone{
             flight_controller.getSerialNumber(new CommonCallbacks.CompletionCallbackWith<String>() {
                 @Override
                 public void onSuccess(String s) {
-                    BigdataSystemInfo _info = DroneApplication.getSystemInfo();
-                    _info.drone_sn = s;
                 }
 
                 @Override

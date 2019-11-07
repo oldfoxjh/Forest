@@ -7,6 +7,9 @@ import android.support.multidex.MultiDex;
 import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 import dji.sdk.products.Aircraft;
 import kr.go.forest.das.Model.BigdataSystemInfo;
 import kr.go.forest.das.drone.DJI;

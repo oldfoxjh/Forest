@@ -58,10 +58,10 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
     public void onClick(View v) {
         //if(DroneApplication.getDroneInstance() == null) DroneApplication.setDroneInstance(Drone.DRONE_MANUFACTURE_PIXHWAK);
         //연결된 드론이 없을 경우 연결 요청
-        if(DroneApplication.getDroneInstance() == null){
-            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_drone_connection));
-            return;
-        }
+//        if(DroneApplication.getDroneInstance() == null){
+//            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.check_drone_connection));
+//            return;
+//        }
 
         ViewWrapper wrapper = null;
         switch (v.getId())
@@ -74,11 +74,11 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
                 }
                 break;
             case R.id.flightButton:
-                if(DroneApplication.getDroneInstance().getManufacturer().equals("DJI")) {
+               // if(DroneApplication.getDroneInstance().getManufacturer().equals("DJI")) {
                     wrapper = new ViewWrapper(new FlightView(context), false);
-                }else{
-                    wrapper = new ViewWrapper(new PixhawkFlightView(context), false);
-                }
+              //  }else{
+              //      wrapper = new ViewWrapper(new PixhawkFlightView(context), false);
+               // }
                 break;
             case R.id.settingButton:
                 wrapper = new ViewWrapper(new SettingView(context), false);

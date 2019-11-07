@@ -5,8 +5,8 @@ import org.osmdroid.util.GeoPoint;
 import java.util.List;
 
 public class FlightPlan {
-    public String id;
-    public String name;
+    public String key;
+    public String title;
     public int angle;
     public int altitude;
     public float speed;

@@ -72,8 +72,7 @@ public class DeviceInfo {
      * @return SN 문자열
      */
     @TargetApi(Build.VERSION_CODES.O)
-    private static String getOserial()
-    {
+    private static String getOserial() {
         String serial_number = "";
         try
         {
@@ -91,8 +90,7 @@ public class DeviceInfo {
      * @param ctx : Device Context
      * @return : IMEI 문자열
      */
-    public static String getIMEI(Context ctx)
-    {
+    public static String getIMEI(Context ctx) {
         String IMEINumber = "";
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
@@ -108,5 +106,20 @@ public class DeviceInfo {
         }
 
         return IMEINumber;
+    }
+
+    public static String getPhoneNumber(Context ctx){
+        String number = "";
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ActivityCompat.checkSelfPermission(ctx, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED)
+        {
+            TelephonyManager tm = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
+            number = tm.getLine1Number();
+            if(number != null && number.length() > 0 && number.startsWith("+82")){
+                number = number.replace("+82", "0");
+            }
+        }
+
+        return number;
     }
 }

@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import kr.go.forest.das.DroneApplication;
+
 public class DroneInfoRequest {
 
     public String mobile_device_id;         // 전송기기 ID
@@ -30,7 +32,7 @@ public class DroneInfoRequest {
         imei = system_info.imei;
         drone_id = system_info.drone_id;
         user_id = system_info.user_id;
-        drone_infos = infos.subList(0, infos.size()-1);
+        drone_infos = (infos == null) ? null : infos.subList(0, infos.size()-1);
     }
 
     public void save_flight_log() {
@@ -58,7 +60,9 @@ public class DroneInfoRequest {
             //파일쓰기
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
             Gson gson = new Gson();
-            String json = gson.toJson(this);
+            String json = AES256.encode(gson.toJson(this), "1234567890-1234567890-1234567890");
+            //String json = gson.toJson(this);
+            String decode = AES256.decode(json, "1234567890-1234567890-1234567890");
             writer.write(json);
             writer.flush();
 
