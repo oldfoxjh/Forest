@@ -133,7 +133,13 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                         LoginResponse _response = response.body();
                         BigdataSystemInfo _info = DroneApplication.getSystemInfo();
                         _info.user_id = loginIDEditText.getText().toString();
-                        //_info.live_url = "rtmp://57e471.entrypoint.cloud.wowza.com/app-4c25/a6aa3218";
+                        _info.weather.locale = _response.weather.locale;
+                        _info.weather.weather = _response.weather.weather;
+                        _info.weather.temperature = _response.weather.temperature;
+                        _info.weather.wind_speed = _response.weather.wind_speed;
+
+                        _info.live_url = _response.live_url;
+                        _info.aes_key = _response.aes_key;
 
                         _info.setDroneInfo(_response.drone_list);
                         _info.setFlightPlan(_response.plan);

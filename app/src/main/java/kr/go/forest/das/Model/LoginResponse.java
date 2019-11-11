@@ -5,6 +5,8 @@ import java.util.List;
 public class LoginResponse {
     //
     public int result;
+    public String live_url;                 // 실시간 동영상 URL
+    public String aes_key;                  // AES 정보
 
     // 기체정보
     public List<DroneList> drone_list;

@@ -6,10 +6,13 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
+import kr.go.forest.das.Model.BigdataSystemInfo;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Drone;
@@ -18,6 +21,12 @@ import kr.go.forest.das.drone.Px4;
 public class MenuView extends RelativeLayout implements View.OnClickListener {
 
     private Context context;
+    LinearLayout weather_info;
+
+    TextView textview_location;
+    TextView textview_weather;
+    TextView textview_temperature;
+    TextView textview_wind_speed;
 
     public MenuView(Context context){
         super(context);
@@ -51,6 +60,19 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
         findViewById(R.id.missionButton).setOnClickListener(this);
         findViewById(R.id.flightButton).setOnClickListener(this);
         findViewById(R.id.settingButton).setOnClickListener(this);
+
+        BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+
+        if(!_info.isLogin()){
+            findViewById(R.id.propertiesLayout).setVisibility(GONE);
+        }else{
+            ((TextView)findViewById(R.id.textview_location)).setText(_info.weather.locale);
+            ((TextView)findViewById(R.id.textview_weather)).setText(_info.weather.weather);
+            ((TextView)findViewById(R.id.textview_temperature)).setText(_info.weather.temperature + " \u2103");
+            ((TextView)findViewById(R.id.textview_wind_speed)).setText(String.valueOf(_info.weather.wind_speed) + " m/s");
+        }
+
+
         setClickable(true);
     }
 

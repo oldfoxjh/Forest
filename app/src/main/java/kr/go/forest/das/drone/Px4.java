@@ -1,8 +1,13 @@
 package kr.go.forest.das.drone;
 
 
+import com.hoho.android.usbserial.driver.UsbSerialPort;
+
 import org.osmdroid.util.GeoPoint;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,13 +21,15 @@ import dji.common.mission.waypoint.WaypointMission;
 import dji.common.model.LocationCoordinate2D;
 import dji.common.product.Model;
 import dji.sdk.base.BaseProduct;
+import kr.go.forest.das.MAVLink.MavDataManager;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
 
-public class Px4 extends Drone {
+public class Px4 extends Drone implements MavDataManager.MavEventListener{
 
     public Px4()
     {
+
     }
 
     //region 제품정보
@@ -542,6 +549,11 @@ public class Px4 extends Drone {
 
     @Override
     public void setGimbalRotate(float pitch){
+
+    }
+
+    @Override
+    public void onReceive(Object payload, int type) {
 
     }
     //endregion

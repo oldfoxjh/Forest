@@ -13,6 +13,9 @@ public class BigdataSystemInfo {
     public String user_id = null;           // 사용자 ID
     public boolean is_realtime = false;     // 실시간 전송여부
     public String live_url = null;          // 실시간 전송 URL
+    public String aes_key;                  // 암호화 정보
+
+    public WeatherInfo weather = new WeatherInfo(); // 기상정보
 
     public List<LoginResponse.DroneList> drone_list;
     public List<FlightPlan> flight_plan;

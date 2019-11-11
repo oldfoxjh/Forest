@@ -71,11 +71,12 @@
             android:text="지역"/>
 
         <TextView
-            android:layout_width="@dimen/px130"
+            android:id="@+id/textview_location"
+            android:layout_width="@dimen/px148"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/px20"
             android:layout_gravity="center"
-            android:textSize="@dimen/px30"
+            android:textSize="@dimen/px26"
             android:textColor="#ffffff"
             android:textStyle="bold"
             android:text="제주도" />
@@ -83,7 +84,7 @@
         <ImageView
             android:layout_width="@dimen/px28"
             android:layout_height="@dimen/px28"
-            android:layout_marginLeft="@dimen/px20"
+            android:layout_marginLeft="@dimen/px16"
             android:layout_gravity="center"
             android:background="@mipmap/weather_ico_2"/>
 
@@ -97,11 +98,12 @@
             android:text="날씨"/>
 
         <TextView
-            android:layout_width="@dimen/px130"
+            android:id="@+id/textview_weather"
+            android:layout_width="@dimen/px120"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/px20"
             android:layout_gravity="center"
-            android:textSize="@dimen/px30"
+            android:textSize="@dimen/px26"
             android:textColor="#ffffff"
             android:textStyle="bold"
             android:text="맑음" />
@@ -110,7 +112,7 @@
             android:layout_width="@dimen/px28"
             android:layout_height="@dimen/px28"
             android:layout_gravity="center"
-            android:layout_marginLeft="@dimen/px20"
+            android:layout_marginLeft="@dimen/px16"
             android:background="@mipmap/weather_ico_3"/>
 
         <TextView
@@ -123,11 +125,12 @@
             android:text="온도"/>
 
         <TextView
-            android:layout_width="@dimen/px130"
+            android:id="@+id/textview_temperature"
+            android:layout_width="@dimen/px120"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/px20"
             android:layout_gravity="center"
-            android:textSize="@dimen/px30"
+            android:textSize="@dimen/px26"
             android:textColor="#ffffff"
             android:textStyle="bold"
             android:text="28C" />
@@ -136,7 +139,7 @@
             android:layout_width="@dimen/px28"
             android:layout_height="@dimen/px28"
             android:layout_gravity="center"
-            android:layout_marginLeft="@dimen/px20"
+            android:layout_marginLeft="@dimen/px16"
             android:background="@mipmap/weather_ico_4"/>
 
         <TextView
@@ -149,11 +152,12 @@
             android:text="풍속"/>
 
         <TextView
-            android:layout_width="@dimen/px130"
+            android:id="@+id/textview_wind_speed"
+            android:layout_width="@dimen/px120"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/px20"
             android:layout_gravity="center"
-            android:textSize="@dimen/px30"
+            android:textSize="@dimen/px26"
             android:textColor="#ffffff"
             android:textStyle="bold"
             android:text="5.3m/s" />

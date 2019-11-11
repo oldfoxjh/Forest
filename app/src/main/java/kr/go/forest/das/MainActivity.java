@@ -4,9 +4,12 @@ import android.Manifest;
 import android.animation.AnimatorInflater;
 import android.animation.LayoutTransition;
 import android.animation.ObjectAnimator;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.hardware.usb.UsbDevice;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -36,6 +39,7 @@ import dji.common.Stick;
 import dji.common.camera.SettingsDefinitions;
 import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.Log.LogWrapper;
+import kr.go.forest.das.MAVLink.MavDataManager;
 import kr.go.forest.das.UI.DialogConfirm;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.UI.DialogLoadMission;
@@ -43,6 +47,8 @@ import kr.go.forest.das.UI.DialogLoadShape;
 import kr.go.forest.das.UI.DialogOk;
 import kr.go.forest.das.UI.DialogShootingPurpose;
 import kr.go.forest.das.UI.DialogUploadMission;
+import kr.go.forest.das.drone.Drone;
+import kr.go.forest.das.drone.Px4;
 
 public class MainActivity extends AppCompatActivity implements  LocationListener //UsbStatus.UsbStatusCallbacks,
 {
@@ -57,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     LocationManager mManager;
     boolean doubleBackToExitPressedOnce = false;
     TextToSpeech tts;                                           // Test to Speech
+    MavDataManager mav_manager;
 
     List<String> shooting_purpose = new ArrayList<>();
 
@@ -68,9 +75,25 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         setContentView(R.layout.activity_main);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        contentFrameLayout = (FrameLayout) findViewById(R.id.framelayout_content);
+        contentFrameLayout = findViewById(R.id.framelayout_content);
         setLocationManager();
         initParams();
+
+        LogWrapper.i(TAG, "onCreate");
+
+        // USB 연결 확인
+        Drone _drone = DroneApplication.getDroneInstance();
+        if(_drone != null && _drone instanceof Px4){
+            mav_manager = new MavDataManager(this, MavDataManager.BAUDRATE_115200, (Px4)_drone);
+            LogWrapper.i(TAG, "MAV Manager Start.");
+        }else{
+            IntentFilter filter = new IntentFilter(MavDataManager.ACTION_USB_PERMISSION);
+
+            filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+            filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED) ;
+
+            registerReceiver(usb_receiver, filter);
+        }
     }
 
     @Override
@@ -302,12 +325,6 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                 }else {
                     popView();
                 }
-
-//                StringBuffer sb = new StringBuffer();
-//                for(int i = 0; i < stack.size(); i++){
-//                    sb.append(stack.get(i).viewInfo() + " : " );
-//                }
-//                LogWrapper.i(TAG, sb.toString());
 
                 if(popup.type == PopupDialog.DIALOG_TYPE_LOAD_SHAPE) {
                     DroneApplication.getEventBus().post(new Mission(Mission.MISSION_FROM_FILE, popup.data));
@@ -567,5 +584,19 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
             content = text;
         }
     }
+
+    private final BroadcastReceiver usb_receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(android.content.Context context, Intent intent) {
+            String action = intent.getAction();
+            LogWrapper.i(TAG, action);
+            if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+                mav_manager.close();
+            }
+            else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
+                Toast.makeText(MainActivity.this, "Mavlink Start.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
     //endregion
 }

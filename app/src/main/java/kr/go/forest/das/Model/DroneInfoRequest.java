@@ -59,10 +59,11 @@ public class DroneInfoRequest {
             FileOutputStream fos = new FileOutputStream(_folder_path + File.separator + _sb_datetime.toString() + "_" + LOG_FILE_NAME, true);
             //파일쓰기
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
+
+            BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+
             Gson gson = new Gson();
-            String json = AES256.encode(gson.toJson(this), "1234567890-1234567890-1234567890");
-            //String json = gson.toJson(this);
-            String decode = AES256.decode(json, "1234567890-1234567890-1234567890");
+            String json = AES256.encode(gson.toJson(this), _info.aes_key);
             writer.write(json);
             writer.flush();
 
