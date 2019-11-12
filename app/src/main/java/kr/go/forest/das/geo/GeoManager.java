@@ -105,8 +105,6 @@ public class GeoManager {
             _complete = false;
         }
 
-        LogWrapper.i("임무정보", String.format("Home point altitude : %f",base_altitude[0]));
-
         // 각각의 웨이포인트 고도 적용
         for (int i = 0 ; i < points.size(); i++) {
             GeoPoint point = points.get(i);
@@ -118,16 +116,6 @@ public class GeoManager {
                 _complete = false;
             }else{
                 point.setAltitude(point.getAltitude() + altitude[0] - base_altitude[0]);
-
-                // 이전 고도값과 비교해서 기울기가 1보다 클경우 기울기를 1로 적용(기울기 : 초당 수직속도)
-                if(i > 0){
-                    double _distance = distance(points.get(i-1).getLatitude(), points.get(i-1).getLongitude(), point.getLatitude(), point.getLongitude());
-                    double _diff_altitude =  points.get(i-1).getAltitude() - points.get(i).getAltitude();
-
-                    if(Math.abs(_diff_altitude/_distance) > VERTICAL_SPEED_PER_SECONDS){
-                        point.setAltitude(points.get(i - 1).getAltitude() - _distance*VERTICAL_SPEED_PER_SECONDS);
-                    }
-                }
             }
         }
 

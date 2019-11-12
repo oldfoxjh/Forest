@@ -15,9 +15,10 @@
         android:background="#FFF"
         android:orientation="vertical"
         android:layout_width="@dimen/px590"
-        android:layout_height="@dimen/px210">
+        android:layout_height="@dimen/px330">
+
         <TextView
-            android:id="@+id/dialog_confirm_title"
+            android:id="@+id/textview_dialog_check_realtime_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/px40"
@@ -26,13 +27,12 @@
             android:textSize="@dimen/font42"
             android:textFontWeight=""
             android:textColor="#000"
-            android:text=""
-            android:visibility="invisible"/>
+            android:text="실시간 전송"/>
         <TextView
-            android:id="@+id/dialog_confirm_text"
+            android:id="@+id/dialog_check_realtime_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/dialog_confirm_title"
+            android:layout_below="@+id/textview_dialog_check_realtime_title"
             android:layout_marginTop="@dimen/px14"
             android:paddingLeft="@dimen/px20"
             android:paddingRight="@dimen/px20"
@@ -40,16 +40,15 @@
             android:textAlignment="center"
             android:textSize="@dimen/font28"
             android:textColor="#000"
-            android:text="" />
+            android:text="확인을 누르시면 동영상 촬영정보가 실시간으로 전송됩니다." />
         <LinearLayout
-            android:id="@+id/layout_dialog_confirm_btn"
             android:layout_width="match_parent"
             android:layout_height="@dimen/px80"
             android:layout_alignParentBottom="true"
             android:orientation="horizontal"
             >
             <Button
-                android:id="@+id/btn_dialog_confirm_yes"
+                android:id="@+id/btn_dialog_check_realtime_yes"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.5"
@@ -60,7 +59,7 @@
                 android:textColor="#FFF"
                 />
             <Button
-                android:id="@+id/btn_dialog_confirm_no"
+                android:id="@+id/btn_dialog_check_realtime_no"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.5"

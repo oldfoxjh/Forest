@@ -1,6 +1,5 @@
 package kr.go.forest.das.Model;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +13,11 @@ public class BigdataSystemInfo {
     public boolean is_realtime = false;     // 실시간 전송여부
     public String live_url = null;          // 실시간 전송 URL
     public String aes_key;                  // 암호화 정보
+
+    public String name;                     // 사용자 이름
+    public String service;                  // 사용자 소속
+    public String department;               // 사용자 부서
+    public int drone_index = 0;             // 현재 사용중인 드론 인덱스
 
     public WeatherInfo weather = new WeatherInfo(); // 기상정보
 

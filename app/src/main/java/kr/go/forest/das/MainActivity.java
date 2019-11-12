@@ -40,11 +40,13 @@ import dji.common.camera.SettingsDefinitions;
 import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MAVLink.MavDataManager;
+import kr.go.forest.das.UI.DialogCheckRealtime;
 import kr.go.forest.das.UI.DialogConfirm;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.UI.DialogLoadMission;
 import kr.go.forest.das.UI.DialogLoadShape;
 import kr.go.forest.das.UI.DialogOk;
+import kr.go.forest.das.UI.DialogSelectDrone;
 import kr.go.forest.das.UI.DialogShootingPurpose;
 import kr.go.forest.das.UI.DialogUploadMission;
 import kr.go.forest.das.drone.Drone;
@@ -297,6 +299,10 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                     wrapper = new ViewWrapper(new DialogLoadMission(MainActivity.this), false);
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_UPLOAD_MISSION){
                     wrapper = new ViewWrapper(new DialogUploadMission(MainActivity.this), false);
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_SELECT_DRONE){
+                    wrapper = new ViewWrapper(new DialogSelectDrone(MainActivity.this), false);
+                }else if(popup.type == PopupDialog.DIALOG_TYPE_CHECK_REALTIME){
+                    wrapper = new ViewWrapper(new DialogCheckRealtime(MainActivity.this), false);
                 }else if(popup.type == PopupDialog.DIALOG_TYPE_SHOOTING_PURPOSE){
                     shooting_purpose.add("선택해주세요.");
                     shooting_purpose.add("재난");
@@ -427,6 +433,9 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         public final static int DIALOG_TYPE_SHOOTING_PURPOSE = 0x1024;
         public final static int DIALOG_TYPE_START_MISSION = 0x1025;
         public final static int REMOVE_PRE_VIEW = 0x1026;
+        public final static int DIALOG_TYPE_SELECT_DRONE = 0x1027;
+        public final static int DIALOG_TYPE_CHECK_REALTIME = 0x1028;
+
 
         public int type;
         public int contentId;

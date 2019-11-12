@@ -107,4 +107,9 @@
     <dimen name="dji236">236.9dp</dimen>
     <dimen name="status_font">16dp</dimen>
     <dimen name="radio_font">6dp</dimen>
+    <dimen name="font20">15dp</dimen>
+    <dimen name="font24">16dp</dimen>
+    <dimen name="font28">22dp</dimen>
+    <dimen name="font34">22.7dp</dimen>
+    <dimen name="font42">28dp</dimen>
 </resources>

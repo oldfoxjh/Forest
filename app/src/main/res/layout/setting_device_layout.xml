@@ -35,12 +35,13 @@
                     android:background="#1d1d1d"/>
 
                 <TextView
+                    android:id="@+id/textview_manage_number"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:paddingLeft="@dimen/px60"
                     android:textColor="#ffffff"
                     android:textSize="@dimen/px28"
-                    android:text="FR-01234"
+                    android:text=""
                     android:gravity="center_vertical"/>
             </LinearLayout>
 
@@ -65,12 +66,13 @@
                     android:background="#1d1d1d"/>
 
                 <TextView
+                    android:id="@+id/textview_manage_department"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:paddingLeft="@dimen/px60"
                     android:textColor="#ffffff"
                     android:textSize="@dimen/px28"
-                    android:text="삼척국유림 관리"
+                    android:text=""
                     android:gravity="center_vertical"/>
             </LinearLayout>
 
@@ -95,12 +97,13 @@
                     android:background="#1d1d1d"/>
 
                 <TextView
+                    android:id="@+id/textview_drone_product"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:paddingLeft="@dimen/px60"
                     android:textColor="#ffffff"
                     android:textSize="@dimen/px28"
-                    android:text="Phantom4 Pro"
+                    android:text=""
                     android:gravity="center_vertical"/>
             </LinearLayout>
 
@@ -125,12 +128,13 @@
                     android:background="#1d1d1d"/>
 
                 <TextView
+                    android:id="@+id/textview_drone_manufacturer"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:paddingLeft="@dimen/px60"
                     android:textColor="#ffffff"
                     android:textSize="@dimen/px28"
-                    android:text="DJI"
+                    android:text=""
                     android:gravity="center_vertical"/>
             </LinearLayout>
 
@@ -155,12 +159,13 @@
                     android:background="#1d1d1d"/>
 
                 <TextView
+                    android:id="@+id/textview_drone_kind"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:paddingLeft="@dimen/px60"
                     android:textColor="#ffffff"
                     android:textSize="@dimen/px28"
-                    android:text="멀리콥터"
+                    android:text=""
                     android:gravity="center_vertical"/>
             </LinearLayout>
 
@@ -185,12 +190,13 @@
                     android:background="#1d1d1d"/>
 
                 <TextView
+                    android:id="@+id/textview_drone_camera"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:paddingLeft="@dimen/px60"
                     android:textColor="#ffffff"
                     android:textSize="@dimen/px28"
-                    android:text="Zenmuse X5"
+                    android:text=""
                     android:gravity="center_vertical"/>
             </LinearLayout>
 

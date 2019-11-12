@@ -91,18 +91,23 @@
         </LinearLayout>
         <LinearLayout
             android:layout_alignParentRight="true"
-            android:layout_marginRight="@dimen/px204"
+            android:layout_marginRight="@dimen/px148"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/px80"
             android:layout_marginTop="@dimen/px18"
             android:orientation="horizontal">
+            <ImageView
+                android:layout_width="@dimen/px48"
+                android:layout_height="@dimen/px42"
+                android:background="@mipmap/ico_temperature"/>
             <TextView
                 android:id="@+id/tv_battery_temperature"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/px22"
-                android:textColor="#0f0"
-                android:text=""
+                android:paddingTop="@dimen/px2"
+                android:textSize="@dimen/font20"
+                android:textColor="#FFF"
+                android:text="66"
                 />
         </LinearLayout>
         <Button

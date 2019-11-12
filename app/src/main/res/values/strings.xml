@@ -19,7 +19,7 @@
     <string name="landing_fail">자동착륙에 실패하였습니다.\n</string>
     <string name="landing_confirm_title">착륙하시겠습니까?</string>
     <string name="landing_confirm_content">기체가 0.3m까지 하강했습니다. 착륙시키시겠습니까?</string>
-    <string name="landing_cancel_title">자동착륙을\n취소하시겠습니까?</string>
+    <string name="landing_cancel_title">자동착륙을 취소하시겠습니까?</string>
     <string name="landing_cancel_fail">자동착륙 취소에 실패하였습니다.\n</string>
     <string name="return_home_title">홈포인트로 복귀후 착륙하시겠습니까?</string>
     <string name="return_home_content">기체가 자동복귀 위치로 방향을 돌려 미리 설정된 고도에서 귀환합니다. 자동복귀를 취소하려면 조종기의 RTH 버튼을 누르세요.</string>

@@ -24,15 +24,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.MediaPlayer;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.speech.tts.TextToSpeech;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,7 +41,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.squareup.otto.Subscribe;
 
 import org.osmdroid.api.IMapController;
@@ -78,8 +74,6 @@ import kr.go.forest.das.Model.DroneInfo;
 import kr.go.forest.das.Model.DroneInfoRequest;
 import kr.go.forest.das.Model.DroneInfoResponse;
 import kr.go.forest.das.Model.FiresResponse;
-import kr.go.forest.das.Model.LoginResponse;
-import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.geo.GeoManager;
@@ -421,7 +415,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                     handler_ui.post(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(context, "실시간 상태 : " + live_status, Toast.LENGTH_SHORT).show();
+                            LogWrapper.i(TAG, "실시간 상태 : " + live_status);
                         }
                     });
                 }
@@ -543,7 +537,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         stopLiveShow();
                     }
                 }else{
-                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_SHOOTING_PURPOSE, 0, 0));
+                    //DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_SHOOTING_PURPOSE, 0, 0));
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CHECK_REALTIME, 0, 0));
                 }
                 break;
             case R.id.btn_flight_shoot:
@@ -668,7 +663,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                 break;
             case R.id.btn_flight_cancel:
                 if(btn_flight_cancel.getTag().equals("landing")){
-                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, 0, R.string.landing_cancel_title));
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.landing_cancel_title, 0));
                 }else if(btn_flight_cancel.getTag().equals("rtl")){
                     DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.return_home_cancel_title, 0));
                 }
@@ -678,6 +673,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
 
     /**
      * 지도 위젯 터치 이벤트 처리
+     * @param p 터치된 좌표
+     * @return 이벤트 처리 여부
      */
     @Override
     public boolean singleTapConfirmedHelper(GeoPoint p) {
@@ -802,7 +799,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         marker_drone_location.setPosition(new GeoPoint(_info.drone_latitude, _info.drone_longitude));
 
                         // 6. 배터리 온도
-                        tv_battery_temperature.setText((int)_info.battery_temperature + "C");
+                        tv_battery_temperature.setText((int)_info.battery_temperature + "\u2103");
 
                         // 6. 비행경로(비행중일때만)
                         if(DroneApplication.getDroneInstance().isFlying()) {
@@ -1006,6 +1003,11 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         if(btn_record.getVisibility() == VISIBLE) btn_record.setVisibility(INVISIBLE);
                         if(tv_record_time.getVisibility() == VISIBLE) tv_record_time.setVisibility(INVISIBLE);
                     }else if(camera.mode == 1){
+                        if(!_info.recording_time.equals("00:00") && is_recording == false) {
+                            btn_record.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_recording_selector));
+                            is_recording = true;
+                        }
+
                         // 동영상 촬영
                         tv_flight_format_info.setText(_info.video_resolution_framerate);
                         tv_flight_capacity.setText(_info.recording_remain_time);
@@ -1013,17 +1015,16 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
 
                         btn_select_movie.setVisibility(VISIBLE);
                         btn_record.setVisibility(VISIBLE);
-
-                        if(!_info.recording_time.equals("00:00") && is_recording == false) {
-                            btn_record.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_recording_selector));
-                            is_recording = true;
-                        }
                         btn_camera_setting.setVisibility(VISIBLE);
                         tv_record_time.setVisibility(VISIBLE);
                         //sb_flight_gimbal_pitch.setVisibility(VISIBLE);
 
                         if(btn_shoot.getVisibility() == VISIBLE) btn_shoot.setVisibility(INVISIBLE);
                         if(btn_select_shoot.getVisibility() == VISIBLE) btn_select_shoot.setVisibility(INVISIBLE);
+                    }else if(camera.mode == -1){
+                        btn_record.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_record_selector));
+                        tv_record_time.setText("00:00");
+                        is_recording = false;
                     }
                 }
             });
@@ -1055,7 +1056,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                     handler_ui.post(new Runnable() {
                         @Override
                         public void run() {
-                            btn_record.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_record_selector));
                             DroneApplication.getEventBus().post(new MainActivity.TTS("동영상 촬영을 종료합니다."));
                         }
                     });

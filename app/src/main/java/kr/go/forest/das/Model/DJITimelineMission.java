@@ -34,11 +34,11 @@ public class DJITimelineMission {
 
         // 짐벌 각도 조절
         Attitude attitude = new Attitude(-90, Rotation.NO_ROTATION, Rotation.NO_ROTATION);
-        GimbalAttitudeAction gimbalAction = new GimbalAttitudeAction(attitude);
-        if(DroneApplication.getDroneInstance().getDroneInfo().gimbal_pitch > 89.5){
-            gimbalAction.setCompletionTime(3);
-            elements.add(gimbalAction);
-        }
+//        GimbalAttitudeAction gimbalAction = new GimbalAttitudeAction(attitude);
+//        if(DroneApplication.getDroneInstance().getDroneInfo().gimbal_pitch > 89.5){
+//            gimbalAction.setCompletionTime(3);
+//            elements.add(gimbalAction);
+//        }
 
         //비행고도까지 상승
         elements.add(new GoToAction(new LocationCoordinate2D(base_point.getLatitude(), base_point.getLongitude()), (float)base_point.getAltitude()));
@@ -51,9 +51,9 @@ public class DJITimelineMission {
 
         //짐벌 원위치
         attitude = new Attitude(0, Rotation.NO_ROTATION, Rotation.NO_ROTATION);
-        gimbalAction = new GimbalAttitudeAction(attitude);
-        gimbalAction.setCompletionTime(3);
-        elements.add(gimbalAction);
+//        gimbalAction = new GimbalAttitudeAction(attitude);
+//        gimbalAction.setCompletionTime(3);
+//        elements.add(gimbalAction);
 
         //자동복귀
         elements.add(new GoHomeAction());

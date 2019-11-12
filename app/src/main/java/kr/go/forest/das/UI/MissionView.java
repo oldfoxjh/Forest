@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import dji.common.flightcontroller.ConnectionFailSafeBehavior;
 import dji.common.mission.waypoint.WaypointMission;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.mission.MissionControl;
@@ -570,7 +571,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 break;
             case R.id.btn_new_course:
                 // 현재 임무를 초기화 하겠냐는 팝업
-                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, 0, R.string.clear_mission));
+                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.clear_mission, 0));
                 break;
             case R.id.btn_load_shape:
                 // Mission 파일 목록 팝업
@@ -608,7 +609,10 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 if(waypoint_mission.max_flight_altitude > DroneApplication.getDroneInstance().max_flight_height){
                     DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.max_flight_height_low_title, R.string.max_flight_height_low, ""));
                 }else {
-                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_UPLOAD_MISSION, 0, 0));
+                    //DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_UPLOAD_MISSION, 0, 0));
+                    // 조종기 신호가 끊겨도 계속 진행하도록 설정
+                    DroneApplication.getDroneInstance().setConnectionFailSafeBehavior(ConnectionFailSafeBehavior.HOVER);
+                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD, null));
                 }
                 break;
             case R.id.btn_waypoint_mission:

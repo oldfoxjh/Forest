@@ -1469,7 +1469,7 @@ public class DJI extends Drone{
             }else if(!systemState.isRecording() && recording_time != null) {
                 recording_time = null;
                 MainActivity.DroneCameraStatus _status = new MainActivity.DroneCameraStatus();
-                _status.setMode(1);
+                _status.setMode(-1);
                 DroneApplication.getEventBus().post(_status);
             }
         }

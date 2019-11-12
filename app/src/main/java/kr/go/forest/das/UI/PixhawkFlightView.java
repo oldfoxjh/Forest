@@ -360,7 +360,7 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
                 break;
             case R.id.pixhawk_btn_flight_cancel:
                 if(pixhawk_btn_flight_cancel.getTag().equals("landing")){
-                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, 0, R.string.landing_cancel_title));
+                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.landing_cancel_title, 0));
                 }else if(pixhawk_btn_flight_cancel.getTag().equals("rtl")){
                     DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.return_home_cancel_title, 0));
                 }

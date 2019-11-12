@@ -8,6 +8,10 @@ public class LoginResponse {
     public String live_url;                 // 실시간 동영상 URL
     public String aes_key;                  // AES 정보
 
+    public String name;
+    public String service;
+    public String department;
+
     // 기체정보
     public List<DroneList> drone_list;
     // 비행계획 리스트

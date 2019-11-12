@@ -10,9 +10,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
+import kr.go.forest.das.Model.BigdataSystemInfo;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
 
@@ -27,6 +29,17 @@ public class SettingView extends RelativeLayout implements View.OnClickListener 
     LinearLayout setting_interface_layout;
     LinearLayout setting_device_layout;
     LinearLayout setting_login_info;
+
+    TextView setting_name;
+    TextView setting_service;
+    TextView setting_department;
+
+    TextView textview_manage_number;
+    TextView textview_manage_department;
+    TextView textview_drone_product;
+    TextView textview_drone_manufacturer;
+    TextView textview_drone_kind;
+    TextView textview_drone_camera;
 
     public SettingView(Context context){
         super(context);
@@ -62,6 +75,17 @@ public class SettingView extends RelativeLayout implements View.OnClickListener 
 
         findViewById(R.id.btn_setting_back).setOnClickListener(this);
 
+        setting_name = findViewById(R.id.setting_name);
+        setting_service = findViewById(R.id.setting_service);
+        setting_department = findViewById(R.id.setting_department);
+
+        textview_manage_number = findViewById(R.id.textview_manage_number);
+        textview_manage_department = findViewById(R.id.textview_manage_department);
+        textview_drone_product = findViewById(R.id.textview_drone_product);
+        textview_drone_manufacturer = findViewById(R.id.textview_drone_manufacturer);
+        textview_drone_kind = findViewById(R.id.textview_drone_kind);
+        textview_drone_camera = findViewById(R.id.textview_drone_camera);
+
         setting_drone_info = findViewById(R.id.setting_drone_info);
         boolean is_login = DroneApplication.getSystemInfo().isLogin();
         if(is_login == true) {
@@ -84,6 +108,20 @@ public class SettingView extends RelativeLayout implements View.OnClickListener 
         if(_real_time.equals("on")){
             setting_real_time.setSelected(true);
         }
+
+        // 사용자 정보 및 드론 정보 설정
+        BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+        setting_name.setText(_info.name);
+        setting_service.setText(_info.service);
+        setting_department.setText(_info.department);
+
+        textview_manage_number.setText(_info.drone_list.get(_info.drone_index).manage_number);
+        textview_manage_department.setText(_info.drone_list.get(_info.drone_index).department);
+        textview_drone_product.setText(_info.drone_list.get(_info.drone_index).model);
+        textview_drone_manufacturer.setText(_info.drone_list.get(_info.drone_index).manufacturer);
+        textview_drone_kind.setText(_info.drone_list.get(_info.drone_index).kind);
+        textview_drone_camera.setText(_info.drone_list.get(_info.drone_index).camera);
+
         setClickable(true);
     }
 

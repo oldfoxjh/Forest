@@ -84,10 +84,10 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
         progress.setProgressStyle(android.R.style.Widget_ProgressBar_Horizontal);
         imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
 
-        loginIDEditText = (EditText)findViewById(R.id.loginIDEditText);
-        loginPWEditText = (EditText)findViewById(R.id.loginPWEditText);
+        loginIDEditText = findViewById(R.id.loginIDEditText);
+        loginPWEditText = findViewById(R.id.loginPWEditText);
 
-        mBtnLogin = (Button)findViewById(R.id.loginProcessButton);
+        mBtnLogin = findViewById(R.id.loginProcessButton);
         mBtnLogin.setOnClickListener(this);
     }
 
@@ -140,6 +140,10 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
 
                         _info.live_url = _response.live_url;
                         _info.aes_key = _response.aes_key;
+
+                        _info.name = _response.name;
+                        _info.service = _response.service;
+                        _info.department = _response.department;
 
                         _info.setDroneInfo(_response.drone_list);
                         _info.setFlightPlan(_response.plan);
