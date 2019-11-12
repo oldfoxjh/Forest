@@ -52,9 +52,12 @@ import dji.sdk.mission.MissionControl;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MainActivity;
+import kr.go.forest.das.Model.BigdataPoint;
+import kr.go.forest.das.Model.BigdataSystemInfo;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DJITimelineMission;
 import kr.go.forest.das.Model.DroneInfo;
+import kr.go.forest.das.Model.FlightPlan;
 import kr.go.forest.das.Model.RectD;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.Model.DJIWaypointMission;
@@ -155,6 +158,12 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         if(DroneApplication.getDroneInstance() != null) {
             DroneApplication.getDroneInstance().getPhotoAspectRatio();
             DroneApplication.getDroneInstance().setMissionPoints(null);
+        }
+
+        // 비행계획 여부 확인 후 팝업
+        BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+        if(_info.flight_plan != null && _info.flight_plan.size() > 0){
+            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_LOAD_MISSION, 0,0));
         }
 
         super.onAttachedToWindow();
@@ -434,9 +443,24 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 handler_ui.post(new Runnable() {
                     @Override
                     public void run() {
-                    // 마커 포함 임무 그리기
-                        int _ret = GeoManager.getInstance().getPositionsFromShapeFile(path, area_points);
+                        // 마커 포함 임무 그리기
+                        if(mission.command == MainActivity.Mission.MISSION_FROM_FILE) GeoManager.getInstance().getPositionsFromShapeFile(path, area_points);
+                        else if(mission.command == MainActivity.Mission.MISSION_FROM_ONLINE){
+                            BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+                            if(_info.flight_plan != null && _info.flight_plan.size() > 0){
+                                area_points.clear();
+                                FlightPlan _plan = _info.flight_plan.get(Integer.parseInt(mission.data));
 
+                                for(BigdataPoint _point : _plan.points){
+                                    area_points.add(new GeoPoint(_point.latitude, _point.longitude));
+                                }
+                                sb_mission_flight_speed.setProgress((int)(_plan.speed * 10));
+                                sb_mission_angle.setProgress(_plan.angle);
+                                sb_mission_flight_altitude.setProgress(_plan.altitude);
+                                sb_mission_overlap.setProgress(_plan.front_lap);
+                                sb_mission_sidelap.setProgress(_plan.side_lap);
+                            }
+                        }
                         // 포인트가 2개 이하면 오류
                         setMissionPolygon(area_points);
                     }

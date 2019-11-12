@@ -17,6 +17,8 @@ import java.io.FilenameFilter;
 
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
+import kr.go.forest.das.Model.BigdataSystemInfo;
+import kr.go.forest.das.Model.FlightPlan;
 import kr.go.forest.das.R;
 
 public class DialogLoadMission extends RelativeLayout implements View.OnClickListener, RadioGroup.OnCheckedChangeListener{
@@ -51,12 +53,12 @@ public class DialogLoadMission extends RelativeLayout implements View.OnClickLis
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Service.LAYOUT_INFLATER_SERVICE);
         layoutInflater.inflate(R.layout.dialog_load_mission, this, true);
 
-        RadioGroup _file_list = (RadioGroup) findViewById(R.id.load_shape_file_list);
+        RadioGroup _file_list = findViewById(R.id.load_shape_file_list);
         _file_list.setOnCheckedChangeListener(this);
-        Button btn_open = (Button)findViewById(R.id.btn_dialog_load_shape_open);
+        Button btn_open = findViewById(R.id.btn_dialog_load_shape_open);
         btn_open.setOnClickListener(this);
 
-        Button btn_cancel = (Button)findViewById(R.id.btn_dialog_load_shape_cancel);
+        Button btn_cancel = findViewById(R.id.btn_dialog_load_shape_cancel);
         btn_cancel.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,13 +67,15 @@ public class DialogLoadMission extends RelativeLayout implements View.OnClickLis
         });
 
         // 비행계획 설정하기
-
-//        for(String _file : _files) {
-//            RadioButton _radio_button = new RadioButton(context);
-//            _radio_button.setText(_file);
-//            _radio_button.setTextSize(getResources().getDimension(R.dimen.radio_font));
-//            _file_list.addView(_radio_button);
-//        }
+        BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+        for(int i = 0; i < _info.flight_plan.size(); i++) {
+            FlightPlan _plan = _info.flight_plan.get(i);
+            RadioButton _radio_button = new RadioButton(context);
+            _radio_button.setTag(String.valueOf(i));
+            _radio_button.setText(_plan.title);
+            _radio_button.setTextSize(getResources().getDimension(R.dimen.radio_font));
+            _file_list.addView(_radio_button);
+        }
 
         setClickable(true);
     }
@@ -83,9 +87,9 @@ public class DialogLoadMission extends RelativeLayout implements View.OnClickLis
 
     @Override
     public void onCheckedChanged(RadioGroup group, int checkedId) {
-        RadioButton _radio_button = (RadioButton)group.findViewById(checkedId);
+        RadioButton _radio_button = group.findViewById(checkedId);
 
         // 선택된 임무 정보 세팅하기
-        //file_path = Environment.getExternalStorageDirectory() + File.separator + "DroneAppService/Mission"+ File.separator + _radio_button.getText();
+        data = _radio_button.getTag().toString();
     }
 }

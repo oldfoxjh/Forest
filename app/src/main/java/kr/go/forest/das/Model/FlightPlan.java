@@ -1,7 +1,5 @@
 package kr.go.forest.das.Model;
 
-import org.osmdroid.util.GeoPoint;
-
 import java.util.List;
 
 public class FlightPlan {
