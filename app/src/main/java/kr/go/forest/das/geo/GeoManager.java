@@ -376,7 +376,6 @@ public class GeoManager {
                 , _bound.get(1).getLongitude(), _bound.get(1).getLatitude(), _bound.get(3).getLongitude(), _bound.get(3).getLatitude());
     }
 
-
     /**
      * 주어진 좌표에서 동서, 남북의 거리에 위치한 좌표 구하기
      * @param source_point : 주어진 좌표

@@ -1,6 +1,7 @@
 package kr.go.forest.das.Model;
 
 import android.os.Environment;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -64,6 +65,7 @@ public class DroneInfoRequest {
 
             Gson gson = new Gson();
             String json = AES256.encode(gson.toJson(this), _info.aes_key);
+            Log.d("DroneInfoRequest", json);
             writer.write(json);
             writer.flush();
 

@@ -98,10 +98,6 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
     public void onClick(View v) {
         if(v.getId() == R.id.loginProcessButton)
         {
-            DroneInfoRequest _info = new DroneInfoRequest(new BigdataSystemInfo(), null);
-            _info.user_id = "test";
-            _info.mobile_device_id = "1234";
-            _info.save_flight_log();
             if(NetworkStatus.isInternetConnected(context))
             {
                 // ID
@@ -138,6 +134,7 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                         _info.weather.temperature = _response.weather.temperature;
                         _info.weather.wind_speed = _response.weather.wind_speed;
 
+                        _info.is_realtime = true;
                         _info.live_url = _response.live_url;
                         _info.aes_key = _response.aes_key;
 

@@ -12,7 +12,7 @@
         android:layout_marginTop="@dimen/px22"
         android:layout_marginLeft="@dimen/px20"
         android:layout_marginRight="@dimen/px20"
-        android:orientation="horizontal">
+        android:baselineAligned="false" android:orientation="horizontal">
 
         <LinearLayout
             android:layout_width="wrap_content"

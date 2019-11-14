@@ -1,6 +1,8 @@
 package kr.go.forest.das.drone;
 
 
+import android.util.Log;
+
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 
 import org.osmdroid.util.GeoPoint;
@@ -21,6 +23,15 @@ import dji.common.mission.waypoint.WaypointMission;
 import dji.common.model.LocationCoordinate2D;
 import dji.common.product.Model;
 import dji.sdk.base.BaseProduct;
+import dji.sdk.battery.Battery;
+import io.dronefleet.mavlink.common.AutopilotVersion;
+import io.dronefleet.mavlink.common.BatteryStatus;
+import io.dronefleet.mavlink.common.GpsRawInt;
+import io.dronefleet.mavlink.common.Heartbeat;
+import io.dronefleet.mavlink.common.HomePosition;
+import io.dronefleet.mavlink.common.LocalPositionNed;
+import io.dronefleet.mavlink.common.ManualControl;
+import io.dronefleet.mavlink.common.VfrHud;
 import kr.go.forest.das.MAVLink.MavDataManager;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
@@ -554,7 +565,49 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
 
     @Override
     public void onReceive(Object payload, int type) {
+//        double drone_latitude;          /** 드론 위도 */
+//        double drone_longitude;         /** 드론 경도 */
 
+//        int flight_time;                /** 비행시간 */
+//
+//        double drone_pitch;             /** 드론 pitch */
+//        double drone_roll;              /** 드론 roll */
+//        double drone_yaw;               /** 드론 yaw */
+
+//        Model model = Model.UNKNOWN_AIRCRAFT;
+
+        if(payload instanceof VfrHud){
+            heading = ((VfrHud) payload).heading();
+            drone_altitude = ((VfrHud) payload).alt();
+        }else if(payload instanceof LocalPositionNed){
+            velocyty_x = ((LocalPositionNed) payload).vx();
+            velocyty_y = ((LocalPositionNed) payload).vx();
+            velocyty_z = ((LocalPositionNed) payload).vx();
+        }else if(payload instanceof BatteryStatus){
+            battery_temperature = ((BatteryStatus) payload).temperature();
+            battery_voltage = -1;
+            battery_remain_percent = ((BatteryStatus) payload).batteryRemaining();
+        }else if(payload instanceof HomePosition){
+            home_latitude = ((HomePosition) payload).latitude();
+            home_longitude = ((HomePosition) payload).longitude();
+            home_set = true;
+        }else if(payload instanceof Heartbeat) {
+            long _custom_main_mode = ((Heartbeat) payload).customMode();
+            //String flight_mode;             /** 비행 모드 */
+        }else if(payload instanceof ManualControl){
+            left_stick_x = ((ManualControl) payload).r();
+            left_stick_y = ((ManualControl) payload).z();
+            right_stick_x = ((ManualControl) payload).x();
+            right_stick_y = ((ManualControl) payload).y();
+        }else if(payload instanceof GPSSignalLevel){
+
+        }else if(payload instanceof GpsRawInt){
+            satellites_visible = ((GpsRawInt) payload).satellitesVisible();
+        }else if(payload instanceof AutopilotVersion){
+            Log.d("Px4", "AutopilotVersion : " + payload.toString());
+        }
+
+      //  Log.d("Px4", payload.toString());
     }
     //endregion
 }

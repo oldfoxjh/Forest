@@ -4,26 +4,23 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.usb.UsbAccessory;
-import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
-import android.widget.Toast;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
-import java.util.HashMap;
 import java.util.List;
 
-import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Log.LogWrapper;
+import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.drone.Drone;
 
 public class UsbStatus {
     public  static  final int USB_DISCONNECTED = 0;
     public  static  final int USB_ACCESSORY_CONNECTED = 1;
-    public  static  final int USB_CONNECTED = 1;
+    public  static  final int USB_CONNECTED = 2;
 
     private static final UsbStatus instance = new UsbStatus();
     public static UsbStatus getInstance() {
@@ -52,14 +49,14 @@ public class UsbStatus {
                         isConnected = USB_ACCESSORY_CONNECTED;
                     }
                 }else if(isConnected == USB_DISCONNECTED){
-                    LogWrapper.i("USB Device", "USB_CONNECTED");
-                    // check accessory for pixhawk
                     DroneApplication.setDroneInstance((Drone.DRONE_MANUFACTURE_PIXHWAK));
                     isConnected = USB_CONNECTED;
+                    DroneApplication.getEventBus().post(new MainActivity.UsbConnection(true));
                 }
 
             }else{
                 isConnected = USB_DISCONNECTED;
+                DroneApplication.getEventBus().post(new MainActivity.UsbConnection(false));
             }
         }
     }

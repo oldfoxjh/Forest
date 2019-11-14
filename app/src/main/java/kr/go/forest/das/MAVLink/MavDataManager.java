@@ -3,6 +3,7 @@ package kr.go.forest.das.MAVLink;
 import android.content.Context;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import android.util.Log;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
@@ -20,6 +21,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import io.dronefleet.mavlink.ardupilotmega.AutopilotVersionRequest;
+import io.dronefleet.mavlink.common.AutopilotVersion;
+import io.dronefleet.mavlink.common.CommandLong;
+import io.dronefleet.mavlink.common.Heartbeat;
+import io.dronefleet.mavlink.common.HomePosition;
+import io.dronefleet.mavlink.common.MavAutopilot;
+import io.dronefleet.mavlink.common.MavState;
+import io.dronefleet.mavlink.common.MavType;
+import io.dronefleet.mavlink.common.ParamRequestList;
+import io.dronefleet.mavlink.common.Ping;
 import kr.go.forest.das.Log.LogWrapper;
 
 public class MavDataManager implements Runnable{
@@ -37,12 +48,16 @@ public class MavDataManager implements Runnable{
     private UsbSerialPort usb_port = null ;
     private int baudrate;
     private MavlinkConnection mav_connection = null ;
+    public UsbDeviceConnection usb_connection = null ;
     private boolean mavThread_exit = false;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     private volatile SerialPortInputStream inputStream = null;
     private volatile SerialPortOutputStream outputStream = null;
     private MavEventListener listener = null;
+
+    private int system_id;
+    private int component_id;
 
 
     public MavDataManager(Context context, int baudrate, MavEventListener listener){
@@ -90,6 +105,20 @@ public class MavDataManager implements Runnable{
         return (usb_port != null) ;
     }
 
+    public boolean open(UsbDeviceConnection connection,UsbSerialPort port)  {
+        try {
+            usb_port = port ;
+            usb_connection = connection ;
+            usb_port.open(usb_connection);
+            usb_port.setParameters(57600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+            onDeviceStateChange() ;
+        } catch (IOException e) {
+            return false ;
+        }
+
+        return (usb_port != null) ;
+    }
+
     public void close() {
         mavThread_exit = true ;
         mExecutor.shutdown();
@@ -108,6 +137,37 @@ public class MavDataManager implements Runnable{
             e.printStackTrace();
         }
         LogWrapper.i(TAG, "PX4 mavlink close");
+    }
+
+    public void send(Object payload){
+        //MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES
+        //AutopilotVersionRequest
+
+        AutopilotVersionRequest request = AutopilotVersionRequest.builder()
+                                         .targetSystem(system_id)
+                                         .targetComponent(component_id)
+                                         .build();
+       // ParamRequestList request = ParamRequestList.builder().targetSystem(1)
+        //                                         .targetComponent(0).build();
+        try {
+            Log.d("MavData", request.toString());
+            mav_connection.send2(system_id, component_id, request);
+        }catch (Exception ex){
+            ex.printStackTrace();
+
+            Log.d("MavData", ex.toString());
+        }
+    }
+
+    public void sendHeartBeat(){
+        Heartbeat heartbeat = Heartbeat.builder()
+                .type(MavType.MAV_TYPE_GCS)
+                .autopilot(MavAutopilot.MAV_AUTOPILOT_INVALID)
+                .systemStatus(MavState.MAV_STATE_UNINIT)
+                .mavlinkVersion(3)
+                .build();
+
+        send(heartbeat);
     }
 
     private void onDeviceStateChange() {
@@ -131,7 +191,6 @@ public class MavDataManager implements Runnable{
         } catch (Exception e) {
 
         }
-        LogWrapper.i(TAG, "MAV DataManager thread end");
     }
 
     private void step() throws IOException{
@@ -142,7 +201,16 @@ public class MavDataManager implements Runnable{
             int type = MAVLINK_TYPE_1;
             if (message instanceof Mavlink2Message) type = MAVLINK_TYPE_2;
 
+            system_id = message.getOriginSystemId();
+            component_id = message.getOriginComponentId();
+
             Object payload = message.getPayload();
+
+            Log.d("MAVData", message.toString());
+            if(payload instanceof Heartbeat){
+                sendHeartBeat();
+            }
+
             if(listener != null) listener.onReceive(payload, type);
         }
     }

@@ -1,6 +1,8 @@
 package kr.go.forest.das.Model;
 
 public class DroneInfo {
+
+    public int seq;                         //
     /**
      * 비행정보
      */

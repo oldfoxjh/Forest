@@ -19,7 +19,7 @@ import retrofit2.http.Path;
 public interface IApiService {
 
     public final Retrofit retrofit = new Retrofit.Builder()
-            .baseUrl("http://192.168.1.12/weatherforecast/")
+            .baseUrl("http://192.168.1.13/weatherforecast/")
             .addConverterFactory(GsonConverterFactory.create())
             .build();
 

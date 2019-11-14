@@ -88,7 +88,11 @@ public class DJI extends Drone{
     //region 제품정보
     public synchronized DroneInfo getDroneInfo(){
         DroneInfo _drone = new DroneInfo();
-
+        _drone.status = ((drone_status & DRONE_STATUS_DISARM) != 0) ? DRONE_STATUS_DISARM :
+                        ((drone_status & DRONE_STATUS_MISSION) != 0) ? DRONE_STATUS_MISSION :
+                        ((drone_status & DRONE_STATUS_RETURN_HOME) != 0) ? DRONE_STATUS_RETURN_HOME :
+                        ((drone_status & DRONE_STATUS_FLYING) != 0) ? DRONE_STATUS_FLYING :
+                        ((drone_status & DRONE_STATUS_ARMING) != 0) ? DRONE_STATUS_ARMING : 0;
         _drone.flight_time = flight_time;
         _drone.drone_latitude = drone_latitude;
         _drone.drone_longitude = drone_longitude;

@@ -4,12 +4,14 @@ import android.Manifest;
 import android.animation.AnimatorInflater;
 import android.animation.LayoutTransition;
 import android.animation.ObjectAnimator;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbDeviceConnection;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -17,6 +19,7 @@ import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
@@ -28,12 +31,16 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Stack;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import dji.common.Stick;
 import dji.common.camera.SettingsDefinitions;
@@ -49,10 +56,11 @@ import kr.go.forest.das.UI.DialogOk;
 import kr.go.forest.das.UI.DialogSelectDrone;
 import kr.go.forest.das.UI.DialogShootingPurpose;
 import kr.go.forest.das.UI.DialogUploadMission;
+import kr.go.forest.das.Usb.UsbStatus;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.drone.Px4;
 
-public class MainActivity extends AppCompatActivity implements  LocationListener //UsbStatus.UsbStatusCallbacks,
+public class MainActivity extends AppCompatActivity implements  LocationListener
 {
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -65,9 +73,22 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     LocationManager mManager;
     boolean doubleBackToExitPressedOnce = false;
     TextToSpeech tts;                                           // Test to Speech
+
+    private Timer timer;
     MavDataManager mav_manager;
+    UsbDeviceConnection usb_connection;
 
     List<String> shooting_purpose = new ArrayList<>();
+
+    // Used to load the 'native-lib' library on application startup.
+    static {
+        System.loadLibrary("native-lib");
+    }
+    /**
+     * A native method that is implemented by the 'native-lib' native library,
+     * which is packaged with this application.
+     */
+    public native String stringFromJNI();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,20 +102,28 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         setLocationManager();
         initParams();
 
-        LogWrapper.i(TAG, "onCreate");
-
         // USB 연결 확인
         Drone _drone = DroneApplication.getDroneInstance();
         if(_drone != null && _drone instanceof Px4){
             mav_manager = new MavDataManager(this, MavDataManager.BAUDRATE_115200, (Px4)_drone);
-            LogWrapper.i(TAG, "MAV Manager Start.");
-        }else{
-            IntentFilter filter = new IntentFilter(MavDataManager.ACTION_USB_PERMISSION);
+        }
 
-            filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-            filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED) ;
+        UsbManager usb_manager = (UsbManager) getSystemService(android.content.Context.USB_SERVICE);
 
-            registerReceiver(usb_receiver, filter);
+        // USB 권한 획득
+        List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usb_manager);
+        if (availableDrivers.isEmpty()) {
+            LogWrapper.i("USB Device", "availableDrivers.isEmpty()");
+            return;
+        }
+        UsbSerialDriver driver = availableDrivers.get(0);
+        PendingIntent mPermissionIntent = PendingIntent.getBroadcast(MainActivity.this, 0, new Intent("kr.go.forest.das.USB_PERMISSION"), 0);
+        usb_manager.requestPermission(driver.getDevice(),mPermissionIntent);
+
+        // USB 연결된 상태로 부팅했을 경우 연결 체크 타이머 시작
+        if(UsbStatus.isConnected == UsbStatus.USB_CONNECTED){
+            timer = new Timer();
+            timer.schedule(new UsbCheckTimer(), 2000, 1000);
         }
     }
 
@@ -106,6 +135,22 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
             tts.shutdown();
             tts = null;
         }
+
+        // USB 관련 내용 해제
+        if(usb_connection != null) {
+            usb_connection.close();
+            usb_connection = null;
+        }
+        if(mav_manager != null) {
+            mav_manager.close();
+            mav_manager = null;
+        }
+
+        if(timer != null){
+            timer.cancel();
+            timer = null;
+        }
+
         super.onDestroy();
     }
 
@@ -222,6 +267,9 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     }
     //endregion
 
+
+
+
     /**
      * Text to speech
      * @param text 텍스트
@@ -233,12 +281,46 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         else
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
     }
-
     //region OTTO Event Subscribe
 
     /**
-     * 음성지원 서비스
-     * @param object TTS 서비스를 사용한 텍스트를 포함한 객체
+     * Usb 연결 이벤트
+     * @param object Usb 연결 여부
+     */
+    @Subscribe
+    public void onUsbConnection(final UsbConnection object) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(object.is_connected == false){
+                    // USB 체크 타이머 종료
+                    if(timer != null) {
+                        timer.cancel();
+                        timer = null;
+                    }
+                    // USB 연결 해제
+                    if(usb_connection != null) {
+                        usb_connection.close();
+                        usb_connection = null;
+                    }
+                    if(mav_manager != null) {
+                        mav_manager.close();
+                        mav_manager = null;
+                    }
+                }else{
+                    if(timer == null) {
+                        timer = new Timer();
+                        timer.schedule(new UsbCheckTimer(), 2000, 1000);
+                    }
+                }
+            }
+        });
+    }
+
+
+    /**
+     * Toast 메세지
+     * @param object Toast Message 정보
      */
     @Subscribe
     public void onToast(final ToastOrb object) {
@@ -594,18 +676,37 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         }
     }
 
-    private final BroadcastReceiver usb_receiver = new BroadcastReceiver() {
+    public static class UsbConnection{
+        public boolean is_connected;
+        public UsbConnection(boolean isConnected){
+            is_connected = isConnected;
+        }
+    }
+
+    class UsbCheckTimer extends TimerTask {
         @Override
-        public void onReceive(android.content.Context context, Intent intent) {
-            String action = intent.getAction();
-            LogWrapper.i(TAG, action);
-            if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
-                mav_manager.close();
-            }
-            else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
-                Toast.makeText(MainActivity.this, "Mavlink Start.", Toast.LENGTH_SHORT).show();
+        public void run() {
+
+            if(usb_connection == null) {
+                UsbManager usb_manager = (UsbManager) getSystemService(android.content.Context.USB_SERVICE);
+                // check accessory for pixhawk
+                List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usb_manager);
+                if (availableDrivers.isEmpty()) {
+                    LogWrapper.i("USB Device", "availableDrivers.isEmpty()");
+                    return;
+                }
+                UsbSerialDriver driver = availableDrivers.get(0);
+                usb_connection = usb_manager.openDevice(driver.getDevice());
+                if (usb_connection == null) {
+                    LogWrapper.i("USB Device", "usb_connection == null");
+                    return;
+                }
+
+                if(DroneApplication.getDroneInstance() == null) DroneApplication.setDroneInstance((Drone.DRONE_MANUFACTURE_PIXHWAK));
+                if(mav_manager == null) mav_manager = new MavDataManager(MainActivity.this, MavDataManager.BAUDRATE_115200, (Px4)(DroneApplication.getDroneInstance()));
+                mav_manager.open(usb_connection, driver.getPorts().get(0));
             }
         }
-    };
+    }
     //endregion
 }

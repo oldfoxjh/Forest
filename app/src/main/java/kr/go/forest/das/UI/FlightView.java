@@ -30,6 +30,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,6 +79,7 @@ import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.geo.GeoManager;
 import kr.go.forest.das.map.MapLayer;
+import kr.go.forest.das.network.NetworkStatus;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -93,6 +95,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     Timer timer = null;                                                     // 드론정보 수집 타이머
     ArrayList<DroneInfo> drone_flight_log_4_realtime = new ArrayList<>();   // 실시간 전송용 비행 및 기체정보
     ArrayList<DroneInfo> drone_flight_log_4_bigdata = new ArrayList<>();    // 빅데이터 업로드용 비행 및 기체정보
+    int drone_info_seq = 1;                                                 // 실시간 전송 data seq
+    boolean send_complete = true;                                          // 실시간 전송 성공 여부
     private Handler handler_ui;                                             // UI 업데이트 핸들러
     private ProgressDialog progress;
 
@@ -538,7 +542,12 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                     }
                 }else{
                     //DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_SHOOTING_PURPOSE, 0, 0));
-                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CHECK_REALTIME, 0, 0));
+
+                    if(DroneApplication.getSystemInfo().isLogin() && DroneApplication.getSystemInfo().live_url != null) {
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CHECK_REALTIME, 0, 0));
+                    }else{
+                        DroneApplication.getEventBus().post(new MainActivity.Realtime(false));
+                    }
                 }
                 break;
             case R.id.btn_flight_shoot:
@@ -740,27 +749,34 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         root_view.addView(flight_fpv_layout, fpvInsertPosition);
     }
 
-    private void sendFlightLog(){
-        if( DroneApplication.getSystemInfo().isLogin() && drone_flight_log_4_realtime.size() > DRONE_INFO_SEND_SIZE){
+    private void sendFlightLog(boolean force_send){
+        if( force_send == true || (send_complete == true                        // 전송 성공 여부 확인
+            && DroneApplication.getSystemInfo().isLogin()                       // 로그인 여부 확인
+            && drone_flight_log_4_realtime.size() > DRONE_INFO_SEND_SIZE))      // 전송 크기 확인
+        {
             DroneInfoRequest _request = new DroneInfoRequest(DroneApplication.getSystemInfo(),  drone_flight_log_4_realtime.subList(0,DRONE_INFO_SEND_SIZE));
+            send_complete = false;
+            DroneApplication.getApiInstance().postDroneInfo(_request).enqueue(new Callback<DroneInfoResponse>() {
+                @Override
+                public void onResponse(Call<DroneInfoResponse> call, Response<DroneInfoResponse> response) {
+                    DroneInfoResponse _test = response.body();
 
-            if(!DroneApplication.getApiInstance().postDroneInfo(_request).isExecuted()) {
-                DroneApplication.getApiInstance().postDroneInfo(_request).enqueue(new Callback<DroneInfoResponse>() {
-                    @Override
-                    public void onResponse(Call<DroneInfoResponse> call, Response<DroneInfoResponse> response) {
-                        DroneInfoResponse _test = response.body();
-
+                    if(force_send == false){
                         for (int i = 0; i < DRONE_INFO_SEND_SIZE; i++) {
                             drone_flight_log_4_realtime.remove(0);
                         }
+                    }else{
+                        drone_flight_log_4_realtime.clear();
                     }
 
-                    @Override
-                    public void onFailure(Call<DroneInfoResponse> call, Throwable t) {
 
-                    }
-                });
-            }
+                    send_complete = true;
+                }
+
+                @Override
+                public void onFailure(Call<DroneInfoResponse> call, Throwable t) {
+                }
+            });
         }
 
 
@@ -848,12 +864,13 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         map_view.invalidate();
 
                         if(DroneApplication.getDroneInstance().isFlying()){
+                            _info.seq = drone_info_seq++;
                             drone_flight_log_4_realtime.add(_info);
                             drone_flight_log_4_bigdata.add(_info);
 
                             // 재난상황일 때는 전송
-                            if(DroneApplication.getSystemInfo().is_realtime){
-                                sendFlightLog();
+                            if(DroneApplication.getSystemInfo().is_realtime && NetworkStatus.isInternetConnected(context) == true){
+                                sendFlightLog(false);
                             }
                         }
                     }
@@ -928,10 +945,12 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         _layout_rth.setVisibility(VISIBLE);
 
                         // 드론 비행정보 json 형태로 저장
-                        if(drone_flight_log_4_bigdata.size() > 0){
+                        if(DroneApplication.getSystemInfo().isLogin() == true && drone_flight_log_4_bigdata.size() > 0){
                             DroneInfoRequest _info = new DroneInfoRequest(DroneApplication.getSystemInfo(), drone_flight_log_4_bigdata.subList(0, drone_flight_log_4_bigdata.size() - 1));
                             _info.save_flight_log();
                             drone_flight_log_4_bigdata.clear();
+                            // 남아있는 data 전송
+                            sendFlightLog(true);
                         }
                     }
                 });
@@ -1146,8 +1165,11 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             new Thread() {
                 @Override
                 public void run() {
+                    DJISDKManager.getInstance().getLiveStreamManager().setLiveUrl("rtmp://mvst2.iptime.org/live/myStream");
                     //DJISDKManager.getInstance().getLiveStreamManager().setLiveUrl("rtmp://57e471.entrypoint.cloud.wowza.com/app-4c25/a6aa3218");
-                    DJISDKManager.getInstance().getLiveStreamManager().setLiveUrl(DroneApplication.getSystemInfo().live_url);
+                    //rtmp://wowza:wowza@mvst2.iptime.org/live/wowza/myStream
+                    //rtmp://mvst2.iptime.org/live/myStream
+                    //DJISDKManager.getInstance().getLiveStreamManager().setLiveUrl(DroneApplication.getSystemInfo().live_url);
                     _result = DJISDKManager.getInstance().getLiveStreamManager().startStream();
                     DJISDKManager.getInstance().getLiveStreamManager().setStartTime();
 
@@ -1245,16 +1267,16 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      */
     private void setReturnHomeCancelWidget(boolean is_rth){
         if(is_rth) {
-            LinearLayout _layout = (LinearLayout) findViewById(R.id.layout_flight_cancel);
+            LinearLayout _layout = findViewById(R.id.layout_flight_cancel);
             _layout.setVisibility(VISIBLE);
-            LinearLayout _layout_rth = (LinearLayout) findViewById(R.id.layout_flight_rth);
+            LinearLayout _layout_rth = findViewById(R.id.layout_flight_rth);
             _layout_rth.setVisibility(INVISIBLE);
 
             btn_flight_cancel.setTag("rtl");
         }else{
-            LinearLayout _layout = (LinearLayout) findViewById(R.id.layout_flight_cancel);
+            LinearLayout _layout = findViewById(R.id.layout_flight_cancel);
             _layout.setVisibility(VISIBLE);
-            LinearLayout _layout_rth = (LinearLayout) findViewById(R.id.layout_flight_rth);
+            LinearLayout _layout_rth = findViewById(R.id.layout_flight_rth);
             _layout_rth.setVisibility(INVISIBLE);
 
             btn_flight_cancel.setTag("landing");
@@ -1267,9 +1289,9 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      * 자동귀환 또는 자동착률 컨트롤 버튼 표시여부를 설정한다.
      */
     private void setReturnHomeWidget(){
-        LinearLayout _layout = (LinearLayout) findViewById(R.id.layout_flight_cancel);
+        LinearLayout _layout = findViewById(R.id.layout_flight_cancel);
         _layout.setVisibility(INVISIBLE);
-        LinearLayout _layout_rth = (LinearLayout) findViewById(R.id.layout_flight_rth);
+        LinearLayout _layout_rth = findViewById(R.id.layout_flight_rth);
         _layout_rth.setVisibility(VISIBLE);
     }
 
