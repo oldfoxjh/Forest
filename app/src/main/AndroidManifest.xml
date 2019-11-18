@@ -51,18 +51,18 @@
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
             </intent-filter>
             <meta-data android:resource="@xml/device_filter" android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"/>
-            <meta-data android:resource="@xml/device_filter" android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
+            <meta-data android:resource="@xml/device_pixhawk" android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
         </activity>
 
         <!-- USB Change Receiver -->
-        <receiver
-            android:name=".Usb.UsbStatus$UsbStateReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_STATE" />
-            </intent-filter>
-        </receiver>
+<!--        <receiver-->
+<!--            android:name=".Usb.UsbStatus$UsbStateReceiver"-->
+<!--            android:enabled="true"-->
+<!--            android:exported="true">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.hardware.usb.action.USB_STATE" />-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
     </application>
 
 </manifest>

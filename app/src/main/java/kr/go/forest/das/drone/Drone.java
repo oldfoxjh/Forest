@@ -58,7 +58,7 @@ public abstract class Drone {
     double drone_longitude;         /** 드론 경도 */
     float drone_altitude;           /** 드론 고도 */
 
-    int satellites_visible;         /** GPS 위성 연결 개수 */
+    int satellites_visible_count;         /** GPS 위성 연결 개수 */
 
     float velocyty_x = 0.0f;        /** 드론 x축 속도 */
     float velocyty_y = 0.0f;        /** 드론 y축 속도 */

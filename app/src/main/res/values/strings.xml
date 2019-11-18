@@ -29,7 +29,7 @@
     <string name="return_home_cancel_title">자동복귀를 취소하시겠습니까?</string>
     <string name="cancel_return_home_fail">자동복귀 취소에 실패하였습니다.\n</string>
     <string name="set_home_location_fail">자동복귀 위치 설정에 실패하였습니다.\n</string>
-    <string name="check_drone_connection">기능을 사용하기 위해서는 드론 연결이 필요합니다.\n드론이 연결되었는지 확인해주세요.</string>
+    <string name="check_drone_connection">기능을 사용하기 위해서는 드론 연결이 필요합니다.드론이 연결되었는지 확인해주세요.</string>
     <string name="mission_upload_fail">임무전송에 실패하였습니다.\n</string>
     <string name="mission_upload_success">임무전송에 성공하였습니다.\n임무를 바로 시작하시겠습니까?</string>
     <string name="mission_start_fail">임무시작에 실패하였습니다.\n</string>

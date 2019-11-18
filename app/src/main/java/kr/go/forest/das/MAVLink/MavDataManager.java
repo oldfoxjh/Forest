@@ -22,16 +22,36 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import io.dronefleet.mavlink.ardupilotmega.AutopilotVersionRequest;
+import io.dronefleet.mavlink.common.Altitude;
+import io.dronefleet.mavlink.common.Attitude;
 import io.dronefleet.mavlink.common.AutopilotVersion;
+import io.dronefleet.mavlink.common.BatteryStatus;
+import io.dronefleet.mavlink.common.CommandAck;
+import io.dronefleet.mavlink.common.CommandInt;
 import io.dronefleet.mavlink.common.CommandLong;
+import io.dronefleet.mavlink.common.EstimatorStatus;
+import io.dronefleet.mavlink.common.ExtendedSysState;
 import io.dronefleet.mavlink.common.Heartbeat;
+import io.dronefleet.mavlink.common.HighresImu;
 import io.dronefleet.mavlink.common.HomePosition;
+import io.dronefleet.mavlink.common.LocalPositionNed;
 import io.dronefleet.mavlink.common.MavAutopilot;
+import io.dronefleet.mavlink.common.MavCmd;
 import io.dronefleet.mavlink.common.MavState;
 import io.dronefleet.mavlink.common.MavType;
 import io.dronefleet.mavlink.common.ParamRequestList;
+import io.dronefleet.mavlink.common.ParamRequestRead;
 import io.dronefleet.mavlink.common.Ping;
+import io.dronefleet.mavlink.common.RcChannels;
+import io.dronefleet.mavlink.common.RcChannelsOverride;
+import io.dronefleet.mavlink.common.ServoOutputRaw;
+import io.dronefleet.mavlink.common.SysStatus;
+import io.dronefleet.mavlink.common.UtmGlobalPosition;
+import io.dronefleet.mavlink.common.Vibration;
 import kr.go.forest.das.Log.LogWrapper;
+
+import static io.dronefleet.mavlink.common.MavCmd.MAV_CMD_GET_HOME_POSITION;
+import static io.dronefleet.mavlink.common.MavCmd.MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES;
 
 public class MavDataManager implements Runnable{
 
@@ -107,12 +127,14 @@ public class MavDataManager implements Runnable{
 
     public boolean open(UsbDeviceConnection connection,UsbSerialPort port)  {
         try {
+            Log.e("Command Ack", "open usb");
             usb_port = port ;
             usb_connection = connection ;
             usb_port.open(usb_connection);
             usb_port.setParameters(57600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
             onDeviceStateChange() ;
         } catch (IOException e) {
+            Log.e("Command Ack", "open usb fail");
             return false ;
         }
 
@@ -140,22 +162,10 @@ public class MavDataManager implements Runnable{
     }
 
     public void send(Object payload){
-        //MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES
-        //AutopilotVersionRequest
-
-        AutopilotVersionRequest request = AutopilotVersionRequest.builder()
-                                         .targetSystem(system_id)
-                                         .targetComponent(component_id)
-                                         .build();
-       // ParamRequestList request = ParamRequestList.builder().targetSystem(1)
-        //                                         .targetComponent(0).build();
         try {
-            Log.d("MavData", request.toString());
-            mav_connection.send2(system_id, component_id, request);
+            mav_connection.send2(255, 0, payload);
         }catch (Exception ex){
             ex.printStackTrace();
-
-            Log.d("MavData", ex.toString());
         }
     }
 
@@ -168,6 +178,59 @@ public class MavDataManager implements Runnable{
                 .build();
 
         send(heartbeat);
+    }
+
+    /**
+     * AutopilotVersion 정보 요청
+     */
+    public void requestAutopilotVersion(){
+        CommandInt request = CommandInt.builder()
+                .targetComponent(component_id)
+                .targetSystem(system_id)
+                .command(MavCmd.MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES)
+                .build();
+
+        send(request);
+    }
+
+    public void requestParameterList(){
+        ParamRequestList request =
+                ParamRequestList.builder()
+                    .targetSystem(system_id)
+                    .targetComponent(component_id)
+                    .build();
+        send(request);
+    }
+
+    public void requestHomePosition(){
+        CommandLong request = CommandLong.builder()
+                                         .targetComponent(component_id)
+                                         .targetSystem(system_id)
+                                         .command(MavCmd.MAV_CMD_GET_HOME_POSITION)
+                                         .build();
+        send(request);
+    }
+
+    public void requestTakeOff(){
+        CommandLong request = CommandLong.builder()
+                .targetComponent(component_id)
+                .targetSystem(system_id)
+                .command(MavCmd.MAV_CMD_NAV_TAKEOFF)
+                .param7(1.2f)
+                .build();
+
+        send(request);
+    }
+
+    public void requestLand(){
+        CommandLong request = CommandLong.builder()
+                .targetComponent(component_id)
+                .targetSystem(system_id)
+                .command(MavCmd.MAV_CMD_NAV_LAND)
+                .param7(0.0f)
+                .build();
+
+        send(request);
     }
 
     private void onDeviceStateChange() {
@@ -206,9 +269,17 @@ public class MavDataManager implements Runnable{
 
             Object payload = message.getPayload();
 
-            Log.d("MAVData", message.toString());
             if(payload instanceof Heartbeat){
                 sendHeartBeat();
+            }else if(payload instanceof Ping){
+                requestAutopilotVersion();
+            }else if(payload instanceof Altitude || payload instanceof Attitude || payload instanceof RcChannels || payload instanceof RcChannelsOverride || payload instanceof LocalPositionNed
+                    || payload instanceof BatteryStatus || payload instanceof ServoOutputRaw || payload instanceof ExtendedSysState || payload instanceof HighresImu || payload instanceof EstimatorStatus || payload instanceof Vibration || payload instanceof SysStatus
+                    || payload instanceof UtmGlobalPosition
+            ){
+
+            }else {
+               Log.e("Command Ack", payload.toString());
             }
 
             if(listener != null) listener.onReceive(payload, type);

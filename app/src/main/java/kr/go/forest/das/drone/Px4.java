@@ -24,14 +24,20 @@ import dji.common.model.LocationCoordinate2D;
 import dji.common.product.Model;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.battery.Battery;
+import io.dronefleet.mavlink.common.Attitude;
 import io.dronefleet.mavlink.common.AutopilotVersion;
 import io.dronefleet.mavlink.common.BatteryStatus;
+import io.dronefleet.mavlink.common.CommandAck;
+import io.dronefleet.mavlink.common.GlobalPositionInt;
 import io.dronefleet.mavlink.common.GpsRawInt;
 import io.dronefleet.mavlink.common.Heartbeat;
 import io.dronefleet.mavlink.common.HomePosition;
 import io.dronefleet.mavlink.common.LocalPositionNed;
 import io.dronefleet.mavlink.common.ManualControl;
+import io.dronefleet.mavlink.common.MavCmd;
+import io.dronefleet.mavlink.common.MavResult;
 import io.dronefleet.mavlink.common.VfrHud;
+import io.dronefleet.mavlink.util.EnumValue;
 import kr.go.forest.das.MAVLink.MavDataManager;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
@@ -565,16 +571,7 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
 
     @Override
     public void onReceive(Object payload, int type) {
-//        double drone_latitude;          /** 드론 위도 */
-//        double drone_longitude;         /** 드론 경도 */
-
 //        int flight_time;                /** 비행시간 */
-//
-//        double drone_pitch;             /** 드론 pitch */
-//        double drone_roll;              /** 드론 roll */
-//        double drone_yaw;               /** 드론 yaw */
-
-//        Model model = Model.UNKNOWN_AIRCRAFT;
 
         if(payload instanceof VfrHud){
             heading = ((VfrHud) payload).heading();
@@ -602,12 +599,31 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
         }else if(payload instanceof GPSSignalLevel){
 
         }else if(payload instanceof GpsRawInt){
-            satellites_visible = ((GpsRawInt) payload).satellitesVisible();
+            satellites_visible_count = ((GpsRawInt) payload).satellitesVisible();
         }else if(payload instanceof AutopilotVersion){
             Log.d("Px4", "AutopilotVersion : " + payload.toString());
-        }
+        }else if(payload instanceof Attitude){
+            drone_roll = ((Attitude) payload).roll();
+            drone_pitch = ((Attitude) payload).pitch();
+            drone_yaw = ((Attitude) payload).yaw();
+        }else if(payload instanceof GlobalPositionInt){
+            drone_latitude = ((GlobalPositionInt) payload).lat();
+            drone_longitude = ((GlobalPositionInt) payload).lon();
+        }else if(payload instanceof CommandAck){
+            EnumValue<MavCmd> command = ((CommandAck) payload).command();
+            EnumValue<MavResult> result = ((CommandAck) payload).result();
 
-      //  Log.d("Px4", payload.toString());
+            if(command.entry() == MavCmd.MAV_CMD_NAV_LAND){
+                if(result.entry() == MavResult.MAV_RESULT_ACCEPTED){
+                    // 착륙 명령 성공
+                }
+            }else if(command.entry() == MavCmd.MAV_CMD_NAV_TAKEOFF){
+                if(result.entry() == MavResult.
+                        MAV_RESULT_ACCEPTED){
+                    // 이륙 명령 성공
+                }
+            }
+        }
     }
     //endregion
 }

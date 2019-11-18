@@ -5,7 +5,6 @@
       "sdkFolder": "C:\\Users\\oldfo\\AppData\\Local\\Android\\Sdk",
       "isNativeCompilerSettingsCacheEnabled": false,
       "isBuildOnlyTargetAbiEnabled": true,
-      "ideBuildTargetAbi": "armeabi-v7a,armeabi",
       "splitsAbiFilterSet": [],
       "intermediatesFolder": "D:\\Forest\\app\\build\\intermediates",
       "gradleModulePathName": ":app",
@@ -42,7 +41,8 @@
     "gradleBuildOutputFolder": "D:\\Forest\\app\\.cxx\\cxx\\debug",
     "isDebuggableEnabled": true,
     "validAbiList": [
-      "ARMEABI_V7A"
+      "ARMEABI_V7A",
+      "ARM64_V8A"
     ],
     "buildTargetSet": []
   },

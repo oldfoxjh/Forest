@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import android.util.Log;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
@@ -32,6 +33,7 @@ public class UsbStatus {
     public static class UsbStateReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.e("UsbStateReceiver", "" + intent.getExtras().getBoolean("connected"));
 
             if(intent.getExtras().getBoolean("connected") && isConnected == USB_DISCONNECTED)
             {
@@ -48,15 +50,9 @@ public class UsbStatus {
                         DroneApplication.setDroneInstance(Drone.DRONE_MANUFACTURE_DJI);
                         isConnected = USB_ACCESSORY_CONNECTED;
                     }
-                }else if(isConnected == USB_DISCONNECTED){
-                    DroneApplication.setDroneInstance((Drone.DRONE_MANUFACTURE_PIXHWAK));
-                    isConnected = USB_CONNECTED;
-                    DroneApplication.getEventBus().post(new MainActivity.UsbConnection(true));
                 }
-
             }else{
                 isConnected = USB_DISCONNECTED;
-                DroneApplication.getEventBus().post(new MainActivity.UsbConnection(false));
             }
         }
     }
