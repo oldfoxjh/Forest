@@ -19,7 +19,8 @@ import retrofit2.http.Path;
 public interface IApiService {
 
     public final Retrofit retrofit = new Retrofit.Builder()
-            .baseUrl("http://192.168.0.47/weatherforecast/")
+            //.baseUrl("http://192.168.0.47/weatherforecast/")
+            .baseUrl("http://192.168.10.154:8081/fdms_out_portal/dim/flnMngme/")
             .addConverterFactory(GsonConverterFactory.create())
             .build();
 
@@ -32,7 +33,7 @@ public interface IApiService {
         "content-type:application/json",
         "accept:application/json"
     })
-    @POST("login")
+    @POST("appLogin.do")
     Call<LoginResponse> postLogin(@Body LoginRequest info);
 
     /**
@@ -44,7 +45,7 @@ public interface IApiService {
             "content-type:application/json",
             "accept:application/json"
     })
-    @POST("info")
+    @POST("insertFlnInfo.do")
     Call<DroneInfoResponse> postDroneInfo(@Body DroneInfoRequest info);
 
     /**

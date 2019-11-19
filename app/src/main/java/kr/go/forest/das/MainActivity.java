@@ -625,6 +625,15 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         }
     }
 
+    public static class DroneConnect{
+        private boolean is_connect;
+        public DroneConnect(boolean connect){
+            is_connect = connect;
+        }
+
+        public boolean isConnect(){ return is_connect; }
+    }
+
     class UsbCheckTimer extends TimerTask {
         @Override
         public void run() {
@@ -634,11 +643,13 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                 // check USB for pixhawk
                 List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usb_manager);
                 if (availableDrivers.isEmpty()) {
+                    Log.e(TAG, "availableDrivers.isEmpty()");
                     return;
                 }
                 UsbSerialDriver driver = availableDrivers.get(0);
                 usb_connection = usb_manager.openDevice(driver.getDevice());
                 if (usb_connection == null) {
+                    Log.e(TAG, "usb_connection == null");
                     return;
                 }
 
@@ -646,11 +657,16 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                 if(is_permission == false) {
                     PendingIntent mPermissionIntent = PendingIntent.getBroadcast(MainActivity.this, 0, new Intent("kr.go.forest.das.USB_PERMISSION"), 0);
                     usb_manager.requestPermission(driver.getDevice(), mPermissionIntent);
-
+                    Log.e(TAG, "requestPermission");
                     is_permission = true;
+                }else{
+                    Log.e(TAG, "is_permission == true");
                 }
 
-                if(DroneApplication.getDroneInstance() == null) DroneApplication.setDroneInstance((Drone.DRONE_MANUFACTURE_PIXHWAK));
+                if(DroneApplication.getDroneInstance() == null) {
+                    DroneApplication.setDroneInstance((Drone.DRONE_MANUFACTURE_PIXHWAK));
+                    DroneApplication.getEventBus().post(new MainActivity.DroneConnect(true));
+                }
                 if(mav_manager == null) mav_manager = new MavDataManager(MainActivity.this, MavDataManager.BAUDRATE_57600, (Px4)(DroneApplication.getDroneInstance()));
                 mav_manager.open(usb_connection, driver.getPorts().get(0));
             }else{

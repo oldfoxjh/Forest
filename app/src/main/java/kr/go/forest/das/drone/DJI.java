@@ -1250,6 +1250,7 @@ public class DJI extends Drone{
         public void onProductDisconnect() {
             DroneApplication.getDroneInstance().removeDroneDataListener();
             DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_DISCONNECT));
+            DroneApplication.getEventBus().post(new MainActivity.DroneConnect(false));
         }
 
         /**
@@ -1265,7 +1266,7 @@ public class DJI extends Drone{
                 DroneApplication.getDroneInstance().getCameraFocalLength();     // 드론 카메라 GSD factor 설정
             }
             DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_CONNECT));
-            DroneApplication.getEventBus().post(new MainActivity.ToastOrb(DroneApplication.getDroneInstance().getAircaftModel().getDisplayName() + " 연결되었습니다."));
+            DroneApplication.getEventBus().post(new MainActivity.DroneConnect(true));
         }
 
         @Override

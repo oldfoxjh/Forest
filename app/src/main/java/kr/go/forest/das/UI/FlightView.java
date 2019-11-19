@@ -771,10 +771,13 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
 
 
                     send_complete = true;
+                    Log.e(TAG, "send onResponse");
                 }
 
                 @Override
                 public void onFailure(Call<DroneInfoResponse> call, Throwable t) {
+                    Log.e(TAG, "send onFailure : " + t.toString());
+                    send_complete = true;
                 }
             });
         }

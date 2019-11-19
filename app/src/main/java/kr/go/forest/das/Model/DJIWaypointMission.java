@@ -38,7 +38,7 @@ public class DJIWaypointMission {
         builder.gotoFirstWaypointMode(WaypointMissionGotoWaypointMode.SAFELY);
         builder.finishedAction(WaypointMissionFinishedAction.NO_ACTION);
         builder.flightPathMode(WaypointMissionFlightPathMode.NORMAL);
-        builder.headingMode(WaypointMissionHeadingMode.USING_WAYPOINT_HEADING);
+        builder.headingMode(WaypointMissionHeadingMode.AUTO);
         builder.repeatTimes(0);
 
         // 3D 정보 반영

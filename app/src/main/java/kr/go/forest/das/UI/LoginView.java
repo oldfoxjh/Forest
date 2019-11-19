@@ -133,6 +133,7 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                         _info.weather.weather = _response.weather.weather;
                         _info.weather.temperature = _response.weather.temperature;
                         _info.weather.wind_speed = _response.weather.wind_speed;
+                        _info.drone_id = _response.drone_list.get(0).manage_number;
 
                         _info.is_realtime = true;
                         _info.live_url = _response.live_url;

@@ -107,7 +107,7 @@
                 android:paddingTop="@dimen/px2"
                 android:textSize="@dimen/font20"
                 android:textColor="#FFF"
-                android:text="66"
+                android:text=""
                 />
         </LinearLayout>
         <Button
