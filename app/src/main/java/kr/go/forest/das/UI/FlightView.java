@@ -474,7 +474,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         btn_shoot.setOnClickListener(this);
         btn_camera_setting = findViewById(R.id.btn_flight_camera_setting);
         btn_camera_setting.setOnClickListener(this);
-        tv_record_time = (TextView) findViewById(R.id.tv_flight_record_time);
+        tv_record_time = findViewById(R.id.tv_flight_record_time);
 //        sb_flight_gimbal_pitch = (SeekBar) findViewById(R.id.sb_flight_gimbal_pitch);
 //        sb_flight_gimbal_pitch.setOnTouchListener(new View.OnTouchListener() {
 //            @Override
@@ -488,24 +488,24 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
         flight_camera_setting_panel = findViewById(R.id.flight_camera_setting_panel);
 
         // Map Top
-        btn_flight_location = (Button) findViewById(R.id.btn_flight_location);
+        btn_flight_location = findViewById(R.id.btn_flight_location);
         btn_flight_location.setOnClickListener(this);
-        btn_flight_nofly = (Button) findViewById(R.id.btn_flight_nofly);
+        btn_flight_nofly = findViewById(R.id.btn_flight_nofly);
         btn_flight_nofly.setOnClickListener(this);
-        btn_flight_fires = (Button) findViewById(R.id.btn_flight_fires);
+        btn_flight_fires = findViewById(R.id.btn_flight_fires);
         btn_flight_fires.setOnClickListener(this);
-        btn_flight_save_path = (Button) findViewById(R.id.btn_flight_save_path);
+        btn_flight_save_path = findViewById(R.id.btn_flight_save_path);
         btn_flight_save_path.setOnClickListener(this);
 
         // RTH
-        btn_flight_takeoff = (Button) findViewById(R.id.btn_flight_takeoff);
+        btn_flight_takeoff = findViewById(R.id.btn_flight_takeoff);
         btn_flight_takeoff.setTag("takeoff");
         btn_flight_takeoff.setOnClickListener(this);
-        btn_flight_return_home = (Button) findViewById(R.id.btn_flight_return_home);
+        btn_flight_return_home = findViewById(R.id.btn_flight_return_home);
         btn_flight_return_home.setOnClickListener(this);
-        btn_flight_return_my_location = (Button) findViewById(R.id.btn_flight_return_my_location);
+        btn_flight_return_my_location = findViewById(R.id.btn_flight_return_my_location);
         btn_flight_return_my_location.setOnClickListener(this);
-        btn_flight_cancel = (Button) findViewById(R.id.btn_flight_cancel);
+        btn_flight_cancel = findViewById(R.id.btn_flight_cancel);
         btn_flight_cancel.setOnClickListener(this);
 
         // 드론 임무상태를 체크해서 적용
@@ -687,10 +687,10 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      */
     @Override
     public boolean singleTapConfirmedHelper(GeoPoint p) {
-        RelativeLayout _layout =  (RelativeLayout) findViewById(R.id.flightMapLayout);
-        LinearLayout _map = (LinearLayout) findViewById(R.id.layout_flight_map_top);
+        RelativeLayout _layout = findViewById(R.id.flightMapLayout);
+        LinearLayout _map = findViewById(R.id.layout_flight_map_top);
 
-        if(is_map_mini == true)
+        if(is_map_mini)
         {
             resizeFPVWidget(width, height, margin, 11);
             ResizeAnimation mapViewAnimation = new ResizeAnimation(_layout, width, height, device_width, device_height, 0);
@@ -727,13 +727,13 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
      * @param fpvInsertPosition 위젯 z-index
      */
     private void resizeFPVWidget(int width, int height, int margin, int fpvInsertPosition) {
-        RelativeLayout flight_fpv_layout = (RelativeLayout) findViewById(R.id.flight_fpv_layout);
+        RelativeLayout flight_fpv_layout = findViewById(R.id.flight_fpv_layout);
         RelativeLayout.LayoutParams fpvParams = (RelativeLayout.LayoutParams)flight_fpv_layout.getLayoutParams();
         fpvParams.height = height;
         fpvParams.width = width;
         fpvParams.leftMargin = margin;
         fpvParams.bottomMargin = margin;
-        if (is_map_mini == true) {
+        if (is_map_mini) {
             fpvParams.addRule(RelativeLayout.CENTER_IN_PARENT, 0);
             fpvParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
             fpvParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
