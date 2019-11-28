@@ -78,8 +78,9 @@ public final class UsbId {
     public static final int VENDOR_STMICROELECTRONICS = 0x0483;
     public static final int STM32_F373XX = 0x5740;
 
-    public static final int VENDOR_PX43D_ROBOTICS = 0x26AC;
-    public static final int PX43D_ROBOTICS = 0x32;
+    public static final int VENDOR_PX4 = 0x26AC;
+    public static final int PX4_FMUV5 = 0x32;
+    public static final int PX4_FMUV3 = 0x11;
 
     private UsbId() {
         throw new IllegalAccessError("Non-instantiable class.");

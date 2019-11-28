@@ -5,6 +5,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
 
+import com.google.android.gms.common.internal.safeparcel.SafeParcelable;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
@@ -22,8 +23,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import io.dronefleet.mavlink.ardupilotmega.AutopilotVersionRequest;
+import io.dronefleet.mavlink.common.ActuatorControlTarget;
 import io.dronefleet.mavlink.common.Altitude;
 import io.dronefleet.mavlink.common.Attitude;
+import io.dronefleet.mavlink.common.AttitudeQuaternion;
+import io.dronefleet.mavlink.common.AttitudeTarget;
 import io.dronefleet.mavlink.common.AutopilotVersion;
 import io.dronefleet.mavlink.common.BatteryStatus;
 import io.dronefleet.mavlink.common.CommandAck;
@@ -31,22 +35,33 @@ import io.dronefleet.mavlink.common.CommandInt;
 import io.dronefleet.mavlink.common.CommandLong;
 import io.dronefleet.mavlink.common.EstimatorStatus;
 import io.dronefleet.mavlink.common.ExtendedSysState;
+import io.dronefleet.mavlink.common.GpsRawInt;
 import io.dronefleet.mavlink.common.Heartbeat;
 import io.dronefleet.mavlink.common.HighresImu;
 import io.dronefleet.mavlink.common.HomePosition;
 import io.dronefleet.mavlink.common.LocalPositionNed;
 import io.dronefleet.mavlink.common.MavAutopilot;
 import io.dronefleet.mavlink.common.MavCmd;
+import io.dronefleet.mavlink.common.MavDataStream;
+import io.dronefleet.mavlink.common.MavResult;
 import io.dronefleet.mavlink.common.MavState;
 import io.dronefleet.mavlink.common.MavType;
 import io.dronefleet.mavlink.common.ParamRequestList;
 import io.dronefleet.mavlink.common.ParamRequestRead;
+import io.dronefleet.mavlink.common.ParamValue;
 import io.dronefleet.mavlink.common.Ping;
 import io.dronefleet.mavlink.common.RcChannels;
 import io.dronefleet.mavlink.common.RcChannelsOverride;
+import io.dronefleet.mavlink.common.RequestDataStream;
+import io.dronefleet.mavlink.common.ScaledImu;
+import io.dronefleet.mavlink.common.ScaledImu2;
+import io.dronefleet.mavlink.common.ScaledImu3;
 import io.dronefleet.mavlink.common.ServoOutputRaw;
+import io.dronefleet.mavlink.common.Statustext;
 import io.dronefleet.mavlink.common.SysStatus;
+import io.dronefleet.mavlink.common.Timesync;
 import io.dronefleet.mavlink.common.UtmGlobalPosition;
+import io.dronefleet.mavlink.common.VfrHud;
 import io.dronefleet.mavlink.common.Vibration;
 import kr.go.forest.das.Log.LogWrapper;
 
@@ -78,6 +93,8 @@ public class MavDataManager implements Runnable{
 
     private int system_id;
     private int component_id;
+
+    private long seq = 1;
 
 
     public MavDataManager(Context context, int baudrate, MavEventListener listener){
@@ -163,7 +180,7 @@ public class MavDataManager implements Runnable{
 
     public void send(Object payload){
         try {
-            mav_connection.send2(255, 0, payload);
+            mav_connection.send2(255, 1, payload);
         }catch (Exception ex){
             ex.printStackTrace();
         }
@@ -173,7 +190,7 @@ public class MavDataManager implements Runnable{
         Heartbeat heartbeat = Heartbeat.builder()
                 .type(MavType.MAV_TYPE_GCS)
                 .autopilot(MavAutopilot.MAV_AUTOPILOT_INVALID)
-                .systemStatus(MavState.MAV_STATE_UNINIT)
+                .systemStatus(MavState.MAV_STATE_STANDBY)
                 .mavlinkVersion(3)
                 .build();
 
@@ -181,13 +198,14 @@ public class MavDataManager implements Runnable{
     }
 
     /**
-     * AutopilotVersion 정보 요청
+     * AutopilotVersion 정보 요청 : px4, ardupilot
      */
     public void requestAutopilotVersion(){
-        CommandInt request = CommandInt.builder()
+        CommandLong request = CommandLong.builder()
                 .targetComponent(component_id)
                 .targetSystem(system_id)
                 .command(MavCmd.MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES)
+                .param1(1)
                 .build();
 
         send(request);
@@ -227,7 +245,35 @@ public class MavDataManager implements Runnable{
                 .targetComponent(component_id)
                 .targetSystem(system_id)
                 .command(MavCmd.MAV_CMD_NAV_LAND)
-                .param7(0.0f)
+                .param7(0)
+                .build();
+
+        send(request);
+    }
+
+    public void requestArmDisarm(int isArm){
+        CommandInt request = CommandInt.builder()
+                .targetComponent(component_id)
+                .targetSystem(system_id)
+                .command(MavCmd.MAV_CMD_COMPONENT_ARM_DISARM )
+                .param1(isArm)
+                .build();
+
+        send(request);
+    }
+
+    /**
+     * ardupilot message 요청
+     * @param msgId 74:VfrHud
+     */
+    public void requestMessageInterval(int msgId){
+        CommandLong request = CommandLong.builder()
+                .targetComponent(component_id)
+                .targetSystem(system_id)
+                .command(MavCmd.MAV_CMD_SET_MESSAGE_INTERVAL)
+                .param1(msgId)
+                .param2(200*1000) // 200ms
+                .param7(0)
                 .build();
 
         send(request);
@@ -250,39 +296,55 @@ public class MavDataManager implements Runnable{
         try {
             while ( !mavThread_exit ) {
                 step();
+                Thread.sleep(10);
             }
         } catch (Exception e) {
-
+            Log.e("Command Ack", "run Exception" + e.toString());
         }
+
+        Log.e("Command Ack", "Thread end");
     }
 
-    private void step() throws IOException{
+    private void step(){
         if ( mav_connection == null ) return ;
 
         MavlinkMessage message;
-        if ( (message = mav_connection.next()) != null) {
-            int type = MAVLINK_TYPE_1;
-            if (message instanceof Mavlink2Message) type = MAVLINK_TYPE_2;
+        try {
+            if ((message = mav_connection.next()) != null) {
+                int type = MAVLINK_TYPE_1;
+                if (message instanceof Mavlink2Message) type = MAVLINK_TYPE_2;
 
-            system_id = message.getOriginSystemId();
-            component_id = message.getOriginComponentId();
+                system_id = message.getOriginSystemId();
+                component_id = message.getOriginComponentId();
 
-            Object payload = message.getPayload();
+                Object payload = message.getPayload();
 
-            if(payload instanceof Heartbeat){
-                sendHeartBeat();
-            }else if(payload instanceof Ping){
-                requestAutopilotVersion();
-            }else if(payload instanceof Altitude || payload instanceof Attitude || payload instanceof RcChannels || payload instanceof RcChannelsOverride || payload instanceof LocalPositionNed
-                    || payload instanceof BatteryStatus || payload instanceof ServoOutputRaw || payload instanceof ExtendedSysState || payload instanceof HighresImu || payload instanceof EstimatorStatus || payload instanceof Vibration || payload instanceof SysStatus
-                    || payload instanceof UtmGlobalPosition
-            ){
+                if (payload instanceof Heartbeat) {
+                    sendHeartBeat();
+                    seq++;
+                    if (seq == 10)
+                        send(RequestDataStream.builder().targetSystem(system_id).targetComponent(component_id).reqStreamId(2).reqMessageRate(2).startStop(1).build());
+                    //Log.e("Command Ack", payload.toString());
+                } else if (payload instanceof Ping) {
+                    //requestAutopilotVersion();
+                    // requestHomePosition();
+                    //requestArmDisarm(1);
+                    // requestMessageInterval(74);
+                } else if (payload instanceof Altitude || payload instanceof Attitude || payload instanceof RcChannels || payload instanceof RcChannelsOverride || payload instanceof LocalPositionNed
+                        || payload instanceof BatteryStatus || payload instanceof ServoOutputRaw || payload instanceof ExtendedSysState || payload instanceof HighresImu
+                        || payload instanceof EstimatorStatus || payload instanceof Vibration || payload instanceof SysStatus
+                        || payload instanceof UtmGlobalPosition || payload instanceof AttitudeTarget || payload instanceof VfrHud || payload instanceof GpsRawInt || payload instanceof Statustext || payload instanceof ParamValue
+                        || payload instanceof ScaledImu3 || payload instanceof ScaledImu2 || payload instanceof ScaledImu || payload instanceof ActuatorControlTarget || payload instanceof AttitudeQuaternion
+                ) {
 
-            }else {
-               Log.e("Command Ack", payload.toString());
+                } else {
+
+                }
+              //  Log.e("Command Ack", payload.toString());
+                if (listener != null) listener.onReceive(payload, type);
             }
+        }catch (Exception e){
 
-            if(listener != null) listener.onReceive(payload, type);
         }
     }
 

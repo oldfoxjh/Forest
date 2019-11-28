@@ -21,6 +21,7 @@
 
 package com.hoho.android.usbserial.driver;
 
+import android.util.Log;
 import android.util.Pair;
 
 import java.lang.reflect.InvocationTargetException;
@@ -83,8 +84,10 @@ public class ProbeTable {
         }
 
         for (Map.Entry<Integer, int[]> entry : devices.entrySet()) {
+
             final int vendorId = entry.getKey().intValue();
             for (int productId : entry.getValue()) {
+
                 addProduct(vendorId, productId, driverClass);
             }
         }

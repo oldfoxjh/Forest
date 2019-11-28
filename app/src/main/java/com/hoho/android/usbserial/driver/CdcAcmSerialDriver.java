@@ -434,9 +434,10 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
                 new int[] {
                         UsbId.STM32_F373XX,
                 });
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_PX43D_ROBOTICS),
+        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_PX4),
                 new int[] {
-                        UsbId.PX43D_ROBOTICS,
+                        UsbId.PX4_FMUV5,
+                        UsbId.PX4_FMUV3
                 });
 
         return supportedDevices;

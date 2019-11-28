@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -107,8 +108,7 @@ public class DialogConfirm extends RelativeLayout implements View.OnClickListene
 
     @Override
     public void onClick(View v) {
-
-        if(content_id == R.string.clear_mission) {
+        if(title_id == R.string.clear_mission) {
             DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.Mission.MISSION_CLEAR, null));
         }else if(title_id == R.string.takeoff_title) {
             DroneApplication.getEventBus().post(new MainActivity.PopdownView(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, MainActivity.PopupDialog.DIALOG_TYPE_REQUEST_TAKEOFF, null));

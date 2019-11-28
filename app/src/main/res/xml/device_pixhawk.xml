@@ -23,7 +23,9 @@
 
     <!-- 0x26Ac / 0x32: 3D_ROBOTICS -->
     <usb-device vendor-id="9900" product-id="50" />
+    <usb-device vendor-id="9900" product-id="17" />
 
     <!-- 0x0483 / 0x5740 : STMICROELECTRONICS -->
     <usb-device vendor-id="1155" product-id="22336" />
+    <usb-device />
 </resources>

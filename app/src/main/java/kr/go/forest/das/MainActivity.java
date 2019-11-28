@@ -57,6 +57,7 @@ import kr.go.forest.das.UI.DialogSelectDrone;
 import kr.go.forest.das.UI.DialogShootingPurpose;
 import kr.go.forest.das.UI.DialogUploadMission;
 import kr.go.forest.das.Usb.UsbStatus;
+import kr.go.forest.das.drone.DJI;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.drone.Px4;
 
@@ -637,6 +638,13 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
     class UsbCheckTimer extends TimerTask {
         @Override
         public void run() {
+
+            // DJI 드론이 연결되었으면 Pixhawk 체크 타이머 종료
+            if(DroneApplication.getDroneInstance() != null && DroneApplication.getDroneInstance().getManufacturer().equals("DJI")){
+                timer.cancel();
+                timer = null;
+                return;
+            }
             UsbManager usb_manager = (UsbManager) getSystemService(android.content.Context.USB_SERVICE);
 
             if(usb_connection == null) {
@@ -644,12 +652,17 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                 List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usb_manager);
                 if (availableDrivers.isEmpty()) {
                     Log.e(TAG, "availableDrivers.isEmpty()");
+
+                    if(DroneApplication.getDroneInstance() != null && DroneApplication.getDroneInstance().isConnect() == true) {
+                        DroneApplication.getDroneInstance().setConnect(false);
+                        DroneApplication.getEventBus().post(new MainActivity.DroneConnect(false));
+                        DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_DISCONNECT));
+                    }
                     return;
                 }
                 UsbSerialDriver driver = availableDrivers.get(0);
                 usb_connection = usb_manager.openDevice(driver.getDevice());
                 if (usb_connection == null) {
-                    Log.e(TAG, "usb_connection == null");
                     return;
                 }
 
@@ -665,10 +678,16 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
 
                 if(DroneApplication.getDroneInstance() == null) {
                     DroneApplication.setDroneInstance((Drone.DRONE_MANUFACTURE_PIXHWAK));
-                    DroneApplication.getEventBus().post(new MainActivity.DroneConnect(true));
                 }
+
                 if(mav_manager == null) mav_manager = new MavDataManager(MainActivity.this, MavDataManager.BAUDRATE_57600, (Px4)(DroneApplication.getDroneInstance()));
                 mav_manager.open(usb_connection, driver.getPorts().get(0));
+
+                if(DroneApplication.getDroneInstance().isConnect() == false) {
+                    DroneApplication.getDroneInstance().setConnect(true);
+                    DroneApplication.getEventBus().post(new MainActivity.DroneConnect(true));
+                    DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_CONNECT));
+                }
             }else{
                 List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usb_manager);
                 if (availableDrivers.isEmpty()) {

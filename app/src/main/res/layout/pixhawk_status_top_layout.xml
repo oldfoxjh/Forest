@@ -50,12 +50,29 @@
                 android:layout_height="@dimen/px42"
                 android:layout_gravity="center"
                 android:background="@mipmap/ico_gps"/>
-            <ImageView
-                android:id="@+id/px4_gps_signal"
-                android:layout_width="@dimen/px30"
-                android:layout_height="@dimen/px42"
-                android:layout_gravity="center"
-                android:background="@mipmap/signal_3"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px16"
+                android:orientation="vertical"
+                >
+                <TextView
+                    android:id="@+id/textview_gps_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/px16"
+                    android:textColor="#ffffff"
+                    android:layout_gravity="center"
+                    android:text=""/>
+                <TextView
+                    android:id="@+id/textview_gps_eph"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/px16"
+                    android:textColor="#ffffff"
+                    android:layout_gravity="center"
+                    android:text=""/>
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout
             android:layout_alignParentRight="true"

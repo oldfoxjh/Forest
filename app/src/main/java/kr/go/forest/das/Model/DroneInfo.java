@@ -34,6 +34,7 @@ public class DroneInfo {
     public int left_stick_y;                // 조종기 왼쪽 스틱 : y
     public int right_stick_x;               // 조종기 오론쪽 스틱 : x
     public int right_stick_y;               // 조종기 오른쪽 스틱 : y
+    public int rssi;                        // 조종기 연결 강도
 
     /**
      * 배터리
@@ -48,4 +49,7 @@ public class DroneInfo {
     public float gimbal_pitch;              // 짐벌 pitch
     public float gimbal_roll;               // 짐벌 roll
     public float gimbal_yaw;                // 짐벌 yaw
+
+    public int satellites_visible_count;    // GPS 위성 연결 수
+    public float eph;                       // horizontal dilution of position
 }

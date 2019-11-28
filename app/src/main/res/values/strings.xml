@@ -50,4 +50,5 @@
     <string name="helicopter_warning">10km 이내에 헬기가 운항중입니다.\n즉시 착륙하십시요.</string>
     <string name="battery_warning">현재 남은 배터리가 30%입니다.\n즉시 귀환 하십시요.</string>
     <string name="battery_emergency">현재 남은 배터리 20%입니다.\n즉시 착륙하십시요.</string>
+    <string name="api_error">시스템이 응답하지 않습니다. 관리자에게 문의하시기 바랍니다.</string>
 </resources>

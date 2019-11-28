@@ -47,6 +47,7 @@ public abstract class Drone {
     int drone_status = DRONE_STATUS_DISCONNECT;
     boolean is_flying = false;
     int ready_start_mission = -1;
+    boolean is_connect = false;
     SettingsDefinitions.ShootPhotoMode shoot_photo_mode = SettingsDefinitions.ShootPhotoMode.UNKNOWN;
     /**
      * 드론 설정 값
@@ -58,7 +59,13 @@ public abstract class Drone {
     double drone_longitude;         /** 드론 경도 */
     float drone_altitude;           /** 드론 고도 */
 
-    int satellites_visible_count;         /** GPS 위성 연결 개수 */
+    int satellites_visible_count;   /** GPS 위성 연결 개수 */
+    float eph;                      /** horizontal dilution of position */
+    int rssi;                       /** 조종기 연결 강도 */
+    int fix_type;                   /** GPS fix type
+                                        0 :  GPS_FIX_TYPE_NO_GPS : 	No GPS connected
+                                        1 :  GPS_FIX_TYPE_NO_FIX : 	No position information, GPS is connected
+                                    */
 
     float velocyty_x = 0.0f;        /** 드론 x축 속도 */
     float velocyty_y = 0.0f;        /** 드론 y축 속도 */
@@ -476,7 +483,8 @@ public abstract class Drone {
     //endregion
 
     //region 조종기
-
+    public abstract boolean isConnect();
+    public abstract void setConnect(boolean connect);
     //endregion
 
     //region 짐벌

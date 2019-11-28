@@ -125,7 +125,7 @@ public class DJI extends Drone{
      *==============================================================*/
     public int getDroneStatus(){
         return drone_status;
-    };
+    }
 
     /*=============================================================*
      *  현재 드론 비행여부를 확인한다.
@@ -142,7 +142,7 @@ public class DJI extends Drone{
 
     /**
      * 드롬 모델명을 반환한다.
-     * @return
+     * @return DJI 드론 모델
      */
     @Override
     public Model getAircaftModel(){
@@ -156,8 +156,7 @@ public class DJI extends Drone{
     }
 
     /**
-     * 드론 시리얼번호를 반환한다.
-     * @return
+     * 드론 시리얼번호를 가져온다.
      */
     @Override
     public void getSerialNumber(){
@@ -187,6 +186,7 @@ public class DJI extends Drone{
     @Override
     /**
      * 드론의 FlightController 정보를 설정한다.
+     * @return 드론 데이터 리스너 설정여부
      */
     public boolean setDroneDataListener() {
         BaseProduct _product = DJISDKManager.getInstance().getProduct();
@@ -271,8 +271,7 @@ public class DJI extends Drone{
 
     //region 카메라 촬영
     /**
-     * 카메라 동작 설정값을 반환한다.
-     * @return
+     * 카메라 동작 설정값을 드론으로부터 가져온다.
      */
     @Override
     public void getCameraMode(){
@@ -570,6 +569,8 @@ public class DJI extends Drone{
     }
 
     private String getShutterSpeedString(SettingsDefinitions.ShutterSpeed speed) {
+        if(speed == null) return "0.0";
+
         return (speed == ShutterSpeed.SHUTTER_SPEED_1_8000) ? "1/8000" : (speed == ShutterSpeed.SHUTTER_SPEED_1_6400) ? "1/6400" : (speed == ShutterSpeed.SHUTTER_SPEED_1_6000) ? "1/6000"
                 : (speed == ShutterSpeed.SHUTTER_SPEED_1_5000) ? "1/5000" : (speed == ShutterSpeed.SHUTTER_SPEED_1_4000) ? "1/4000" : (speed == ShutterSpeed.SHUTTER_SPEED_1_3200) ? "1/3200"
                 : (speed == ShutterSpeed.SHUTTER_SPEED_1_3000) ? "1/3000" : (speed == ShutterSpeed.SHUTTER_SPEED_1_2500) ? "1/2500" : (speed == ShutterSpeed.SHUTTER_SPEED_1_2000) ? "1/2000"
@@ -1216,7 +1217,13 @@ public class DJI extends Drone{
     //endregion
 
     //region 조종기
+    public boolean isConnect(){
+        return is_connect;
+    }
 
+    public void setConnect(boolean connect){
+        is_connect = connect;
+    }
     //endregion
 
     //region 짐벌
@@ -1237,9 +1244,7 @@ public class DJI extends Drone{
         public void onRegister(DJIError error) {
             if (error == DJISDKError.REGISTRATION_SUCCESS) {
                 DJISDKManager.getInstance().startConnectionToProduct();
-                LogWrapper.i("onRegister", "Success");
             } else {
-                LogWrapper.i("onRegister", "Error : " + error.getDescription());
             }
         }
 
@@ -1249,6 +1254,7 @@ public class DJI extends Drone{
         @Override
         public void onProductDisconnect() {
             DroneApplication.getDroneInstance().removeDroneDataListener();
+            DroneApplication.getDroneInstance().setConnect(false);
             DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_DISCONNECT));
             DroneApplication.getEventBus().post(new MainActivity.DroneConnect(false));
         }
@@ -1265,6 +1271,8 @@ public class DJI extends Drone{
                 DroneApplication.getDroneInstance().getSerialNumber();          // 드론 시리얼정보 설정
                 DroneApplication.getDroneInstance().getCameraFocalLength();     // 드론 카메라 GSD factor 설정
             }
+
+            DroneApplication.getDroneInstance().setConnect(true);
             DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_CONNECT));
             DroneApplication.getEventBus().post(new MainActivity.DroneConnect(true));
         }
@@ -1278,7 +1286,9 @@ public class DJI extends Drone{
                     @Override
                     public void onConnectivityChange(boolean isConnected) {
                         if(isConnected == false){
+                            DroneApplication.getDroneInstance().setConnect(false);
                             DroneApplication.getEventBus().post(new MainActivity.DroneStatusChange(Drone.DRONE_STATUS_DISCONNECT));
+                            DroneApplication.getEventBus().post(new MainActivity.DroneConnect(false));
                         }
                     }
                 });

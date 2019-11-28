@@ -21,6 +21,7 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -52,10 +53,16 @@ import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.DroneInfo;
+import kr.go.forest.das.Model.DroneInfoRequest;
+import kr.go.forest.das.Model.DroneInfoResponse;
 import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.geo.GeoManager;
 import kr.go.forest.das.map.MapLayer;
+import kr.go.forest.das.network.NetworkStatus;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static kr.go.forest.das.map.MapManager.VWorldStreet;
 
@@ -63,9 +70,14 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
 
     private final String TAG = "FlightView";
     private final int period = 250;                             // 드론정보 수십 주기 0.25 second
+    private final int DRONE_INFO_SEND_SIZE = 20;                // 드론정보 전송 기준
+    boolean send_complete = true;                               // 실시간 전송 성공 여부
     private Context context;
 
     Timer timer = null;                                         // 드론정보 수집 타이머
+    ArrayList<DroneInfo> drone_flight_log_4_realtime = new ArrayList<>();   // 실시간 전송용 비행 및 기체정보
+    ArrayList<DroneInfo> drone_flight_log_4_bigdata = new ArrayList<>();    // 빅데이터 업로드용 비행 및 기체정보
+    int drone_info_seq = 1;                                                 // 실시간 전송 data seq
     List<DroneInfo> drone_flight_log = new ArrayList<>();       // 비행 및 기체정보
     private Handler handler_ui;                                 // UI 업데이트 핸들러
     private SharedPreferences pref;
@@ -88,6 +100,20 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
     Button pixhawk_btn_flight_return_home;                      // 자동복귀 버튼
     Button pixhawk_btn_flight_cancel;                           // 자동복귀 취소 버튼
 
+    // TextView
+    TextView tv_distance;                                       // 드론과 거리
+    TextView tv_altitude;                                       // 드론 고도
+    TextView tv_horizontal_speed;                               // 드론 수평속도
+    TextView tv_vertical_speed;                                 // 드론 수직속도
+    TextView textview_battery_remain_percent;                   // 배터리 남은 용량
+
+    TextView pixhawk_connect_text;                              // 드론 상태 정보
+    TextView textview_gps_count;                                // 드론 GPS 연결정보
+    TextView textview_gps_eph;                                  // 드론 GPS 수평 연결
+
+    // ImageView
+    ImageView pixhawk_rc_signal;                                // 조종기 연결 정보
+
     public PixhawkFlightView(Context context){
         super(context);
         this.context = context;
@@ -107,6 +133,12 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
     protected void onAttachedToWindow() {
         ((Activity)context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         handler_ui = new Handler(Looper.getMainLooper());
+
+        // 드론 상태 체크
+        if(DroneApplication.getDroneInstance() != null) {
+            // Data 수집 타이머 시작
+            timer.schedule(new PixhawkFlightView.CollectDroneInformationTimer(), 0, period);
+        }
 
         super.onAttachedToWindow();
     }
@@ -245,6 +277,17 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
      */
     private void setWidget() {
 
+        // 드론 정보
+        tv_distance =  findViewById(R.id.pixhawk_tv_flight_distance_from_home);
+        tv_altitude =  findViewById(R.id.pixhawk_tv_flight_altitude);
+        tv_horizontal_speed =  findViewById(R.id.pixhawk_tv_flight_horizontal_speed);
+        tv_vertical_speed =  findViewById(R.id.pixhawk_tv_flight_vertical_speed);
+        pixhawk_connect_text = findViewById(R.id.pixhawk_connect_text);
+        textview_gps_count = findViewById(R.id.textview_gps_count);
+        textview_gps_eph = findViewById(R.id.textview_gps_eph);
+        pixhawk_rc_signal = findViewById(R.id.pixhawk_rc_signal);
+        textview_battery_remain_percent = findViewById(R.id.textview_battery_remain_percent);
+
         findViewById(R.id.pixhawk_btn_flight_location).setOnClickListener(this);
         findViewById(R.id.pixhawk_btn_flight_nofly).setOnClickListener(this);
         findViewById(R.id.pixhawk_btn_flight_fires).setOnClickListener(this);
@@ -256,13 +299,19 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
         findViewById(R.id.pixhawk_btn_mission_upload).setVisibility(INVISIBLE);
 
         // RTH
-        pixhawk_btn_flight_takeoff = (Button) findViewById(R.id.pixhawk_btn_flight_takeoff);
+        pixhawk_btn_flight_takeoff = findViewById(R.id.pixhawk_btn_flight_takeoff);
         pixhawk_btn_flight_takeoff.setTag("takeoff");
         pixhawk_btn_flight_takeoff.setOnClickListener(this);
-        pixhawk_btn_flight_return_home = (Button) findViewById(R.id.pixhawk_btn_flight_return_home);
+        pixhawk_btn_flight_return_home = findViewById(R.id.pixhawk_btn_flight_return_home);
         pixhawk_btn_flight_return_home.setOnClickListener(this);
-        pixhawk_btn_flight_cancel = (Button) findViewById(R.id.pixhawk_btn_flight_cancel);
+        pixhawk_btn_flight_cancel = findViewById(R.id.pixhawk_btn_flight_cancel);
         pixhawk_btn_flight_cancel.setOnClickListener(this);
+
+        // 드론 정보 설정
+        if(DroneApplication.getDroneInstance() != null && DroneApplication.getDroneInstance().isConnect() == true){
+            pixhawk_connect_text.setBackgroundResource(R.mipmap.top_bg_green);
+            pixhawk_connect_text.setText("비행 준비 완료");
+        }
     }
 
     /**
@@ -388,24 +437,102 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
     private class CollectDroneInformationTimer extends TimerTask {
         @Override
         public void run() {
+            // 화면 표시
+            if (handler_ui != null) {
+                handler_ui.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        DroneInfo _info = DroneApplication.getDroneInstance().getDroneInfo();
+
+                        // 2. 고도
+                        String _alt = String.format("%.2f", _info.drone_altitude);
+                        tv_altitude.setText(_alt);
+
+                        // 3. 수평속도
+                        String v_x = String.format("%.2f", _info.drone_velocity_x);
+                        tv_horizontal_speed.setText(v_x);
+
+                        // 4. 수직속도
+                        String v_z = String.format("%.2f", Math.abs(_info.drone_velocity_z));
+                        tv_vertical_speed.setText(v_z);
+
+                        // 5. 드론 Heading
+                        marker_drone_location.setIcon(MapLayer.getInstance().getRotateDrawable(context, R.mipmap.map_ico_drone, _info.heading));
+                        marker_drone_location.setPosition(new GeoPoint(_info.drone_latitude, _info.drone_longitude));
+
+                        // 6. 조종기와의 거리
+                        if(my_location == null || Math.abs(my_location.getLatitude()) < 1) tv_distance.setText("0.00");
+                        else tv_distance.setText(String.format("%.1f", GeoManager.getInstance().distance(my_location.getLatitude(), my_location.getLongitude(), _info.drone_latitude, _info.drone_longitude)));
+
+                        if(my_location != null) marker_my_location.setPosition(my_location);
+
+                        //  LocationCoordinate2D _home = DroneApplication.getDroneInstance().getHomeLocation();
+                        //  marker_home_location.setPosition(new GeoPoint(_home.getLatitude(), _home.getLongitude()));
+
+                        // 7. 드론 GPS 정보
+                        textview_gps_count.setText(String.format("%d",_info.satellites_visible_count));
+                        textview_gps_eph.setText(String.format("%.2f", _info.eph));
+
+                        // 8. 조종기 연결 정보
+                        if(_info.rssi < 1) pixhawk_rc_signal.setBackgroundResource(R.mipmap.signal_0);
+                        else if(_info.rssi < 21) pixhawk_rc_signal.setBackgroundResource(R.mipmap.signal_1);
+                        else if(_info.rssi < 41) pixhawk_rc_signal.setBackgroundResource(R.mipmap.signal_2);
+                        else if(_info.rssi < 61) pixhawk_rc_signal.setBackgroundResource(R.mipmap.signal_3);
+                        else if(_info.rssi < 81) pixhawk_rc_signal.setBackgroundResource(R.mipmap.signal_4);
+                        else pixhawk_rc_signal.setBackgroundResource(R.mipmap.signal_5);
+
+                        // 9. 배터리 정보
+                        if(_info.battery_remain_percent == -1){
+                            textview_battery_remain_percent.setTextColor(Color.RED);
+                            textview_battery_remain_percent.setText("N/A");
+                        }
+                        else{
+                            textview_battery_remain_percent.setTextColor(Color.GREEN);
+                            textview_battery_remain_percent.setText(String.format("%d",_info.battery_remain_percent));
+                        }
+                        map_view.invalidate();
+
+                        if(DroneApplication.getDroneInstance().isFlying()){
+                            _info.seq = drone_info_seq++;
+                            drone_flight_log_4_realtime.add(_info);
+                            drone_flight_log_4_bigdata.add(_info);
+
+                            // 재난상황일 때는 전송
+                            if(DroneApplication.getSystemInfo().is_realtime && NetworkStatus.isInternetConnected(context) == true){
+                                sendFlightLog(false);
+                            }
+                        }
+                    }
+                });
+            }
         }
     }
 
     @Subscribe
     public void onConnectionChange(final MainActivity.DroneStatusChange drone_status) {
-        if(drone_status.status == Drone.DRONE_STATUS_CONNECT) {
+        if (handler_ui != null) {
+            handler_ui.post(new Runnable() {
+                @Override
+                public void run() {
+                    if(drone_status.status == Drone.DRONE_STATUS_CONNECT) {
+                        pixhawk_connect_text.setBackgroundResource(R.mipmap.top_bg_green);
+                        pixhawk_connect_text.setText("비행 준비 완료");
+                    }else if(drone_status.status == Drone.DRONE_STATUS_ARMING){
 
-        }else if(drone_status.status == Drone.DRONE_STATUS_ARMING){
+                    }else if(drone_status.status == Drone.DRONE_STATUS_FLYING){
 
-        }else if(drone_status.status == Drone.DRONE_STATUS_FLYING){
+                    }else if(drone_status.status == Drone.DRONE_STATUS_MISSION){
 
-        }else if(drone_status.status == Drone.DRONE_STATUS_MISSION){
+                    }else if(drone_status.status == Drone.DRONE_STATUS_RETURN_HOME){
 
-        }else if(drone_status.status == Drone.DRONE_STATUS_RETURN_HOME){
+                    }else if(drone_status.status == Drone.DRONE_STATUS_DISARM){
 
-        }else if(drone_status.status == Drone.DRONE_STATUS_DISARM){
-
-        }else if(drone_status.status == Drone.DRONE_STATUS_DISCONNECT){
+                    }else if(drone_status.status == Drone.DRONE_STATUS_DISCONNECT){
+                        pixhawk_connect_text.setBackgroundResource(R.mipmap.top_bg_gray);
+                        pixhawk_connect_text.setText("기기 연결 끊김");
+                    }
+                }
+            });
         }
     }
 
@@ -494,16 +621,16 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
      */
     private void setReturnHomeCancelWidget(boolean is_rth){
         if(is_rth) {
-            LinearLayout _layout = (LinearLayout) findViewById(R.id.layout_flight_cancel);
+            LinearLayout _layout = findViewById(R.id.layout_flight_cancel);
             _layout.setVisibility(VISIBLE);
-            LinearLayout _layout_rth = (LinearLayout) findViewById(R.id.layout_flight_rth);
+            LinearLayout _layout_rth = findViewById(R.id.layout_flight_rth);
             _layout_rth.setVisibility(INVISIBLE);
 
             pixhawk_btn_flight_cancel.setTag("rtl");
         }else{
-            LinearLayout _layout = (LinearLayout) findViewById(R.id.layout_flight_cancel);
+            LinearLayout _layout = findViewById(R.id.layout_flight_cancel);
             _layout.setVisibility(VISIBLE);
-            LinearLayout _layout_rth = (LinearLayout) findViewById(R.id.layout_flight_rth);
+            LinearLayout _layout_rth = findViewById(R.id.layout_flight_rth);
             _layout_rth.setVisibility(INVISIBLE);
 
             pixhawk_btn_flight_cancel.setTag("landing");
@@ -516,9 +643,9 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
      * 자동귀환 또는 자동착률 컨트롤 버튼 표시여부를 설정한다.
      */
     private void setReturnHomeWidget(){
-        LinearLayout _layout = (LinearLayout) findViewById(R.id.layout_flight_cancel);
+        LinearLayout _layout = findViewById(R.id.layout_flight_cancel);
         _layout.setVisibility(INVISIBLE);
-        LinearLayout _layout_rth = (LinearLayout) findViewById(R.id.layout_flight_rth);
+        LinearLayout _layout_rth = findViewById(R.id.layout_flight_rth);
         _layout_rth.setVisibility(VISIBLE);
     }
 
@@ -551,5 +678,44 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
 
         Marker _exit = getDefaultMarker(points.get(points.size() - 1), "E");
         map_view.getOverlays().add(_exit);
+    }
+
+    private void sendFlightLog(boolean force_send){
+        if( force_send == true || (send_complete == true                        // 전송 성공 여부 확인
+                && DroneApplication.getSystemInfo().isLogin()                       // 로그인 여부 확인
+                && drone_flight_log_4_realtime.size() > DRONE_INFO_SEND_SIZE))      // 전송 크기 확인
+        {
+            try {
+                DroneInfoRequest _request = new DroneInfoRequest(DroneApplication.getSystemInfo(),  drone_flight_log_4_realtime.subList(0,DRONE_INFO_SEND_SIZE));
+                send_complete = false;
+                DroneApplication.getApiInstance().postDroneInfo(_request).enqueue(new Callback<DroneInfoResponse>() {
+                    @Override
+                    public void onResponse(Call<DroneInfoResponse> call, Response<DroneInfoResponse> response) {
+                        DroneInfoResponse _test = response.body();
+
+                        if(force_send == false){
+                            for (int i = 0; i < DRONE_INFO_SEND_SIZE; i++) {
+                                drone_flight_log_4_realtime.remove(0);
+                            }
+                        }else{
+                            drone_flight_log_4_realtime.clear();
+                        }
+
+                        send_complete = true;
+                        Log.e(TAG, "send onResponse");
+                    }
+
+                    @Override
+                    public void onFailure(Call<DroneInfoResponse> call, Throwable t) {
+                        Log.e(TAG, "send onFailure : " + t.toString());
+                        send_complete = true;
+                    }
+                });
+            }catch (Exception ex){
+                ex.printStackTrace();
+            }
+        }
+
+        return;
     }
 }

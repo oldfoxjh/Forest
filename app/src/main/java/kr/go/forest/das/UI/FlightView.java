@@ -754,34 +754,36 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
             && DroneApplication.getSystemInfo().isLogin()                       // 로그인 여부 확인
             && drone_flight_log_4_realtime.size() > DRONE_INFO_SEND_SIZE))      // 전송 크기 확인
         {
-            DroneInfoRequest _request = new DroneInfoRequest(DroneApplication.getSystemInfo(),  drone_flight_log_4_realtime.subList(0,DRONE_INFO_SEND_SIZE));
-            send_complete = false;
-            DroneApplication.getApiInstance().postDroneInfo(_request).enqueue(new Callback<DroneInfoResponse>() {
-                @Override
-                public void onResponse(Call<DroneInfoResponse> call, Response<DroneInfoResponse> response) {
-                    DroneInfoResponse _test = response.body();
+            try {
+                DroneInfoRequest _request = new DroneInfoRequest(DroneApplication.getSystemInfo(),  drone_flight_log_4_realtime.subList(0,DRONE_INFO_SEND_SIZE));
+                send_complete = false;
+                DroneApplication.getApiInstance().postDroneInfo(_request).enqueue(new Callback<DroneInfoResponse>() {
+                    @Override
+                    public void onResponse(Call<DroneInfoResponse> call, Response<DroneInfoResponse> response) {
+                        DroneInfoResponse _test = response.body();
 
-                    if(force_send == false){
-                        for (int i = 0; i < DRONE_INFO_SEND_SIZE; i++) {
-                            drone_flight_log_4_realtime.remove(0);
+                        if(force_send == false){
+                            for (int i = 0; i < DRONE_INFO_SEND_SIZE; i++) {
+                                drone_flight_log_4_realtime.remove(0);
+                            }
+                        }else{
+                            drone_flight_log_4_realtime.clear();
                         }
-                    }else{
-                        drone_flight_log_4_realtime.clear();
+
+                        send_complete = true;
+                        Log.e(TAG, "send onResponse");
                     }
 
-
-                    send_complete = true;
-                    Log.e(TAG, "send onResponse");
-                }
-
-                @Override
-                public void onFailure(Call<DroneInfoResponse> call, Throwable t) {
-                    Log.e(TAG, "send onFailure : " + t.toString());
-                    send_complete = true;
-                }
-            });
+                    @Override
+                    public void onFailure(Call<DroneInfoResponse> call, Throwable t) {
+                        Log.e(TAG, "send onFailure : " + t.toString());
+                        send_complete = true;
+                    }
+                });
+            }catch (Exception ex){
+                ex.printStackTrace();
+            }
         }
-
 
         return;
     }
@@ -1024,6 +1026,22 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         if(btn_select_movie.getVisibility() == VISIBLE) btn_select_movie.setVisibility(INVISIBLE);
                         if(btn_record.getVisibility() == VISIBLE) btn_record.setVisibility(INVISIBLE);
                         if(tv_record_time.getVisibility() == VISIBLE) tv_record_time.setVisibility(INVISIBLE);
+
+                        // 드론이 비행중이면 카메라 촬영 지점 표시
+                        if(DroneApplication.getDroneInstance().isFlying()){
+                            DroneInfo _drone_info = DroneApplication.getDroneInstance().getDroneInfo();
+                            Marker _marker = new Marker(map_view);
+                            _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.forest_fire, null));
+                            _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+                            _marker.setPosition(new GeoPoint(_drone_info.drone_latitude, _drone_info.drone_longitude, _drone_info.drone_altitude));
+                            _marker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
+                                @Override
+                                public boolean onMarkerClick(Marker marker, MapView mapView) {
+                                    return true;
+                                }
+                            });
+                            map_view.getOverlays().add(_marker);
+                        }
                     }else if(camera.mode == 1){
                         if(!_info.recording_time.equals("00:00") && is_recording == false) {
                             btn_record.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_recording_selector));

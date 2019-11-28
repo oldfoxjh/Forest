@@ -3,6 +3,7 @@ package kr.go.forest.das.UI;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -126,30 +127,39 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                 DroneApplication.getApiInstance().postLogin(_user).enqueue(new Callback<LoginResponse>(){
                     @Override
                     public  void onResponse(Call<LoginResponse> call, Response<LoginResponse> response){
-                        LoginResponse _response = response.body();
-                        BigdataSystemInfo _info = DroneApplication.getSystemInfo();
-                        _info.user_id = loginIDEditText.getText().toString();
-                        _info.weather.locale = _response.weather.locale;
-                        _info.weather.weather = _response.weather.weather;
-                        _info.weather.temperature = _response.weather.temperature;
-                        _info.weather.wind_speed = _response.weather.wind_speed;
-                        _info.drone_id = _response.drone_list.get(0).manage_number;
 
-                        _info.is_realtime = true;
-                        _info.live_url = _response.live_url;
-                        _info.aes_key = _response.aes_key;
+                        Log.e("Login", "response.code() : " + response.code());
 
-                        _info.name = _response.name;
-                        _info.service = _response.service;
-                        _info.department = _response.department;
+                        if(response.code() == 200) {
+                            LoginResponse _response = response.body();
+                            BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+                            _info.user_id = loginIDEditText.getText().toString();
+                            _info.weather.locale = _response.weather.locale;
+                            _info.weather.weather = _response.weather.weather;
+                            _info.weather.temperature = _response.weather.temperature;
+                            _info.weather.wind_speed = _response.weather.wind_speed;
+                            _info.drone_id = _response.drone_list.get(0).manage_number;
 
-                        _info.setDroneInfo(_response.drone_list);
-                        _info.setFlightPlan(_response.plan);
+                            _info.is_realtime = true;
+                            _info.live_url = _response.live_url;
+                            _info.aes_key = _response.aes_key;
+
+                            _info.name = _response.name;
+                            _info.service = _response.service;
+                            _info.department = _response.department;
+
+                            _info.setDroneInfo(_response.drone_list);
+                            _info.setFlightPlan(_response.plan);
+
+                            // 키보드 체크
+                            hideSoftInput();
+                            DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), false));
+                        }else{
+                            // 서버 오류
+                            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.api_error));
+                        }
+
                         progress.dismiss();
-
-                        // 키보드 체크
-                        hideSoftInput();
-                        DroneApplication.getEventBus().post(new ViewWrapper(new MenuView(context), false));
                     }
 
                     @Override

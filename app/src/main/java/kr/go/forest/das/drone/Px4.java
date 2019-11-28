@@ -1,6 +1,7 @@
 package kr.go.forest.das.drone;
 
 
+import android.Manifest;
 import android.util.Log;
 
 import com.hoho.android.usbserial.driver.UsbSerialPort;
@@ -28,14 +29,22 @@ import io.dronefleet.mavlink.common.Attitude;
 import io.dronefleet.mavlink.common.AutopilotVersion;
 import io.dronefleet.mavlink.common.BatteryStatus;
 import io.dronefleet.mavlink.common.CommandAck;
+import io.dronefleet.mavlink.common.ExtendedSysState;
 import io.dronefleet.mavlink.common.GlobalPositionInt;
+import io.dronefleet.mavlink.common.GpsFixType;
 import io.dronefleet.mavlink.common.GpsRawInt;
 import io.dronefleet.mavlink.common.Heartbeat;
 import io.dronefleet.mavlink.common.HomePosition;
 import io.dronefleet.mavlink.common.LocalPositionNed;
 import io.dronefleet.mavlink.common.ManualControl;
+import io.dronefleet.mavlink.common.MavAutopilot;
 import io.dronefleet.mavlink.common.MavCmd;
+import io.dronefleet.mavlink.common.MavLandedState;
+import io.dronefleet.mavlink.common.MavModeFlag;
 import io.dronefleet.mavlink.common.MavResult;
+import io.dronefleet.mavlink.common.MavState;
+import io.dronefleet.mavlink.common.RcChannels;
+import io.dronefleet.mavlink.common.SysStatus;
 import io.dronefleet.mavlink.common.VfrHud;
 import io.dronefleet.mavlink.util.EnumValue;
 import kr.go.forest.das.MAVLink.MavDataManager;
@@ -44,14 +53,103 @@ import kr.go.forest.das.Model.DroneInfo;
 
 public class Px4 extends Drone implements MavDataManager.MavEventListener{
 
-    public Px4()
-    {
+    private final int MAVLINK_DEVICE_ARDUPILOT = 0x01;
+    private final int MAVLINK_DEVICE_PX4 = 0x02;
+    private int mavlink_device = 0x00;
+
+    private final String[] ARDUPILOT_FLIGHT_MODE = new String[] {
+            "Stabilize",     // 0
+            "Acro",          // 1
+            "Altitude Hold", // 2
+            "Auto",          // 3
+            "Guided",        // 4
+            "Loiter",        // 5
+            "RTL",           // 6
+            "Circle",        // 7
+            "",
+            "Land",          // 9
+            "",
+            "Drift",         // 11
+            "",
+            "Sport",         // 13
+            "",
+            "",
+            "Position Hold", // 16
+            "Brake",         // 17
+            "Throw",         // 18
+            "Avoid ADSB",    // 19
+            "Guided No GPS"  // 20
+    };
+
+    private final String[] PX4_FLIGHT_MAIN_MODE = new String[] {
+            "",
+            "Manual",     // 1
+            "Altitude",   // 2
+            "Position",   // 3
+            "Auto",       // 4
+            "Acro",       // 5
+            "Offboard",   // 6
+            "Stabilized", // 7
+            "Rattitude",  // 8
+            "Simple"      // 9
+    };
+
+    private final String[] PX4_FLIGHT_SUB_MODE = new String[] {
+            "",
+            "Ready",     // 1
+            "TakeOff",   // 2
+            "Loiter",   // 3
+            "Mission",       // 4
+            "RTL",       // 5
+            "LAND",   // 6
+            "RTGS", // 7
+            "FOLLOW_TARGET",  // 8
+            "PRECLAND"      // 9
+    };
+
+    public Px4() {
 
     }
 
     //region 제품정보
 
-    public DroneInfo getDroneInfo(){return null;};
+    public DroneInfo getDroneInfo(){
+        DroneInfo _drone = new DroneInfo();
+        _drone.status = ((drone_status & DRONE_STATUS_DISARM) != 0) ? DRONE_STATUS_DISARM :
+                ((drone_status & DRONE_STATUS_MISSION) != 0) ? DRONE_STATUS_MISSION :
+                        ((drone_status & DRONE_STATUS_RETURN_HOME) != 0) ? DRONE_STATUS_RETURN_HOME :
+                                ((drone_status & DRONE_STATUS_FLYING) != 0) ? DRONE_STATUS_FLYING :
+                                        ((drone_status & DRONE_STATUS_ARMING) != 0) ? DRONE_STATUS_ARMING : 0;
+        _drone.flight_time = flight_time;
+        _drone.drone_latitude = drone_latitude;
+        _drone.drone_longitude = drone_longitude;
+        _drone.drone_altitude = drone_altitude;
+        _drone.drone_velocity_x = (float) Math.sqrt(velocyty_x*velocyty_x + velocyty_y*velocyty_y);
+        _drone.drone_velocity_z = velocyty_z;
+        _drone.drone_pitch = drone_pitch;
+        _drone.drone_roll = drone_pitch;
+        _drone.drone_yaw = drone_pitch;
+        _drone.heading = heading;
+
+        _drone.left_stick_x = left_stick_x;
+        _drone.left_stick_y = left_stick_y;
+        _drone.right_stick_x = right_stick_x;
+        _drone.right_stick_y = right_stick_y;
+
+        _drone.battery_temperature = battery_temperature;
+        _drone.battery_remain_percent = battery_remain_percent;
+        _drone.battery_voltage = battery_voltage;
+
+        _drone.gimbal_pitch = gimbal_pitch;
+        _drone.gimbal_roll = gimbal_pitch;
+        _drone.gimbal_yaw = gimbal_yaw;
+
+        _drone.satellites_visible_count = satellites_visible_count;
+        _drone.eph = eph;
+        _drone.rssi = rssi;
+
+        return _drone;
+    }
 
     /*=============================================================*
      *  현재 드론 상태를 반환한다.
@@ -559,7 +657,13 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
     //endregion
 
     //region 조종기
+    public boolean isConnect(){
+        return is_connect;
+    }
 
+    public void setConnect(boolean connect){
+        is_connect = connect;
+    }
     //endregion
 
     //region 짐벌
@@ -576,39 +680,84 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
         if(payload instanceof VfrHud){
             heading = ((VfrHud) payload).heading();
             drone_altitude = ((VfrHud) payload).alt();
+            velocyty_x = ((VfrHud) payload).groundspeed();
         }else if(payload instanceof LocalPositionNed){
             velocyty_x = ((LocalPositionNed) payload).vx();
             velocyty_y = ((LocalPositionNed) payload).vx();
             velocyty_z = ((LocalPositionNed) payload).vx();
+
+            drone_altitude = ((LocalPositionNed) payload).z() * -1;
         }else if(payload instanceof BatteryStatus){
             battery_temperature = ((BatteryStatus) payload).temperature();
+            List<Integer> voltages = ((BatteryStatus) payload).voltages();
             battery_voltage = -1;
             battery_remain_percent = ((BatteryStatus) payload).batteryRemaining();
+        }else if(payload instanceof SysStatus){
+            battery_temperature = -1;
+            battery_voltage = -1;
+            battery_remain_percent = ((SysStatus) payload).batteryRemaining();
         }else if(payload instanceof HomePosition){
             home_latitude = ((HomePosition) payload).latitude();
             home_longitude = ((HomePosition) payload).longitude();
             home_set = true;
         }else if(payload instanceof Heartbeat) {
-            long _custom_main_mode = ((Heartbeat) payload).customMode();
-            //String flight_mode;             /** 비행 모드 */
+            EnumValue<MavAutopilot> autopilot = ((Heartbeat) payload).autopilot();
+            if(autopilot.entry() == MavAutopilot.MAV_AUTOPILOT_ARDUPILOTMEGA) mavlink_device = MAVLINK_DEVICE_ARDUPILOT;
+            else if(autopilot.entry() == MavAutopilot.MAV_AUTOPILOT_PX4) mavlink_device = MAVLINK_DEVICE_PX4;
+
+            long _custom_mode = ((Heartbeat) payload).customMode();
+            EnumValue<MavState> system_status = ((Heartbeat) payload).systemStatus(); // https://mavlink.io/en/messages/common.html#MAV_STATE
+            EnumValue<MavModeFlag> base_mode = ((Heartbeat) payload).baseMode();
+            if((base_mode.value() & 0x80) != 0){
+                Log.e("Heartbeat", "MAV_MODE_FLAG_SAFETY_ARMED");
+            }
+            Log.e("Heartbeat1","device : " + mavlink_device);
+            if(mavlink_device == MAVLINK_DEVICE_ARDUPILOT){
+                flight_mode = ARDUPILOT_FLIGHT_MODE[(int)_custom_mode];
+            }else if(mavlink_device == MAVLINK_DEVICE_PX4){                             // https://github.com/PX4/Firmware/blob/master/src/modules/commander/px4_custom_mode.h#L45
+                flight_mode = PX4_FLIGHT_MAIN_MODE[(int)((_custom_mode >> 16) & 0xFF)];
+                String sub_mode = PX4_FLIGHT_SUB_MODE[(int)((_custom_mode >> 24) & 0xFF)];
+            }
+
+
         }else if(payload instanceof ManualControl){
             left_stick_x = ((ManualControl) payload).r();
             left_stick_y = ((ManualControl) payload).z();
             right_stick_x = ((ManualControl) payload).x();
             right_stick_y = ((ManualControl) payload).y();
-        }else if(payload instanceof GPSSignalLevel){
 
+        }else if(payload instanceof ExtendedSysState){
+            EnumValue<MavLandedState> landed_state = ((ExtendedSysState) payload).landedState();
+            if(landed_state.entry().equals(MavLandedState.MAV_LANDED_STATE_IN_AIR)
+              || landed_state.entry().equals(MavLandedState.MAV_LANDED_STATE_TAKEOFF)
+              || landed_state.entry().equals(MavLandedState.MAV_LANDED_STATE_LANDING)){
+                is_flying = true;
+            }else{
+                is_flying = false;
+            }
         }else if(payload instanceof GpsRawInt){
-            satellites_visible_count = ((GpsRawInt) payload).satellitesVisible();
+            EnumValue<GpsFixType> fix_type = ((GpsRawInt) payload).fixType();
+            if(fix_type.entry() == GpsFixType.GPS_FIX_TYPE_NO_GPS){
+                satellites_visible_count = -1;
+            }else if(fix_type.entry() == GpsFixType.GPS_FIX_TYPE_NO_GPS){
+                satellites_visible_count = 0;
+                drone_latitude = 0.0;
+                drone_longitude = 0.0;
+            }else{
+                satellites_visible_count = ((GpsRawInt) payload).satellitesVisible();
+                eph = ((float)((GpsRawInt) payload).eph())/100;
+                drone_latitude = ((double)((GpsRawInt) payload).lat())/10000000;
+                drone_longitude = ((double)((GpsRawInt) payload).lon())/10000000;
+            }
+
         }else if(payload instanceof AutopilotVersion){
-            Log.d("Px4", "AutopilotVersion : " + payload.toString());
+
+        }else if(payload instanceof RcChannels){
+            rssi = ((RcChannels) payload).rssi();
         }else if(payload instanceof Attitude){
             drone_roll = ((Attitude) payload).roll();
             drone_pitch = ((Attitude) payload).pitch();
             drone_yaw = ((Attitude) payload).yaw();
-        }else if(payload instanceof GlobalPositionInt){
-            drone_latitude = ((GlobalPositionInt) payload).lat();
-            drone_longitude = ((GlobalPositionInt) payload).lon();
         }else if(payload instanceof CommandAck){
             EnumValue<MavCmd> command = ((CommandAck) payload).command();
             EnumValue<MavResult> result = ((CommandAck) payload).result();
@@ -622,8 +771,16 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
                         MAV_RESULT_ACCEPTED){
                     // 이륙 명령 성공
                 }
+            }else if(command.entry() == MavCmd.MAV_CMD_COMPONENT_ARM_DISARM ){
+                if(result.entry() == MavResult.MAV_RESULT_ACCEPTED){
+                    // Arm/Disarm 명령 성공
+                }else if(result.entry() == MavResult.MAV_RESULT_TEMPORARILY_REJECTED){
+                    // Arm/Disarm 명령 현재 실행할 수 없음
+                }
             }
         }
+
+
     }
     //endregion
 }
