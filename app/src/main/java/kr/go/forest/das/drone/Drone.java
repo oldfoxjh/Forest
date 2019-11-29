@@ -27,6 +27,7 @@ import dji.common.model.LocationCoordinate2D;
 import dji.common.product.Model;
 import dji.sdk.base.BaseProduct;
 import dji.common.camera.SettingsDefinitions;
+import kr.go.forest.das.MAVLink.MavDataManager;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
 
@@ -139,6 +140,10 @@ public abstract class Drone {
     int interval = 0;
     int shoot_count = 0;
     List<GeoPoint> flight_points = null;          // 비행경로를 보여주기 위한 위치
+
+    MavDataManager mavlink_manager;
+
+    public abstract void setMavlinkManager(MavDataManager mdm);
 
     //region 제품정보
     /**

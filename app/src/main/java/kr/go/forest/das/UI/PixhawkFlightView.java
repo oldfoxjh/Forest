@@ -106,6 +106,7 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
     TextView tv_horizontal_speed;                               // 드론 수평속도
     TextView tv_vertical_speed;                                 // 드론 수직속도
     TextView textview_battery_remain_percent;                   // 배터리 남은 용량
+    TextView textview_flight_mode;                              // 드론 비행모드
 
     TextView pixhawk_connect_text;                              // 드론 상태 정보
     TextView textview_gps_count;                                // 드론 GPS 연결정보
@@ -287,6 +288,7 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
         textview_gps_eph = findViewById(R.id.textview_gps_eph);
         pixhawk_rc_signal = findViewById(R.id.pixhawk_rc_signal);
         textview_battery_remain_percent = findViewById(R.id.textview_battery_remain_percent);
+        textview_flight_mode = findViewById(R.id.textview_flight_mode);
 
         findViewById(R.id.pixhawk_btn_flight_location).setOnClickListener(this);
         findViewById(R.id.pixhawk_btn_flight_nofly).setOnClickListener(this);
@@ -466,8 +468,10 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
 
                         if(my_location != null) marker_my_location.setPosition(my_location);
 
-                        //  LocationCoordinate2D _home = DroneApplication.getDroneInstance().getHomeLocation();
-                        //  marker_home_location.setPosition(new GeoPoint(_home.getLatitude(), _home.getLongitude()));
+                        LocationCoordinate2D _home = DroneApplication.getDroneInstance().getHomeLocation();
+                        if(_home != null) {
+                            marker_home_location.setPosition(new GeoPoint(_home.getLatitude(), _home.getLongitude()));
+                        }
 
                         // 7. 드론 GPS 정보
                         textview_gps_count.setText(String.format("%d",_info.satellites_visible_count));
@@ -490,6 +494,9 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
                             textview_battery_remain_percent.setTextColor(Color.GREEN);
                             textview_battery_remain_percent.setText(String.format("%d",_info.battery_remain_percent));
                         }
+
+                        // 10. 드론 비행모드
+                        textview_flight_mode.setText(_info.flight_mode);
                         map_view.invalidate();
 
                         if(DroneApplication.getDroneInstance().isFlying()){
@@ -501,6 +508,24 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
                             if(DroneApplication.getSystemInfo().is_realtime && NetworkStatus.isInternetConnected(context) == true){
                                 sendFlightLog(false);
                             }
+
+                            GeoPoint _dron_location = new GeoPoint(_info.drone_latitude, _info.drone_longitude, _info.drone_altitude);
+
+                            if(Math.abs(_info.drone_latitude) > 0 && Math.abs(_info.drone_longitude) > 0){
+                                flight_paths.add(_dron_location);
+                                flight_path_line.addPoint(_dron_location);
+                            }
+
+                            // 비행중일 때만 배터리 부족 알림
+//                            if (_info.battery_remain_percent < 31 && battery_status == 0) {
+//                                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.battery_warning));
+//                                DroneApplication.getEventBus().post(new MainActivity.TTS(context.getString(R.string.battery_warning)));
+//                                battery_status = 1;
+//                            } else if (_info.battery_remain_percent < 21 && battery_status == 1) {
+//                                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.battery_emergency));
+//                                DroneApplication.getEventBus().post(new MainActivity.TTS(context.getString(R.string.battery_emergency)));
+//                                battery_status = 2;
+//                            }
                         }
                     }
                 });
@@ -571,7 +596,6 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
                         // 이륙요청
                         DroneApplication.getDroneInstance().startTakeoff();
                     }else if(rtl.mode == MainActivity.ReturnHome.REQUEST_TAKEOFF_SUCCESS){
-                        LogWrapper.i(TAG, "REQUEST_TAKEOFF_SUCCESS");
                         // 이륙성공 - 이륙버튼 아이콘 변경
                         pixhawk_btn_flight_takeoff.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_landing_selector));
                         pixhawk_btn_flight_takeoff.setTag("landing");
@@ -593,9 +617,9 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
                         DroneApplication.getDroneInstance().cancelGoHome();
                     }else if(rtl.mode == MainActivity.ReturnHome.CANCEL_RETURN_HOME_SUCCESS
                             || rtl.mode == MainActivity.ReturnHome.CANCEL_LANDING_SUCCESS){
-                        LinearLayout _layout = (LinearLayout) findViewById(R.id.layout_flight_cancel);
+                        LinearLayout _layout = findViewById(R.id.pixhawk_layout_flight_cancel);
                         _layout.setVisibility(INVISIBLE);
-                        LinearLayout _layout_rth = (LinearLayout) findViewById(R.id.layout_flight_rth);
+                        LinearLayout _layout_rth = findViewById(R.id.pixhawk_layout_flight_rth);
                         _layout_rth.setVisibility(VISIBLE);
                     }else if(rtl.mode == MainActivity.ReturnHome.SET_RETURN_HOME_LOCATION){
                         //조종기 위치 불러오기
@@ -621,16 +645,16 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
      */
     private void setReturnHomeCancelWidget(boolean is_rth){
         if(is_rth) {
-            LinearLayout _layout = findViewById(R.id.layout_flight_cancel);
+            LinearLayout _layout = findViewById(R.id.pixhawk_layout_flight_cancel);
             _layout.setVisibility(VISIBLE);
-            LinearLayout _layout_rth = findViewById(R.id.layout_flight_rth);
+            LinearLayout _layout_rth = findViewById(R.id.pixhawk_layout_flight_rth);
             _layout_rth.setVisibility(INVISIBLE);
 
             pixhawk_btn_flight_cancel.setTag("rtl");
         }else{
-            LinearLayout _layout = findViewById(R.id.layout_flight_cancel);
+            LinearLayout _layout = findViewById(R.id.pixhawk_layout_flight_cancel);
             _layout.setVisibility(VISIBLE);
-            LinearLayout _layout_rth = findViewById(R.id.layout_flight_rth);
+            LinearLayout _layout_rth = findViewById(R.id.pixhawk_layout_flight_rth);
             _layout_rth.setVisibility(INVISIBLE);
 
             pixhawk_btn_flight_cancel.setTag("landing");

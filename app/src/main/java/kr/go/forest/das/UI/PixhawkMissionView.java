@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -68,6 +69,7 @@ import kr.go.forest.das.Model.MAVLinkWaypointMission;
 import kr.go.forest.das.Model.RectD;
 import kr.go.forest.das.Model.ViewWrapper;
 import kr.go.forest.das.R;
+import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.geo.GeoManager;
 import kr.go.forest.das.map.MapLayer;
 
@@ -132,6 +134,17 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
     SeekBar sb_mission_flight_altitude;
     SeekBar sb_mission_overlap;
     SeekBar sb_mission_sidelap;
+
+    // TextView
+    TextView textview_battery_remain_percent;                   // 배터리 남은 용량
+    TextView textview_flight_mode;                              // 드론 비행모드
+
+    TextView pixhawk_connect_text;                              // 드론 상태 정보
+    TextView textview_gps_count;                                // 드론 GPS 연결정보
+    TextView textview_gps_eph;                                  // 드론 GPS 수평 연결
+
+    // ImageView
+    ImageView pixhawk_rc_signal;                                // 조종기 연결 정보
 
     public PixhawkMissionView(Context context){
         super(context);
@@ -353,6 +366,13 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
 
     private void setWidget() {
 
+        pixhawk_connect_text = findViewById(R.id.pixhawk_connect_text);
+        textview_gps_count = findViewById(R.id.textview_gps_count);
+        textview_gps_eph = findViewById(R.id.textview_gps_eph);
+        pixhawk_rc_signal = findViewById(R.id.pixhawk_rc_signal);
+        textview_battery_remain_percent = findViewById(R.id.textview_battery_remain_percent);
+        textview_flight_mode = findViewById(R.id.textview_flight_mode);
+
         // Button
         (findViewById(R.id.pixhawk_btn_mission_back)).setOnClickListener(this);
         (findViewById(R.id.pixhawk_btn_mission_location)).setOnClickListener(this);
@@ -409,6 +429,12 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
         sb_mission_flight_altitude.setProgress(150);
         sb_mission_overlap.setProgress(60);
         sb_mission_sidelap.setProgress(60);
+
+        // 드론 정보 설정
+        if(DroneApplication.getDroneInstance() != null && DroneApplication.getDroneInstance().isConnect() == true){
+            pixhawk_connect_text.setBackgroundResource(R.mipmap.top_bg_green);
+            pixhawk_connect_text.setText("비행 준비 완료");
+        }
     }
 
     /**
@@ -1004,13 +1030,76 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
                     public void run() {
                         if(DroneApplication.getDroneInstance() != null){
                             DroneInfo _info = DroneApplication.getDroneInstance().getDroneInfo();
+                            // 5. 드론 Heading
+                            marker_drone_location.setIcon(MapLayer.getInstance().getRotateDrawable(context, R.mipmap.map_ico_drone, _info.heading));
+                            marker_drone_location.setPosition(new GeoPoint(_info.drone_latitude, _info.drone_longitude));
 
+                            if(my_location != null) marker_my_location.setPosition(my_location);
+
+                            LocationCoordinate2D _home = DroneApplication.getDroneInstance().getHomeLocation();
+                            if(_home != null) {
+                                marker_home_location.setPosition(new GeoPoint(_home.getLatitude(), _home.getLongitude()));
+                            }
+
+                            // 7. 드론 GPS 정보
+                            textview_gps_count.setText(String.format("%d",_info.satellites_visible_count));
+                            textview_gps_eph.setText(String.format("%.2f", _info.eph));
+
+                            // 8. 조종기 연결 정보
+                            if(_info.rssi < 1) pixhawk_rc_signal.setBackgroundResource(R.mipmap.signal_0);
+                            else if(_info.rssi < 21) pixhawk_rc_signal.setBackgroundResource(R.mipmap.signal_1);
+                            else if(_info.rssi < 41) pixhawk_rc_signal.setBackgroundResource(R.mipmap.signal_2);
+                            else if(_info.rssi < 61) pixhawk_rc_signal.setBackgroundResource(R.mipmap.signal_3);
+                            else if(_info.rssi < 81) pixhawk_rc_signal.setBackgroundResource(R.mipmap.signal_4);
+                            else pixhawk_rc_signal.setBackgroundResource(R.mipmap.signal_5);
+
+                            // 9. 배터리 정보
+                            if(_info.battery_remain_percent == -1){
+                                textview_battery_remain_percent.setTextColor(Color.RED);
+                                textview_battery_remain_percent.setText("N/A");
+                            }
+                            else{
+                                textview_battery_remain_percent.setTextColor(Color.GREEN);
+                                textview_battery_remain_percent.setText(String.format("%d",_info.battery_remain_percent));
+                            }
+
+                            // 10. 드론 비행모드
+                            textview_flight_mode.setText(_info.flight_mode);
+                            map_view.invalidate();
                             map_view.invalidate();
                         }
                     }
                 });
             }
 
+        }
+    }
+
+    @Subscribe
+    public void onConnectionChange(final MainActivity.DroneStatusChange drone_status) {
+        if (handler_ui != null) {
+            handler_ui.post(new Runnable() {
+                @Override
+                public void run() {
+                    if(drone_status.status == Drone.DRONE_STATUS_CONNECT) {
+                        pixhawk_connect_text.setBackgroundResource(R.mipmap.top_bg_green);
+                        pixhawk_connect_text.setText("비행 준비 완료");
+                    }else if(drone_status.status == Drone.DRONE_STATUS_ARMING){
+
+                    }else if(drone_status.status == Drone.DRONE_STATUS_FLYING){
+
+                    }else if(drone_status.status == Drone.DRONE_STATUS_MISSION){
+
+                    }else if(drone_status.status == Drone.DRONE_STATUS_RETURN_HOME){
+
+                    }else if(drone_status.status == Drone.DRONE_STATUS_DISARM){
+
+                    }else if(drone_status.status == Drone.DRONE_STATUS_DISCONNECT){
+                        pixhawk_connect_text.setBackgroundResource(R.mipmap.top_bg_gray);
+                        pixhawk_connect_text.setText("기기 연결 끊김");
+                    }
+                }
+            });
         }
     }
 

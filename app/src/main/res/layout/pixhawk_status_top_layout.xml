@@ -21,10 +21,11 @@
             android:gravity="center_vertical"
             android:text="기기 연결 끊김"/>
         <ImageView
+            android:id="@+id/imageview_drone_flight_mode"
             android:layout_width="@dimen/px48"
             android:layout_height="@dimen/px42"
             android:layout_alignParentRight="true"
-            android:layout_marginRight="@dimen/px690"
+            android:layout_marginRight="@dimen/px740"
             android:layout_centerVertical="true"
             android:background="@mipmap/btn_move_n"/>
         <TextView
@@ -32,12 +33,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/px24"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="@dimen/px590"
+            android:layout_alignLeft="@+id/imageview_drone_flight_mode"
+            android:layout_marginLeft="@dimen/px52"
             android:textSize="@dimen/px24"
             android:textColor="#ffffff"
-            android:layout_gravity="center"
-            android:text="Altitude"/>
+            android:layout_gravity="left"
+            android:text=""/>
         <LinearLayout
             android:layout_alignParentRight="true"
             android:layout_width="wrap_content"

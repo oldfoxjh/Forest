@@ -47,7 +47,9 @@ import io.dronefleet.mavlink.common.RcChannels;
 import io.dronefleet.mavlink.common.SysStatus;
 import io.dronefleet.mavlink.common.VfrHud;
 import io.dronefleet.mavlink.util.EnumValue;
+import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MAVLink.MavDataManager;
+import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
 
@@ -100,15 +102,18 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
             "TakeOff",   // 2
             "Loiter",   // 3
             "Mission",       // 4
-            "RTL",       // 5
-            "LAND",   // 6
+            "Return",       // 5
+            "Land",   // 6
             "RTGS", // 7
             "FOLLOW_TARGET",  // 8
             "PRECLAND"      // 9
     };
 
     public Px4() {
+    }
 
+    public void setMavlinkManager(MavDataManager mdm){
+        mavlink_manager = mdm;
     }
 
     //region 제품정보
@@ -148,6 +153,8 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
         _drone.eph = eph;
         _drone.rssi = rssi;
 
+        _drone.flight_mode = flight_mode;
+
         return _drone;
     }
 
@@ -159,7 +166,7 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
     /*=============================================================*
      *  현재 드론 비행여부를 확인한다.
      *==============================================================*/
-    public boolean isFlying(){ return false; }
+    public boolean isFlying(){ return is_flying; }
 
     /**
      * 제조사 정보를 반환한다.
@@ -464,20 +471,21 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
      * 자동이륙 명령
      */
     public void startTakeoff(){
-
+        mavlink_manager.requestArmDisarm(1);
     }
 
     /**
      * 자동착륙 명령
      */
     public void startLanding(){
+        mavlink_manager.requestLand();
     }
 
     /**
      * 자동착륙 명령 취소
      */
     public void cancelLanding(){
-
+        mavlink_manager.requestLoiter();
     }
 
     /**
@@ -632,7 +640,9 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
 
     @Override
     public LocationCoordinate2D getHomeLocation(){
-        return null;
+        if(home_latitude < 1 || home_longitude < 1) return  null;
+        LocationCoordinate2D _location = new LocationCoordinate2D(home_latitude, home_longitude);
+        return _location;
     }
 
     @Override
@@ -642,12 +652,12 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
 
     @Override
     public void startGoHome(){
-
+        mavlink_manager.requestReturn2Home();
     }
 
     @Override
     public void cancelGoHome(){
-
+        mavlink_manager.requestLoiter();
     }
 
     @Override
@@ -679,14 +689,17 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
 
         if(payload instanceof VfrHud){
             heading = ((VfrHud) payload).heading();
-            drone_altitude = ((VfrHud) payload).alt();
+            if(mavlink_device == MAVLINK_DEVICE_ARDUPILOT){
+                drone_altitude = ((VfrHud) payload).alt();
+            }
             velocyty_x = ((VfrHud) payload).groundspeed();
         }else if(payload instanceof LocalPositionNed){
             velocyty_x = ((LocalPositionNed) payload).vx();
-            velocyty_y = ((LocalPositionNed) payload).vx();
-            velocyty_z = ((LocalPositionNed) payload).vx();
-
-            drone_altitude = ((LocalPositionNed) payload).z() * -1;
+            velocyty_y = ((LocalPositionNed) payload).vy();
+            velocyty_z = ((LocalPositionNed) payload).vz();
+            if(mavlink_device == MAVLINK_DEVICE_PX4){
+                drone_altitude = ((LocalPositionNed) payload).z() * -1;
+            }
         }else if(payload instanceof BatteryStatus){
             battery_temperature = ((BatteryStatus) payload).temperature();
             List<Integer> voltages = ((BatteryStatus) payload).voltages();
@@ -697,8 +710,8 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
             battery_voltage = -1;
             battery_remain_percent = ((SysStatus) payload).batteryRemaining();
         }else if(payload instanceof HomePosition){
-            home_latitude = ((HomePosition) payload).latitude();
-            home_longitude = ((HomePosition) payload).longitude();
+            home_latitude = ((double)((HomePosition) payload).latitude())/10000000;
+            home_longitude = ((double)((HomePosition) payload).longitude())/10000000;
             home_set = true;
         }else if(payload instanceof Heartbeat) {
             EnumValue<MavAutopilot> autopilot = ((Heartbeat) payload).autopilot();
@@ -707,19 +720,31 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
 
             long _custom_mode = ((Heartbeat) payload).customMode();
             EnumValue<MavState> system_status = ((Heartbeat) payload).systemStatus(); // https://mavlink.io/en/messages/common.html#MAV_STATE
-            EnumValue<MavModeFlag> base_mode = ((Heartbeat) payload).baseMode();
-            if((base_mode.value() & 0x80) != 0){
-                Log.e("Heartbeat", "MAV_MODE_FLAG_SAFETY_ARMED");
-            }
-            Log.e("Heartbeat1","device : " + mavlink_device);
+
             if(mavlink_device == MAVLINK_DEVICE_ARDUPILOT){
                 flight_mode = ARDUPILOT_FLIGHT_MODE[(int)_custom_mode];
             }else if(mavlink_device == MAVLINK_DEVICE_PX4){                             // https://github.com/PX4/Firmware/blob/master/src/modules/commander/px4_custom_mode.h#L45
                 flight_mode = PX4_FLIGHT_MAIN_MODE[(int)((_custom_mode >> 16) & 0xFF)];
                 String sub_mode = PX4_FLIGHT_SUB_MODE[(int)((_custom_mode >> 24) & 0xFF)];
+                if(sub_mode.equals("Mission")) flight_mode = sub_mode;
+                else if(sub_mode.equals("Return")) {
+                    flight_mode = sub_mode;
+                }
+                else if(sub_mode.equals("TakeOff")) {
+                    flight_mode = sub_mode;
+                }else if(sub_mode.equals("Land")) {
+                    flight_mode = sub_mode;
+                }
             }
 
-
+            EnumValue<MavModeFlag> base_mode = ((Heartbeat) payload).baseMode();
+            if((base_mode.value() & 0x80) != 0){
+                flight_mode = flight_mode + "(Arm)";
+                is_flying = true;
+            }else{
+                flight_mode = flight_mode + "(Disarm)";
+                is_flying = false;
+            }
         }else if(payload instanceof ManualControl){
             left_stick_x = ((ManualControl) payload).r();
             left_stick_y = ((ManualControl) payload).z();
@@ -750,6 +775,9 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
                 drone_longitude = ((double)((GpsRawInt) payload).lon())/10000000;
             }
 
+        }else if(payload instanceof GlobalPositionInt){
+            drone_latitude = ((double)((GlobalPositionInt) payload).lat())/10000000;
+            drone_longitude = ((double)((GlobalPositionInt) payload).lon())/10000000;
         }else if(payload instanceof AutopilotVersion){
 
         }else if(payload instanceof RcChannels){
@@ -761,21 +789,33 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
         }else if(payload instanceof CommandAck){
             EnumValue<MavCmd> command = ((CommandAck) payload).command();
             EnumValue<MavResult> result = ((CommandAck) payload).result();
-
+            Log.e("Command Ack", payload.toString());
             if(command.entry() == MavCmd.MAV_CMD_NAV_LAND){
                 if(result.entry() == MavResult.MAV_RESULT_ACCEPTED){
                     // 착륙 명령 성공
+                    DroneApplication.getEventBus().post(new MainActivity.ReturnHome(MainActivity.ReturnHome.REQUEST_LANDING_SUCCESS, null));
                 }
             }else if(command.entry() == MavCmd.MAV_CMD_NAV_TAKEOFF){
-                if(result.entry() == MavResult.
-                        MAV_RESULT_ACCEPTED){
+                if(result.entry() == MavResult.MAV_RESULT_ACCEPTED){
                     // 이륙 명령 성공
+                    DroneApplication.getEventBus().post(new MainActivity.ReturnHome(MainActivity.ReturnHome.REQUEST_TAKEOFF_SUCCESS, null));
+                }
+            }else if(command.entry() == MavCmd.MAV_CMD_NAV_RETURN_TO_LAUNCH){
+                if(result.entry() == MavResult.MAV_RESULT_ACCEPTED){
+                    // 귀환 명령 성공
+                    DroneApplication.getEventBus().post(new MainActivity.ReturnHome(MainActivity.ReturnHome.REQUEST_RETURN_HOME_SUCCESS, null));
                 }
             }else if(command.entry() == MavCmd.MAV_CMD_COMPONENT_ARM_DISARM ){
                 if(result.entry() == MavResult.MAV_RESULT_ACCEPTED){
                     // Arm/Disarm 명령 성공
+                    mavlink_manager.requestTakeOff();
                 }else if(result.entry() == MavResult.MAV_RESULT_TEMPORARILY_REJECTED){
                     // Arm/Disarm 명령 현재 실행할 수 없음
+                }
+            }else if(command.entry() == MavCmd.MAV_CMD_DO_REPOSITION){
+                if(result.entry() == MavResult.MAV_RESULT_ACCEPTED){
+                    // 정지 명령 성공
+                    DroneApplication.getEventBus().post(new MainActivity.ReturnHome(MainActivity.ReturnHome.CANCEL_RETURN_HOME_SUCCESS, null));
                 }
             }
         }

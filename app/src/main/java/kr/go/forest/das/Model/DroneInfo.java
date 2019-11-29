@@ -8,6 +8,7 @@ public class DroneInfo {
      */
     public int flight_time;                 // 드론 : 비행시간
     public int status;                      // 드론 : 상태(이벤트)
+    public String flight_mode;              // 드론 : 비행모드
 
     public double drone_latitude;           // 드론 위치 : 위도
     public double drone_longitude;          // 드론 위치 : 경도

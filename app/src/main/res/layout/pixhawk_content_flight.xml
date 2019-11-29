@@ -54,7 +54,7 @@
 
     <!-- RTH  -->
     <LinearLayout
-        android:id="@+id/layout_flight_rth"
+        android:id="@+id/pixhawk_layout_flight_rth"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="@dimen/px30"

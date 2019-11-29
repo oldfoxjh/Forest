@@ -35,6 +35,7 @@ import io.dronefleet.mavlink.common.CommandInt;
 import io.dronefleet.mavlink.common.CommandLong;
 import io.dronefleet.mavlink.common.EstimatorStatus;
 import io.dronefleet.mavlink.common.ExtendedSysState;
+import io.dronefleet.mavlink.common.GlobalPositionInt;
 import io.dronefleet.mavlink.common.GpsRawInt;
 import io.dronefleet.mavlink.common.Heartbeat;
 import io.dronefleet.mavlink.common.HighresImu;
@@ -50,6 +51,8 @@ import io.dronefleet.mavlink.common.ParamRequestList;
 import io.dronefleet.mavlink.common.ParamRequestRead;
 import io.dronefleet.mavlink.common.ParamValue;
 import io.dronefleet.mavlink.common.Ping;
+import io.dronefleet.mavlink.common.PositionTargetGlobalInt;
+import io.dronefleet.mavlink.common.PositionTargetLocalNed;
 import io.dronefleet.mavlink.common.RcChannels;
 import io.dronefleet.mavlink.common.RcChannelsOverride;
 import io.dronefleet.mavlink.common.RequestDataStream;
@@ -63,10 +66,8 @@ import io.dronefleet.mavlink.common.Timesync;
 import io.dronefleet.mavlink.common.UtmGlobalPosition;
 import io.dronefleet.mavlink.common.VfrHud;
 import io.dronefleet.mavlink.common.Vibration;
+import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Log.LogWrapper;
-
-import static io.dronefleet.mavlink.common.MavCmd.MAV_CMD_GET_HOME_POSITION;
-import static io.dronefleet.mavlink.common.MavCmd.MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES;
 
 public class MavDataManager implements Runnable{
 
@@ -181,6 +182,11 @@ public class MavDataManager implements Runnable{
     public void send(Object payload){
         try {
             mav_connection.send2(255, 1, payload);
+            if(payload instanceof Heartbeat){
+
+            }else {
+                Log.e("Command", payload.toString());
+            }
         }catch (Exception ex){
             ex.printStackTrace();
         }
@@ -240,17 +246,55 @@ public class MavDataManager implements Runnable{
         send(request);
     }
 
+    /**
+     * 착륙 명령
+     */
     public void requestLand(){
         CommandLong request = CommandLong.builder()
                 .targetComponent(component_id)
                 .targetSystem(system_id)
                 .command(MavCmd.MAV_CMD_NAV_LAND)
+                .param1(0)
+                .build();
+
+        send(request);
+    }
+
+    /**
+     * 자동복귀 명령
+     */
+    public void requestReturn2Home(){
+        CommandLong request = CommandLong.builder()
+                .targetComponent(component_id)
+                .targetSystem(system_id)
+                .command(MavCmd.MAV_CMD_NAV_RETURN_TO_LAUNCH)
                 .param7(0)
                 .build();
 
         send(request);
     }
 
+    public void requestLoiter(){
+        CommandLong request = CommandLong.builder()
+                .targetComponent(component_id)
+                .targetSystem(system_id)
+                .command(MavCmd.MAV_CMD_DO_REPOSITION)
+                .param1(-1)
+                .param2(1)
+                .param3(0)
+                .param4(java.lang.Float.NaN)
+                .param5(java.lang.Float.NaN)
+                .param6(java.lang.Float.NaN)
+                .param7(java.lang.Float.NaN)
+                .build();
+
+        send(request);
+    }
+
+    /**
+     * 드론 시동 설정
+     * @param isArm 0: disarm, 1: arm
+     */
     public void requestArmDisarm(int isArm){
         CommandInt request = CommandInt.builder()
                 .targetComponent(component_id)
@@ -299,10 +343,8 @@ public class MavDataManager implements Runnable{
                 Thread.sleep(10);
             }
         } catch (Exception e) {
-            Log.e("Command Ack", "run Exception" + e.toString());
-        }
 
-        Log.e("Command Ack", "Thread end");
+        }
     }
 
     private void step(){
@@ -324,10 +366,11 @@ public class MavDataManager implements Runnable{
                     seq++;
                     if (seq == 10)
                         send(RequestDataStream.builder().targetSystem(system_id).targetComponent(component_id).reqStreamId(2).reqMessageRate(2).startStop(1).build());
-                    //Log.e("Command Ack", payload.toString());
+
+                    if(seq%5==0) requestHomePosition(); // 홈 위치 요청
                 } else if (payload instanceof Ping) {
                     //requestAutopilotVersion();
-                    // requestHomePosition();
+
                     //requestArmDisarm(1);
                     // requestMessageInterval(74);
                 } else if (payload instanceof Altitude || payload instanceof Attitude || payload instanceof RcChannels || payload instanceof RcChannelsOverride || payload instanceof LocalPositionNed
@@ -335,12 +378,13 @@ public class MavDataManager implements Runnable{
                         || payload instanceof EstimatorStatus || payload instanceof Vibration || payload instanceof SysStatus
                         || payload instanceof UtmGlobalPosition || payload instanceof AttitudeTarget || payload instanceof VfrHud || payload instanceof GpsRawInt || payload instanceof Statustext || payload instanceof ParamValue
                         || payload instanceof ScaledImu3 || payload instanceof ScaledImu2 || payload instanceof ScaledImu || payload instanceof ActuatorControlTarget || payload instanceof AttitudeQuaternion
+                        || payload instanceof GlobalPositionInt || payload instanceof PositionTargetGlobalInt || payload instanceof PositionTargetLocalNed || payload instanceof Timesync || payload instanceof Heartbeat
                 ) {
 
                 } else {
-
+                    Log.e("Command Ack", payload.toString());
                 }
-              //  Log.e("Command Ack", payload.toString());
+              //
                 if (listener != null) listener.onReceive(payload, type);
             }
         }catch (Exception e){

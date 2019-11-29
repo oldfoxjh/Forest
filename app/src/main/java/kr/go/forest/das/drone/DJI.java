@@ -65,6 +65,7 @@ import dji.sdk.sdkmanager.DJISDKInitEvent;
 import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.Log.LogWrapper;
+import kr.go.forest.das.MAVLink.MavDataManager;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.BigdataSystemInfo;
 import kr.go.forest.das.Model.CameraInfo;
@@ -85,6 +86,9 @@ public class DJI extends Drone{
 
     private SettingsDefinitions.CameraMode camera_mode;
 
+    public void setMavlinkManager(MavDataManager mdm){
+        return;
+    }
     //region 제품정보
     public synchronized DroneInfo getDroneInfo(){
         DroneInfo _drone = new DroneInfo();

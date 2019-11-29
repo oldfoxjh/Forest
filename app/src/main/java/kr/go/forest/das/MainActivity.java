@@ -108,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         Drone _drone = DroneApplication.getDroneInstance();
         if(_drone != null && _drone instanceof Px4){
             mav_manager = new MavDataManager(this, MavDataManager.BAUDRATE_115200, (Px4)_drone);
+            _drone.setMavlinkManager(mav_manager);
         }
 
         // USB 연결된 상태로 부팅했을 경우 연결 체크 타이머 시작
@@ -680,7 +681,10 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
                     DroneApplication.setDroneInstance((Drone.DRONE_MANUFACTURE_PIXHWAK));
                 }
 
-                if(mav_manager == null) mav_manager = new MavDataManager(MainActivity.this, MavDataManager.BAUDRATE_57600, (Px4)(DroneApplication.getDroneInstance()));
+                if(mav_manager == null) {
+                    mav_manager = new MavDataManager(MainActivity.this, MavDataManager.BAUDRATE_57600, (Px4)(DroneApplication.getDroneInstance()));
+                    DroneApplication.getDroneInstance().setMavlinkManager(mav_manager);
+                }
                 mav_manager.open(usb_connection, driver.getPorts().get(0));
 
                 if(DroneApplication.getDroneInstance().isConnect() == false) {
