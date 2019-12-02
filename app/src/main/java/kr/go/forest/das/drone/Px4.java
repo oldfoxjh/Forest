@@ -40,9 +40,15 @@ import io.dronefleet.mavlink.common.ManualControl;
 import io.dronefleet.mavlink.common.MavAutopilot;
 import io.dronefleet.mavlink.common.MavCmd;
 import io.dronefleet.mavlink.common.MavLandedState;
+import io.dronefleet.mavlink.common.MavMissionResult;
+import io.dronefleet.mavlink.common.MavMissionType;
 import io.dronefleet.mavlink.common.MavModeFlag;
 import io.dronefleet.mavlink.common.MavResult;
 import io.dronefleet.mavlink.common.MavState;
+import io.dronefleet.mavlink.common.MissionAck;
+import io.dronefleet.mavlink.common.MissionCurrent;
+import io.dronefleet.mavlink.common.MissionRequest;
+import io.dronefleet.mavlink.common.MissionRequestInt;
 import io.dronefleet.mavlink.common.RcChannels;
 import io.dronefleet.mavlink.common.SysStatus;
 import io.dronefleet.mavlink.common.VfrHud;
@@ -52,6 +58,7 @@ import kr.go.forest.das.MAVLink.MavDataManager;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
+import kr.go.forest.das.Model.MavlinkMission;
 
 public class Px4 extends Drone implements MavDataManager.MavEventListener{
 
@@ -108,6 +115,8 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
             "FOLLOW_TARGET",  // 8
             "PRECLAND"      // 9
     };
+
+    private boolean request_upload_mission = false;
 
     public Px4() {
     }
@@ -572,7 +581,13 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
      * 설정된 임무를 드론에 업로드
      */
     public String uploadMission(WaypointMission mission){
+
         return null;
+    }
+
+    public void mavlinkUploadMission(ArrayList<MavlinkMission> mission){
+        mavlink_manager.requestMissionClear();
+        mavlink_manager.setMavlinkMission(mission);
     }
 
     /**
@@ -716,7 +731,7 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
         }else if(payload instanceof Heartbeat) {
             EnumValue<MavAutopilot> autopilot = ((Heartbeat) payload).autopilot();
             if(autopilot.entry() == MavAutopilot.MAV_AUTOPILOT_ARDUPILOTMEGA) mavlink_device = MAVLINK_DEVICE_ARDUPILOT;
-            else if(autopilot.entry() == MavAutopilot.MAV_AUTOPILOT_PX4) mavlink_device = MAVLINK_DEVICE_PX4;
+            else mavlink_device = MAVLINK_DEVICE_PX4;
 
             long _custom_mode = ((Heartbeat) payload).customMode();
             EnumValue<MavState> system_status = ((Heartbeat) payload).systemStatus(); // https://mavlink.io/en/messages/common.html#MAV_STATE
@@ -786,10 +801,46 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
             drone_roll = ((Attitude) payload).roll();
             drone_pitch = ((Attitude) payload).pitch();
             drone_yaw = ((Attitude) payload).yaw();
+        }else if(payload instanceof MissionRequestInt){
+            int seq = ((MissionRequestInt) payload).seq();
+            mavlink_manager.requestMissionItem(seq);
+
+        }else if(payload instanceof MissionRequest){
+            int seq = ((MissionRequest) payload).seq();
+            mavlink_manager.requestMissionItem(seq);
+
+        }else if(payload instanceof MissionAck){
+
+            EnumValue<MavMissionResult> result = ((MissionAck) payload).type();
+            EnumValue<MavMissionType> _type = ((MissionAck) payload).missionType();
+            if(_type == null) {
+                Log.e("MissionAck", "type : null");
+            }
+            else Log.e("MissionAck", "type : " + _type.value());
+            if(_type != null && _type.entry() == MavMissionType.MAV_MISSION_TYPE_ALL){
+                if(result.entry() == MavMissionResult.MAV_MISSION_ACCEPTED){
+                    mavlink_manager.requestMissionCount();
+                }else{
+                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD_FAIL, null));
+                }
+            }else{
+                Log.e("MissionAck", payload.toString());
+                if(result == null || result.value() < 1){
+                    request_upload_mission = true;
+                } else {
+                    DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD_FAIL, null));
+                }
+            }
+
+        }else if(payload instanceof MissionCurrent){
+            if(request_upload_mission == true){
+                DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD, null));
+                request_upload_mission = false;
+            }
         }else if(payload instanceof CommandAck){
             EnumValue<MavCmd> command = ((CommandAck) payload).command();
             EnumValue<MavResult> result = ((CommandAck) payload).result();
-            Log.e("Command Ack", payload.toString());
+            //Log.e("Command Ack", payload.toString());
             if(command.entry() == MavCmd.MAV_CMD_NAV_LAND){
                 if(result.entry() == MavResult.MAV_RESULT_ACCEPTED){
                     // 착륙 명령 성공

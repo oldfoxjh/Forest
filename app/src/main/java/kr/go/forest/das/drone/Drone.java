@@ -15,6 +15,7 @@ import android.content.Context;
 
 import org.osmdroid.util.GeoPoint;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import dji.common.flightcontroller.BatteryThresholdBehavior;
@@ -30,6 +31,7 @@ import dji.common.camera.SettingsDefinitions;
 import kr.go.forest.das.MAVLink.MavDataManager;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
+import kr.go.forest.das.Model.MavlinkMission;
 
 public abstract class Drone {
 
@@ -444,6 +446,7 @@ public abstract class Drone {
      * 설정된 임무를 드론에 업로드
      */
     public abstract String uploadMission(WaypointMission mission);
+    public abstract void mavlinkUploadMission(ArrayList<MavlinkMission> mission);
 
     /**
      * 설정된 임무를 시작하기 위한 조건 설정

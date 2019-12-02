@@ -113,6 +113,9 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
     Polygon flight_area = new Polygon();                        // 촬영영역
     Polyline flight_path = new Polyline();                      // 비행경로
 
+    Button btn_waypoint_mission;
+    Button btn_polygon_mission;
+
     // 임무설정 Widget Control
     TextView tv_mission_area;
     TextView tv_mission_distance;
@@ -164,6 +167,8 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
         DroneApplication.getEventBus().register(this);
         handler_ui = new Handler(Looper.getMainLooper());
         progress = new ProgressDialog(context);
+        progress.setCancelable(false);
+        progress.setProgressStyle(android.R.style.Widget_ProgressBar_Horizontal);
 
         // Data 수집 타이머 시작
         if(timer == null) {
@@ -380,6 +385,12 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
         (findViewById(R.id.pixhawk_btn_new_course)).setOnClickListener(this);
         (findViewById(R.id.pixhawk_btn_mission_upload)).setOnClickListener(this);
 
+        btn_waypoint_mission = findViewById(R.id.pixhawk_btn_waypoint_mission);
+        btn_waypoint_mission.setOnClickListener(this);
+        btn_polygon_mission = findViewById(R.id.pixhawk_btn_polygon_mission);
+        btn_polygon_mission.setOnClickListener(this);
+        btn_polygon_mission.setSelected(true);
+
         // 임무설정 텍스트
         tv_mission_area = findViewById(R.id.pixhawk_mission_area);
         tv_mission_distance = findViewById(R.id.pixhawk_mission_distance);
@@ -465,7 +476,7 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
      */
     @Subscribe
     public void onMissionLoad(final MainActivity.Mission mission) {
-        LogWrapper.i("MissionView", "cmd : " + mission.command);
+
         if(mission.command == MainActivity.Mission.MISSION_FROM_FILE || mission.command == MainActivity.Mission.MISSION_FROM_ONLINE){
             // 임무정보 초기화
             clearMission();
@@ -487,6 +498,7 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
             }
             // 파일이 잘못되었을 경우 팝업
         }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD){
+            progress.dismiss();
             DroneInfo _info = DroneApplication.getDroneInstance().getDroneInfo();
             DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.mission_start_title, R.string.mission_start_content, ""));
         }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD_FAIL){
@@ -514,8 +526,6 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
                 });
             }
         }else if(mission.command == MainActivity.Mission.MISSION_START){
-            // 웨이포인트 미션일 경우
-            //DroneApplication.getDroneInstance().startMission(shoot_count, shoot_time_interval);
             if (handler_ui != null) {
                 handler_ui.post(new Runnable() {
                     @Override
@@ -524,7 +534,11 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
                             MissionControl.getInstance().startTimeline();
                         }
                         // 비행경로 저장
-                        DroneApplication.getDroneInstance().setMissionPoints(flight_points);
+                        if(btn_waypoint_mission.isSelected()) {
+                            DroneApplication.getDroneInstance().setMissionPoints(mWaypoints);
+                        }else{
+                            DroneApplication.getDroneInstance().setMissionPoints(flight_points);
+                        }
                         // 비행화면으로 전환
                         DroneApplication.getEventBus().post(new ViewWrapper(new FlightView(context), false));
                     }
@@ -579,18 +593,55 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
                     return;
                 }
 
-                // 웨이 포인트 3개 이상...확인
-                if(mWaypoints.size() < 2) {
-                    DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_create_fail, null));
-                    return;
-                }
-
                 // 웨이포인트 생성
                 DroneInfo _info = DroneApplication.getDroneInstance().getDroneInfo();
-                waypoint_mission = new MAVLinkWaypointMission(devideFlightPath(), new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
 
-                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_UPLOAD_MISSION, 0, 0));
+                if(!btn_waypoint_mission.isSelected()) {
+                    // 웨이 포인트 3개 이상...확인
+                    if(mWaypoints.size() < 2) {
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_create_fail, null));
+                        return;
+                    }
+                    waypoint_mission = new MAVLinkWaypointMission(devideFlightPath(), new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
+                }else{
+                    // 비행고도 적용
+                    for(GeoPoint point : mWaypoints){
+                        point.setAltitude(mission_altitude);
+                    }
+                    waypoint_mission = new MAVLinkWaypointMission(mWaypoints, new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
+                }
 
+                // 임무 업로드중 프로그레스바
+                progress.setMessage("임무 업로드중입니다.");
+                progress.show();
+
+                // 임무 업로드 검증 마치고..전송..
+                // 임무 데이터 전달
+                DroneApplication.getDroneInstance().mavlinkUploadMission(waypoint_mission.getMission());
+
+                //
+
+                break;
+            case R.id.pixhawk_btn_polygon_mission:
+                if(!btn_polygon_mission.isSelected()){
+                    btn_polygon_mission.setSelected(true);
+                    btn_waypoint_mission.setSelected(false);
+                    clearMission();
+                }
+                sb_mission_angle.setEnabled(true);
+                sb_mission_overlap.setEnabled(true);
+                sb_mission_sidelap.setEnabled(true);
+                break;
+            case R.id.pixhawk_btn_waypoint_mission:
+                if(!btn_waypoint_mission.isSelected()){
+                    btn_waypoint_mission.setSelected(true);
+                    btn_polygon_mission.setSelected(false);
+                    clearMission();
+                }
+
+                sb_mission_angle.setEnabled(false);
+                sb_mission_overlap.setEnabled(false);
+                sb_mission_sidelap.setEnabled(false);
                 break;
         }
     }
@@ -788,31 +839,36 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
      * 임무 Polygon 세팅
      */
     private void setMissionPolygon() {
+        if(btn_waypoint_mission.isSelected()) {
+            flight_path.setPoints(mWaypoints);
+            if(!map_view.getOverlays().contains(flight_path)) map_view.getOverlayManager().add(flight_path);
+        }else{
+            // 웨이포인트 위치에 따라 순서 정렬(1번은 확정)
+            if(mWaypoints != null && mWaypoints.size() > 0) {
+                // 촬영 영역
+                area_points.clear();
+                area_points.addAll(mWaypoints);
+                area_points.add(area_points.get(0));
+            }
 
-        // 웨이포인트 위치에 따라 순서 정렬(1번은 확정)
-        if(mWaypoints != null && mWaypoints.size() > 0) {
-            // 촬영 영역
-            area_points.clear();
-            area_points.addAll(mWaypoints);
-            area_points.add(area_points.get(0));
+            if(mWaypoints.size() < 3) {
+                if(map_view != null) map_view.invalidate();
+                return;
+            }
+
+            flight_area.setPoints(area_points);
+
+            setOverlapDistance();
+            // 경계에서 동쪽으로 일정거리만큼 떨어진 지점의 좌표
+            flight_points.clear();
+            flight_points = GeoManager.getInstance().getPositionsFromRectD(mWaypoints, side_distance, mission_angle);
+
+            setEntryExit();
+            flight_path.setPoints(flight_points);
+            if(!map_view.getOverlays().contains(flight_path)) map_view.getOverlayManager().add(flight_path);
         }
-        if(selected_points.size() < 3) {
-            if(map_view != null) map_view.invalidate();
-            return;
-        }
 
-        flight_area.setPoints(area_points);
-
-        setOverlapDistance();
-        // 경계에서 동쪽으로 일정거리만큼 떨어진 지점의 좌표
-        flight_points.clear();
-        flight_points = GeoManager.getInstance().getPositionsFromRectD(mWaypoints, side_distance, mission_angle);
-
-        setEntryExit();
-        flight_path.setPoints(flight_points);
-        if(!map_view.getOverlays().contains(flight_path)) map_view.getOverlayManager().add(flight_path);
         map_view.invalidate();
-
         // 비행경로 정보 재설정
         setMissionInfo();
     }
@@ -854,33 +910,35 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
         if(mWaypoints != null) {
             // 촬영 영역
             mWaypoints.clear();
+            for(GeoPoint _point : waypoints){
+                Marker _waypoint = getDefaultMarker(new GeoPoint(_point.getLatitude(), _point.getLongitude()));
+                map_view.getOverlays().add(_waypoint);
+                // Add List
+                selected_points.add(_waypoint);
+            }
             mWaypoints.addAll(waypoints);
         }
 
-        for(GeoPoint _point : area_points) {
-            Marker _waypoint = getDefaultMarker(new GeoPoint(_point.getLatitude(), _point.getLongitude()));
-            map_view.getOverlays().add(_waypoint);
-            // Add List
-            selected_points.add(_waypoint);
+        if(btn_waypoint_mission.isSelected()) {
+            flight_path.setPoints(mWaypoints);
+            if(!map_view.getOverlays().contains(flight_path)) map_view.getOverlayManager().add(flight_path);
+        }else{
+            setOverlapDistance();
+            // 경계에서 동쪽으로 일정거리만큼 떨어진 지점의 좌표
+            flight_points.clear();
+            flight_points = GeoManager.getInstance().getPositionsFromRectD(mWaypoints, side_distance, mission_angle);
+
+            setEntryExit();
+            flight_path.setPoints(flight_points);
+            if(!map_view.getOverlays().contains(flight_path)) map_view.getOverlayManager().add(flight_path);
+            flight_area.setPoints(area_points);
         }
-
-        setOverlapDistance();
-        // 경계에서 동쪽으로 일정거리만큼 떨어진 지점의 좌표
-        flight_points.clear();
-        flight_points = GeoManager.getInstance().getPositionsFromRectD(mWaypoints, side_distance, mission_angle);
-
-        setEntryExit();
-        flight_path.setPoints(flight_points);
-        if(!map_view.getOverlays().contains(flight_path)) map_view.getOverlayManager().add(flight_path);
-        flight_area.setPoints(area_points);
 
         // 촬영지역의 중심 위치로 배경지도 중심점 변경
         IMapController mapController = map_view.getController();
         GeoPoint _center = GeoManager.getInstance().getCenter(mWaypoints);
         mapController.setCenter(_center);
-
         map_view.invalidate();
-
         // 비행경로 정보 재설정
         setMissionInfo();
     }
@@ -928,8 +986,11 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
     private void setMissionInfo() {
         // 면적 계산
         double _area = GeoManager.getInstance().getAreaFromPoints(area_points, "ha");
-        tv_mission_area.setText(String.format("%.2f ha", _area));
-
+        if(btn_waypoint_mission.isSelected()){
+            tv_mission_area.setText("-");
+        }else {
+            tv_mission_area.setText(String.format("%.2f ha", _area));
+        }
         RectD _rect = GeoManager.getInstance().getPolygonBoundRect(area_points);
 
         //거리계산
@@ -947,42 +1008,51 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
         tv_mission_distance.setText(String.format("%.2f m/%.2f m", _dist_mission, _dist_total) );
 
         // 촬영간격 계산
-        shoot_time_interval = (int)(front_distance/mission_flight_speed);
-        shoot_time_interval = Math.max(2, shoot_time_interval);
-        shoot_count = 0;
-        // 경로 나누기
-        for(int i = 0; i < flight_points.size(); i++){
-            // 시작점
-            GeoPoint _start = flight_points.get(i);
-            // 끝점
-            GeoPoint _end = flight_points.get(++i);
+        if(btn_waypoint_mission.isSelected()){
+            tv_mission_shoot_interval.setText("" + mWaypoints.size());
+            // 종간격, 횡간격 정보 업데이트
+            tv_mission_lap_distance.setText("-");
+        }else{
+            shoot_time_interval = (int)(front_distance/mission_flight_speed);
+            shoot_time_interval = Math.max(2, shoot_time_interval);
+            shoot_count = 0;
+            double _sin = Math.abs(Math.sin(Math.toRadians(mission_angle)));
+            double _cos = Math.abs(Math.cos(Math.toRadians(mission_angle)));
 
-            // 진행방향(남북)
-            int direction_ns = (_start.getLatitude() > _end.getLatitude()) ? -1 : 1;
-            int direction_ew = (_start.getLongitude() > _end.getLongitude()) ? -1 : 1;
+            // 경로 나누기
+            for(int i = 0; i < flight_points.size(); i++){
+                // 시작점
+                GeoPoint _start = flight_points.get(i);
+                // 끝점
+                GeoPoint _end = flight_points.get(++i);
 
-            // 시작점과 끝점 사이 거리
-            for(int j = 1; ; j++)
-            {
-                // 시작점부터 거리 구하기
-                double _sin = Math.abs(Math.sin(Math.toRadians(mission_angle)));
-                double _cos = Math.abs(Math.cos(Math.toRadians(mission_angle)));
-                double _east_west = front_distance*j*_sin*direction_ew;
-                double _north_south = front_distance*j*_cos*direction_ns;
+                // 진행방향(남북)
+                int direction_ns = (_start.getLatitude() > _end.getLatitude()) ? -1 : 1;
+                int direction_ew = (_start.getLongitude() > _end.getLongitude()) ? -1 : 1;
 
-                GeoPoint _next = GeoManager.getInstance().getPositionFromDistance(_start, _east_west, _north_south);
+                // 시작점과 끝점 사이 거리
+                for(int j = 1; ; j++)
+                {
+                    // 시작점부터 거리 구하기
+                    double _east_west = front_distance*j*_sin*direction_ew;
+                    double _north_south = front_distance*j*_cos*direction_ns;
 
-                // 남은 거리가 단위거리보다 작을경우 나가기
-                double _temp = GeoManager.getInstance().distance(_next.getLatitude(), _next.getLongitude(), _end.getLatitude(), _end.getLongitude());
+                    GeoPoint _next = GeoManager.getInstance().getPositionFromDistance(_start, _east_west, _north_south);
 
+                    // 남은 거리가 단위거리보다 작을경우 나가기
+                    double _temp = GeoManager.getInstance().distance(_next.getLatitude(), _next.getLongitude(), _end.getLatitude(), _end.getLongitude());
+                    shoot_count++;
+                    if(_temp < front_distance) {
+                        break;
+                    }
+                }
                 shoot_count++;
-                if(_temp < front_distance) break;
             }
-        }
 
-        tv_mission_shoot_interval.setText(String.format("%d", shoot_count));
-        // 종간격, 횡간격 정보 업데이트
-        tv_mission_lap_distance.setText(String.format("F:%.1f m/S:%.1f m", front_distance, side_distance));
+            tv_mission_shoot_interval.setText(String.format("%d", shoot_count));
+            // 종간격, 횡간격 정보 업데이트
+            tv_mission_lap_distance.setText(String.format("F:%.1f m/S:%.1f m", front_distance, side_distance));
+        }
     }
 
     /**

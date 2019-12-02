@@ -70,6 +70,7 @@ import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.BigdataSystemInfo;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
+import kr.go.forest.das.Model.MavlinkMission;
 import kr.go.forest.das.R;
 
 import static dji.common.camera.SettingsDefinitions.ShutterSpeed;
@@ -1025,6 +1026,9 @@ public class DJI extends Drone{
 //        });
 
         return null;
+    }
+
+    public void mavlinkUploadMission(ArrayList<MavlinkMission> mission){
     }
 
     /**

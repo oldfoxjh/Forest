@@ -598,7 +598,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                     for(GeoPoint point : mWaypoints){
                         point.setAltitude(mission_altitude);
                     }
-                    waypoint_mission = new DJIWaypointMission(mWaypoints, new GeoPoint(36.361481, 127.384841), mission_flight_speed);
+                    waypoint_mission = new DJIWaypointMission(mWaypoints, new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
                 }
 
                 if(waypoint_mission.max_flight_altitude > 500){
@@ -853,8 +853,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
      * 임무 Polygon 세팅
      */
     private void setMissionPolygon() {
-        if(btn_waypoint_mission.isSelected())
-        {
+        if(btn_waypoint_mission.isSelected()) {
             flight_path.setPoints(mWaypoints);
             if(!map_view.getOverlays().contains(flight_path)) map_view.getOverlayManager().add(flight_path);
         }else{

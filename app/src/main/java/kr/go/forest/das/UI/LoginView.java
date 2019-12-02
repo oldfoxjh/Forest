@@ -128,8 +128,6 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                     @Override
                     public  void onResponse(Call<LoginResponse> call, Response<LoginResponse> response){
 
-                        Log.e("Login", "response.code() : " + response.code());
-
                         if(response.code() == 200) {
                             LoginResponse _response = response.body();
                             BigdataSystemInfo _info = DroneApplication.getSystemInfo();

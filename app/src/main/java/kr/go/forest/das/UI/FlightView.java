@@ -74,7 +74,6 @@ import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
 import kr.go.forest.das.Model.DroneInfoRequest;
 import kr.go.forest.das.Model.DroneInfoResponse;
-import kr.go.forest.das.Model.FiresResponse;
 import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.geo.GeoManager;
@@ -608,32 +607,17 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                 forest_fires.clear();
 
                 if(btn_flight_fires.isSelected() == false){
-                    // 산불발생현황 불러오기
-                    progress.setMessage("로그인 요청중입니다.");
-                    progress.show();
-                    DroneApplication.getApiInstance().getFires().enqueue(new Callback<FiresResponse>(){
-                        @Override
-                        public  void onResponse(Call<FiresResponse> call, Response<FiresResponse> response){
-                            FiresResponse _test = response.body();
-                            // 마커 생성
-                            List<GeoPoint> _response = new ArrayList<GeoPoint>();
-                            _response.add(new GeoPoint(36.361481, 127.384841));
-                            for( GeoPoint _point : _response){
-                                Marker _marker = new Marker(map_view);
-                                _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.forest_fire, null));
-                                _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
-                                _marker.setPosition(_point);
-                                map_view.getOverlays().add(_marker);
-                                forest_fires.add(_marker);
-                            }
-                            progress.dismiss();
-                        }
-
-                        @Override
-                        public  void onFailure(Call<FiresResponse> call, Throwable t){
-                            progress.dismiss();
-                        }
-                    });
+                    // 산불발생현황 마커 생성
+                    List<GeoPoint> _response = new ArrayList<GeoPoint>();
+                    _response.add(new GeoPoint(36.361481, 127.384841));
+                    for( GeoPoint _point : _response){
+                        Marker _marker = new Marker(map_view);
+                        _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.forest_fire, null));
+                        _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+                        _marker.setPosition(_point);
+                        map_view.getOverlays().add(_marker);
+                        forest_fires.add(_marker);
+                    }
                 }
 
                 btn_flight_fires.setSelected(!btn_flight_fires.isSelected());

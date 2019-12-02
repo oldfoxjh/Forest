@@ -91,6 +91,19 @@ public class SettingView extends RelativeLayout implements View.OnClickListener 
         if(is_login == true) {
             setting_drone_info.setOnClickListener(this);
             setting_drone_info.setSelected(true);
+
+            // 사용자 정보 및 드론 정보 설정
+            BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+            setting_name.setText(_info.name);
+            setting_service.setText(_info.service);
+            setting_department.setText(_info.department);
+
+            textview_manage_number.setText(_info.drone_list.get(_info.drone_index).manage_number);
+            textview_manage_department.setText(_info.drone_list.get(_info.drone_index).department);
+            textview_drone_product.setText(_info.drone_list.get(_info.drone_index).model);
+            textview_drone_manufacturer.setText(_info.drone_list.get(_info.drone_index).manufacturer);
+            textview_drone_kind.setText(_info.drone_list.get(_info.drone_index).kind);
+            textview_drone_camera.setText(_info.drone_list.get(_info.drone_index).camera);
         }else{
             setting_login_info.setVisibility(GONE);
             setting_drone_info.setVisibility(GONE);
@@ -108,19 +121,6 @@ public class SettingView extends RelativeLayout implements View.OnClickListener 
         if(_real_time.equals("on")){
             setting_real_time.setSelected(true);
         }
-
-        // 사용자 정보 및 드론 정보 설정
-        BigdataSystemInfo _info = DroneApplication.getSystemInfo();
-        setting_name.setText(_info.name);
-        setting_service.setText(_info.service);
-        setting_department.setText(_info.department);
-
-        textview_manage_number.setText(_info.drone_list.get(_info.drone_index).manage_number);
-        textview_manage_department.setText(_info.drone_list.get(_info.drone_index).department);
-        textview_drone_product.setText(_info.drone_list.get(_info.drone_index).model);
-        textview_drone_manufacturer.setText(_info.drone_list.get(_info.drone_index).manufacturer);
-        textview_drone_kind.setText(_info.drone_list.get(_info.drone_index).kind);
-        textview_drone_camera.setText(_info.drone_list.get(_info.drone_index).camera);
 
         setClickable(true);
     }

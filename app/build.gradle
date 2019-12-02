@@ -96,7 +96,4 @@ dependencies {
     // MAVLink
     implementation 'io.dronefleet.mavlink:mavlink:1.1.5'
     implementation 'io.dronefleet.mavlink:mavlink-protocol:1.1.5'
-
-    // offline map viewer
-    implementation files('libs/mvgisSDK.jar')
 }
