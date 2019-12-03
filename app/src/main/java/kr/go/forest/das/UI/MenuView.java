@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -18,18 +19,32 @@ import com.squareup.otto.Subscribe;
 
 import org.osmdroid.util.GeoPoint;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
+import dji.common.model.LocationCoordinate2D;
 import kr.go.forest.das.DroneApplication;
 import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.BigdataSystemInfo;
+import kr.go.forest.das.Model.CameraInfo;
+import kr.go.forest.das.Model.DroneInfo;
 import kr.go.forest.das.Model.ViewWrapper;
+import kr.go.forest.das.Model.WeatherInfo;
 import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.drone.Px4;
+import kr.go.forest.das.geo.GeoManager;
+import kr.go.forest.das.map.MapLayer;
+import kr.go.forest.das.network.NetworkStatus;
 
 public class MenuView extends RelativeLayout implements View.OnClickListener {
 
+    private final int period = 500;                             // 위치정보 수십 주기 0.5 second
+
     private Context context;
-    private Handler handler_ui;                                             // UI 업데이트 핸들러
+    private Handler handler_ui;                                 // UI 업데이트 핸들러
+
+    Timer timer = null;
 
     Button missionButton;
     Button flightButton;
@@ -98,12 +113,13 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
         if(!_info.isLogin()){
             findViewById(R.id.propertiesLayout).setVisibility(GONE);
         }else{
-            ((TextView)findViewById(R.id.textview_location)).setText(_info.weather.locale);
-            ((TextView)findViewById(R.id.textview_weather)).setText(_info.weather.weather);
-            ((TextView)findViewById(R.id.textview_temperature)).setText(_info.weather.temperature + " \u2103");
-            ((TextView)findViewById(R.id.textview_wind_speed)).setText(String.valueOf(_info.weather.wind_speed) + " m/s");
-        }
+            // 위치확인 타이머 시작
+            timer = new Timer();
+            timer.schedule(new MenuView.CollectDroneInformationTimer(), 0, period);
 
+            // 현재 위치정보 값...
+            ((TextView)findViewById(R.id.textview_location)).setText("위치 확인중");
+        }
 
         setClickable(true);
     }
@@ -162,6 +178,60 @@ public class MenuView extends RelativeLayout implements View.OnClickListener {
                     }
                 }
             });
+        }
+    }
+
+
+    @Subscribe
+    public void onUpdateLocation(final MainActivity.LocationUpdate location) {
+        if (handler_ui != null) {
+            handler_ui.post(new Runnable() {
+                @Override
+                public void run() {
+
+                }
+            });
+        }
+    }
+
+    /**
+     * 모바일 장치의 위치 정보를 확인 한다.
+     */
+    private class CollectDroneInformationTimer extends TimerTask {
+        @Override
+        public void run() {
+            // 화면 표시
+            if (handler_ui != null) {
+                handler_ui.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        BigdataSystemInfo _info = DroneApplication.getSystemInfo();
+
+                        if (_info.my_location != null) {
+                            WeatherInfo weather = _info.getWeatherInfo(_info.my_location.getLatitude(), _info.my_location.getLongitude());
+
+                            if(weather != null) {
+                                findViewById(R.id.menu_imageview_temp).setVisibility(VISIBLE);
+                                findViewById(R.id.menu_texview_temp).setVisibility(VISIBLE);
+
+                                findViewById(R.id.menu_imageview_wind).setVisibility(VISIBLE);
+                                findViewById(R.id.menu_textview_wind).setVisibility(VISIBLE);
+
+                                if (weather.lgdngNm != null)
+                                    ((TextView) findViewById(R.id.textview_location)).setText(weather.wtherObsrrNm + "(" + weather.lgdngNm + ")");
+                                else
+                                    ((TextView) findViewById(R.id.textview_location)).setText(weather.wtherObsrrNm);
+                                ((TextView) findViewById(R.id.textview_temperature)).setText(weather.airTemp + " \u2103");
+                                ((TextView) findViewById(R.id.textview_wind_speed)).setText(String.valueOf(weather.windSpeed) + " m/s");
+                            }
+                            if(timer != null) {
+                                timer.cancel();
+                                timer = null;
+                            }
+                        }
+                    }
+                });
+            }
         }
     }
 }

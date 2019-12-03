@@ -75,6 +75,8 @@ public class DialogLoadMission extends RelativeLayout implements View.OnClickLis
             _radio_button.setText(_plan.title);
             _radio_button.setTextSize(getResources().getDimension(R.dimen.radio_font));
             _file_list.addView(_radio_button);
+
+            if(i == 0) _file_list.check(_radio_button.getId());
         }
 
         setClickable(true);

@@ -27,7 +27,7 @@ public class MAVLinkWaypointMission {
         // flight speed
         // param1 : Speed Type 1=Ground Speed
         // param2 :
-       // missions.add(new MavlinkMission(MavFrame.MAV_FRAME_MISSION, MavCmd.MAV_CMD_DO_CHANGE_SPEED, 1, 1, flight_speed, -1, 0, 0, 0, 1.2f));
+        missions.add(new MavlinkMission(MavFrame.MAV_FRAME_MISSION, MavCmd.MAV_CMD_DO_CHANGE_SPEED, 1, 1, flight_speed, -1, 0, 0, 0, 0));
 
         // change-speed? 178
 
@@ -37,7 +37,7 @@ public class MAVLinkWaypointMission {
         }
 
         // rtl
-     //   missions.add(new MavlinkMission(MavFrame.MAV_FRAME_MISSION, MavCmd.MAV_CMD_NAV_RETURN_TO_LAUNCH, 0, 0, 0, 0, 0, 0, 0, 0));
+        missions.add(new MavlinkMission(MavFrame.MAV_FRAME_MISSION, MavCmd.MAV_CMD_NAV_RETURN_TO_LAUNCH, 0, 0, 0, 0, 0, 0, 0, 0));
     }
 
     public ArrayList<MavlinkMission> getMission(){

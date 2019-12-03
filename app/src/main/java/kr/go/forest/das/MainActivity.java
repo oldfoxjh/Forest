@@ -47,6 +47,7 @@ import dji.common.camera.SettingsDefinitions;
 import dji.sdk.sdkmanager.DJISDKManager;
 import kr.go.forest.das.Log.LogWrapper;
 import kr.go.forest.das.MAVLink.MavDataManager;
+import kr.go.forest.das.Model.BigdataSystemInfo;
 import kr.go.forest.das.UI.DialogCheckRealtime;
 import kr.go.forest.das.UI.DialogConfirm;
 import kr.go.forest.das.Model.ViewWrapper;
@@ -234,8 +235,8 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
 
     @Override
     public void onLocationChanged(Location location) {
-        if(location != null)
-        {
+        if(location != null) {
+            DroneApplication.getSystemInfo().setMyLocation(location);
             DroneApplication.getEventBus().post(new LocationUpdate(location.getLatitude(), location.getLongitude()));
         }
     }
@@ -533,8 +534,7 @@ public class MainActivity extends AppCompatActivity implements  LocationListener
         public double latitude;
         public double longitude;
 
-        public LocationUpdate(double lat, double lng)
-        {
+        public LocationUpdate(double lat, double lng) {
             latitude = lat;
             longitude = lng;
         }

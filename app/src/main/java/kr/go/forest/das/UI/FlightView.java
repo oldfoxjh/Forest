@@ -74,6 +74,7 @@ import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
 import kr.go.forest.das.Model.DroneInfoRequest;
 import kr.go.forest.das.Model.DroneInfoResponse;
+import kr.go.forest.das.Model.FireInfo;
 import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.geo.GeoManager;
@@ -608,15 +609,16 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
 
                 if(btn_flight_fires.isSelected() == false){
                     // 산불발생현황 마커 생성
-                    List<GeoPoint> _response = new ArrayList<GeoPoint>();
-                    _response.add(new GeoPoint(36.361481, 127.384841));
-                    for( GeoPoint _point : _response){
-                        Marker _marker = new Marker(map_view);
-                        _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.forest_fire, null));
-                        _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
-                        _marker.setPosition(_point);
-                        map_view.getOverlays().add(_marker);
-                        forest_fires.add(_marker);
+                    ArrayList<FireInfo> _fires = DroneApplication.getSystemInfo().fireInfoList;
+                    if(_fires != null && _fires.size() > 0){
+                        for( FireInfo info : _fires){
+                            Marker _marker = new Marker(map_view);
+                            _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.forest_fire, null));
+                            _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+                            _marker.setPosition(new GeoPoint(info.frfrSttmnLctnYcrd, info.frfrSttmnLctnXcrd));
+                            map_view.getOverlays().add(_marker);
+                            forest_fires.add(_marker);
+                        }
                     }
                 }
 
@@ -1010,22 +1012,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         if(btn_select_movie.getVisibility() == VISIBLE) btn_select_movie.setVisibility(INVISIBLE);
                         if(btn_record.getVisibility() == VISIBLE) btn_record.setVisibility(INVISIBLE);
                         if(tv_record_time.getVisibility() == VISIBLE) tv_record_time.setVisibility(INVISIBLE);
-
-                        // 드론이 비행중이면 카메라 촬영 지점 표시
-                        if(DroneApplication.getDroneInstance().isFlying()){
-                            DroneInfo _drone_info = DroneApplication.getDroneInstance().getDroneInfo();
-                            Marker _marker = new Marker(map_view);
-                            _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.forest_fire, null));
-                            _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
-                            _marker.setPosition(new GeoPoint(_drone_info.drone_latitude, _drone_info.drone_longitude, _drone_info.drone_altitude));
-                            _marker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
-                                @Override
-                                public boolean onMarkerClick(Marker marker, MapView mapView) {
-                                    return true;
-                                }
-                            });
-                            map_view.getOverlays().add(_marker);
-                        }
                     }else if(camera.mode == 1){
                         if(!_info.recording_time.equals("00:00") && is_recording == false) {
                             btn_record.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_recording_selector));
@@ -1049,6 +1035,21 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         btn_record.setBackground(ContextCompat.getDrawable(context, R.drawable.btn_record_selector));
                         tv_record_time.setText("00:00");
                         is_recording = false;
+                    }else if(camera.mode == 2){ // 드론이 비행중이면 카메라 촬영 지점 표시
+                        if(DroneApplication.getDroneInstance().isFlying()){
+                            DroneInfo _drone_info = DroneApplication.getDroneInstance().getDroneInfo();
+                            Marker _marker = new Marker(map_view);
+                            _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.ico_mission_5, null));
+                            _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+                            _marker.setPosition(new GeoPoint(_drone_info.drone_latitude, _drone_info.drone_longitude, _drone_info.drone_altitude));
+                            _marker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
+                                @Override
+                                public boolean onMarkerClick(Marker marker, MapView mapView) {
+                                    return true;
+                                }
+                            });
+                            map_view.getOverlays().add(_marker);
+                        }
                     }
                 }
             });

@@ -14,7 +14,7 @@ import retrofit2.http.POST;
 public interface IApiService {
 
     public final Retrofit retrofit = new Retrofit.Builder()
-            //.baseUrl("http://192.168.0.47/weatherforecast/")
+            //.baseUrl("http://192.168.1.10/weatherforecast/")
             //.baseUrl("http://mvst2.iptime.org:8081/portalo/dim/flnMngme/")
             .baseUrl("http://192.168.10.152:8081/portalo/dim/flnMngme/")
             .addConverterFactory(GsonConverterFactory.create())

@@ -87,6 +87,12 @@ public class SettingView extends RelativeLayout implements View.OnClickListener 
         textview_drone_camera = findViewById(R.id.textview_drone_camera);
 
         setting_drone_info = findViewById(R.id.setting_drone_info);
+        setting_drone_interface = findViewById(R.id.setting_drone_interface);
+        setting_drone_interface.setOnClickListener(this);
+
+        setting_real_time = findViewById(R.id.setting_real_time);
+        setting_real_time.setOnClickListener(this);
+
         boolean is_login = DroneApplication.getSystemInfo().isLogin();
         if(is_login == true) {
             setting_drone_info.setOnClickListener(this);
@@ -109,13 +115,9 @@ public class SettingView extends RelativeLayout implements View.OnClickListener 
             setting_drone_info.setVisibility(GONE);
             setting_device_layout.setVisibility(GONE);
             setting_interface_layout.setVisibility(VISIBLE);
+
+            setting_real_time.setEnabled(false);
         }
-
-        setting_drone_interface = findViewById(R.id.setting_drone_interface);
-        setting_drone_interface.setOnClickListener(this);
-
-        setting_real_time = findViewById(R.id.setting_real_time);
-        setting_real_time.setOnClickListener(this);
 
         String _real_time = pref.getString("real", "off");
         if(_real_time.equals("on")){

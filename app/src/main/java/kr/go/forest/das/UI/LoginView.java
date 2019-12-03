@@ -132,10 +132,6 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                             LoginResponse _response = response.body();
                             BigdataSystemInfo _info = DroneApplication.getSystemInfo();
                             _info.user_id = loginIDEditText.getText().toString();
-                            _info.weather.locale = _response.weather.locale;
-                            _info.weather.weather = _response.weather.weather;
-                            _info.weather.temperature = _response.weather.temperature;
-                            _info.weather.wind_speed = _response.weather.wind_speed;
                             _info.drone_id = _response.drone_list.get(0).manage_number;
 
                             _info.is_realtime = true;
@@ -146,6 +142,8 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                             _info.service = _response.service;
                             _info.department = _response.department;
 
+                            _info.setWeatherInfo(_response.weatherInfoList);
+                            _info.setFireInfo(_response.fireInfoList);
                             _info.setDroneInfo(_response.drone_list);
                             _info.setFlightPlan(_response.plan);
 
@@ -163,7 +161,8 @@ public class LoginView extends RelativeLayout implements View.OnClickListener {
                     @Override
                     public  void onFailure(Call<LoginResponse> call, Throwable t){
                         progress.dismiss();
-                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.check_internet_title, R.string.check_internet));
+                        Log.e("onFailure", t.toString());
+                        DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.api_error));
                     }
                 });
 

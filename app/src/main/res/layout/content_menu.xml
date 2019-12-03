@@ -9,7 +9,6 @@
         android:layout_height="match_parent"
         android:background="@mipmap/bg"/>
 
-
     <LinearLayout
         android:id="@+id/buttonsLayout"
         android:layout_width="wrap_content"
@@ -72,95 +71,76 @@
 
         <TextView
             android:id="@+id/textview_location"
-            android:layout_width="@dimen/px148"
+            android:layout_width="@dimen/px422"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/px20"
             android:layout_gravity="center"
             android:textSize="@dimen/px26"
             android:textColor="#ffffff"
             android:textStyle="bold"
-            android:text="제주도" />
+            android:text="" />
 
         <ImageView
-            android:layout_width="@dimen/px28"
-            android:layout_height="@dimen/px28"
-            android:layout_marginLeft="@dimen/px16"
-            android:layout_gravity="center"
-            android:background="@mipmap/weather_ico_2"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/px4"
-            android:layout_gravity="center"
-            android:textSize="@dimen/px30"
-            android:textColor="#a4a4a4"
-            android:text="날씨"/>
-
-        <TextView
-            android:id="@+id/textview_weather"
-            android:layout_width="@dimen/px120"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/px20"
-            android:layout_gravity="center"
-            android:textSize="@dimen/px26"
-            android:textColor="#ffffff"
-            android:textStyle="bold"
-            android:text="맑음" />
-
-        <ImageView
+            android:id="@+id/menu_imageview_temp"
             android:layout_width="@dimen/px28"
             android:layout_height="@dimen/px28"
             android:layout_gravity="center"
-            android:layout_marginLeft="@dimen/px16"
+            android:layout_marginLeft="@dimen/px14"
+            android:visibility="invisible"
             android:background="@mipmap/weather_ico_3"/>
 
         <TextView
+            android:id="@+id/menu_texview_temp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/px4"
             android:layout_gravity="center"
             android:textSize="@dimen/px30"
             android:textColor="#a4a4a4"
+            android:visibility="invisible"
             android:text="온도"/>
 
         <TextView
             android:id="@+id/textview_temperature"
-            android:layout_width="@dimen/px120"
+            android:layout_width="@dimen/px96"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/px20"
             android:layout_gravity="center"
             android:textSize="@dimen/px26"
             android:textColor="#ffffff"
             android:textStyle="bold"
-            android:text="28C" />
+            android:text="" />
 
         <ImageView
+            android:id="@+id/menu_imageview_wind"
             android:layout_width="@dimen/px28"
             android:layout_height="@dimen/px28"
             android:layout_gravity="center"
-            android:layout_marginLeft="@dimen/px16"
+            android:layout_marginLeft="@dimen/px14"
+            android:visibility="invisible"
             android:background="@mipmap/weather_ico_4"/>
 
         <TextView
+            android:id="@+id/menu_textview_wind"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/px4"
             android:layout_gravity="center"
             android:textSize="@dimen/px30"
             android:textColor="#a4a4a4"
+            android:visibility="invisible"
             android:text="풍속"/>
 
         <TextView
             android:id="@+id/textview_wind_speed"
-            android:layout_width="@dimen/px120"
+            android:layout_width="@dimen/px110"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/px20"
             android:layout_gravity="center"
             android:textSize="@dimen/px26"
             android:textColor="#ffffff"
             android:textStyle="bold"
-            android:text="5.3m/s" />
+            android:text="" />
     </LinearLayout>
 
 </RelativeLayout>

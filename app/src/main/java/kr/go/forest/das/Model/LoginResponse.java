@@ -17,7 +17,7 @@ public class LoginResponse {
     // 비행계획 리스트
     public List<FlightPlan> plan;
     // 산불 발생지역
-    List<FireInfo> fireInfoList;
+    public List<FireInfo> fireInfoList;
     // 기상정보
     public List<WeatherInfo> weatherInfoList;
 

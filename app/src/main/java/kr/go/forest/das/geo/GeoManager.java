@@ -2,6 +2,7 @@ package kr.go.forest.das.geo;
 
 import android.location.Location;
 import android.os.Environment;
+import android.util.Log;
 
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
@@ -301,13 +302,14 @@ public class GeoManager {
     public double distance(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
         float[] _distance = new float[2];
         Arrays.fill(_distance, 0.0F);
+
         Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, _distance);
 
         if (_distance[0] <= 0.0F || _distance[0] > 100000.0F) {
             _distance[0] = 0.0F;
         }
 
-        return _distance[0];
+        return (double) _distance[0];
     }
 
     /**
@@ -490,7 +492,7 @@ public class GeoManager {
     /**
      * 주어진 점들의 경계면의 구획을 나누는 점들을 구하기
      * @param waypoints 사용자가 선택한 좌표
-     * @param overlap 좌우 간격
+     * @param overlap 좌우 중첩률
      * @param degree 회전
      * @return 주어진 경계면의 구획을 나누는 점들
      */
