@@ -39,17 +39,20 @@ import io.dronefleet.mavlink.common.LocalPositionNed;
 import io.dronefleet.mavlink.common.ManualControl;
 import io.dronefleet.mavlink.common.MavAutopilot;
 import io.dronefleet.mavlink.common.MavCmd;
+import io.dronefleet.mavlink.common.MavFrame;
 import io.dronefleet.mavlink.common.MavLandedState;
 import io.dronefleet.mavlink.common.MavMissionResult;
 import io.dronefleet.mavlink.common.MavMissionType;
 import io.dronefleet.mavlink.common.MavModeFlag;
 import io.dronefleet.mavlink.common.MavResult;
+import io.dronefleet.mavlink.common.MavSeverity;
 import io.dronefleet.mavlink.common.MavState;
 import io.dronefleet.mavlink.common.MissionAck;
 import io.dronefleet.mavlink.common.MissionCurrent;
 import io.dronefleet.mavlink.common.MissionRequest;
 import io.dronefleet.mavlink.common.MissionRequestInt;
 import io.dronefleet.mavlink.common.RcChannels;
+import io.dronefleet.mavlink.common.Statustext;
 import io.dronefleet.mavlink.common.SysStatus;
 import io.dronefleet.mavlink.common.VfrHud;
 import io.dronefleet.mavlink.util.EnumValue;
@@ -59,11 +62,12 @@ import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.CameraInfo;
 import kr.go.forest.das.Model.DroneInfo;
 import kr.go.forest.das.Model.MavlinkMission;
+import kr.go.forest.das.R;
 
 public class Px4 extends Drone implements MavDataManager.MavEventListener{
 
-    private final int MAVLINK_DEVICE_ARDUPILOT = 0x01;
-    private final int MAVLINK_DEVICE_PX4 = 0x02;
+    public static final int MAVLINK_DEVICE_ARDUPILOT = 0x01;
+    public static final int MAVLINK_DEVICE_PX4 = 0x02;
     private int mavlink_device = 0x00;
 
     private final String[] ARDUPILOT_FLIGHT_MODE = new String[] {
@@ -117,6 +121,7 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
     };
 
     private boolean request_upload_mission = false;
+    private int request_start_mission_count = 0;
 
     public Px4() {
     }
@@ -163,6 +168,7 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
         _drone.rssi = rssi;
 
         _drone.flight_mode = flight_mode;
+        _drone.status = mavlink_device;             // FC 종류
 
         return _drone;
     }
@@ -586,8 +592,8 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
     }
 
     public void mavlinkUploadMission(ArrayList<MavlinkMission> mission){
-        mavlink_manager.requestMissionClear();
         mavlink_manager.setMavlinkMission(mission);
+        mavlink_manager.requestMissionCount();
     }
 
     /**
@@ -601,8 +607,12 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
     /**
      * 설정된 임무를 시작
      */
-    public void startMission(int _shoot_count, int _interval){
-
+    public void startMission(int _shoot_count, int _interval) {
+        if (mavlink_device == MAVLINK_DEVICE_ARDUPILOT) {
+            mavlink_manager.requestSetModeArdupilot();
+        }else{
+            mavlink_manager.requestSetModePx4();
+        }
     }
 
     /**
@@ -734,9 +744,9 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
             else mavlink_device = MAVLINK_DEVICE_PX4;
 
             long _custom_mode = ((Heartbeat) payload).customMode();
-            EnumValue<MavState> system_status = ((Heartbeat) payload).systemStatus(); // https://mavlink.io/en/messages/common.html#MAV_STATE
+            EnumValue<MavState> system_status = ((Heartbeat) payload).systemStatus();   // https://mavlink.io/en/messages/common.html#MAV_STATE
 
-            if(mavlink_device == MAVLINK_DEVICE_ARDUPILOT){
+            if(mavlink_device == MAVLINK_DEVICE_ARDUPILOT){                             //http://ardupilot.org/copter/docs/flight-modes.html
                 flight_mode = ARDUPILOT_FLIGHT_MODE[(int)_custom_mode];
             }else if(mavlink_device == MAVLINK_DEVICE_PX4){                             // https://github.com/PX4/Firmware/blob/master/src/modules/commander/px4_custom_mode.h#L45
                 flight_mode = PX4_FLIGHT_MAIN_MODE[(int)((_custom_mode >> 16) & 0xFF)];
@@ -809,6 +819,9 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
             int seq = ((MissionRequest) payload).seq();
             mavlink_manager.requestMissionItem(seq);
 
+        }else if(payload instanceof Statustext){
+            EnumValue<MavSeverity> serverity = ((Statustext) payload).severity();
+            if(serverity.value() < 5) DroneApplication.getEventBus().post(new MainActivity.TTS(((Statustext) payload).text()));
         }else if(payload instanceof MissionAck){
 
             EnumValue<MavMissionResult> result = ((MissionAck) payload).type();
@@ -834,7 +847,7 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
 
         }else if(payload instanceof MissionCurrent){
             if(request_upload_mission == true){
-                DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD, null));
+                DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_UPLOAD_SUCCESS, null));
                 request_upload_mission = false;
             }
         }else if(payload instanceof CommandAck){
@@ -868,10 +881,23 @@ public class Px4 extends Drone implements MavDataManager.MavEventListener{
                     // 정지 명령 성공
                     DroneApplication.getEventBus().post(new MainActivity.ReturnHome(MainActivity.ReturnHome.CANCEL_RETURN_HOME_SUCCESS, null));
                 }
+            }else if(command.entry() == MavCmd.MAV_CMD_DO_SET_MODE){
+                if(result.entry() == MavResult.MAV_RESULT_ACCEPTED){
+                    // 모드 변경 성공
+                    DroneApplication.getEventBus().post(new MainActivity.ReturnHome(MainActivity.Mission.MISSION_START_SUCCESS, null));
+                }else {
+                    // 재요청
+                    if(request_start_mission_count < 2) {
+                        startMission(0, 0);
+                        request_start_mission_count++;
+                    }
+                    else {
+                        DroneApplication.getEventBus().post(new MainActivity.Mission(MainActivity.Mission.MISSION_START_FAIL, null));
+                        request_start_mission_count = 0;
+                    }
+                }
             }
         }
-
-
     }
     //endregion
 }

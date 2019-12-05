@@ -15,7 +15,8 @@ public interface IApiService {
 
     public final Retrofit retrofit = new Retrofit.Builder()
             //.baseUrl("http://192.168.1.10/weatherforecast/")
-            //.baseUrl("http://mvst2.iptime.org:8081/portalo/dim/flnMngme/")
+            //.baseUrl("http://mvst2.iptime.org:8188/portalo//dim/flnMngme/")
+
             .baseUrl("http://192.168.10.152:8081/portalo/dim/flnMngme/")
             .addConverterFactory(GsonConverterFactory.create())
             .build();

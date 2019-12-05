@@ -101,7 +101,6 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
     Marker marker_drone_location = null;                        // 드론 위치 정보 마커
     Marker marker_home_location = null;                         // 드론 이륙지점 위치 마커
     GeoPoint my_location = null;                                // 현재 조종자 위치
-    int mission_status = 0;                                     // 임무 상태
     MAVLinkWaypointMission waypoint_mission = null;
 
     List<Marker> selected_points = new ArrayList<Marker>();          // 사용자가 선택한 위치를 나타내는 마커
@@ -496,19 +495,19 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
                     }
                 });
             }
-            // 파일이 잘못되었을 경우 팝업
         }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD){
-            progress.dismiss();
-            DroneInfo _info = DroneApplication.getDroneInstance().getDroneInfo();
-            DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.mission_start_title, R.string.mission_start_content, ""));
+
         }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD_FAIL){
             // ProgressDialog 닫기
             progress.dismiss();
             // 미션 업로드 실패
             DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_upload_fail, mission.data));
         }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD_SUCCESS){
-            // 임무 시작 조건 설정
-            DroneApplication.getDroneInstance().setMissionCondition(shoot_count, shoot_time_interval);
+            // 임무 시작
+            if(progress.isShowing()) {
+                progress.dismiss();
+                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.mission_start_title, R.string.mission_start_content, ""));
+            }
         }else if(mission.command == MainActivity.Mission.MISSION_START_FAIL){
             // 미션 시작 실패
             DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_start_fail, mission.data));
@@ -518,10 +517,17 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
                 handler_ui.post(new Runnable() {
                     @Override
                     public void run() {
+                        // 이륙요청
+                        DroneApplication.getDroneInstance().startTakeoff();
+
                         // 비행경로 저장
-                        DroneApplication.getDroneInstance().setMissionPoints(flight_points);
+                        if(btn_waypoint_mission.isSelected()) {
+                            DroneApplication.getDroneInstance().setMissionPoints(mWaypoints);
+                        }else{
+                            DroneApplication.getDroneInstance().setMissionPoints(flight_points);
+                        }
                         // 비행화면으로 전환
-                        DroneApplication.getEventBus().post(new ViewWrapper(new FlightView(context), false));
+                        DroneApplication.getEventBus().post(new ViewWrapper(new PixhawkFlightView(context), false));
                     }
                 });
             }
@@ -530,17 +536,15 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
                 handler_ui.post(new Runnable() {
                     @Override
                     public void run() {
-                        if (MissionControl.getInstance().scheduledCount() > 0) {
-                            MissionControl.getInstance().startTimeline();
-                        }
-                        // 비행경로 저장
-                        if(btn_waypoint_mission.isSelected()) {
-                            DroneApplication.getDroneInstance().setMissionPoints(mWaypoints);
-                        }else{
-                            DroneApplication.getDroneInstance().setMissionPoints(flight_points);
-                        }
-                        // 비행화면으로 전환
-                        DroneApplication.getEventBus().post(new ViewWrapper(new FlightView(context), false));
+//                        // 비행경로 저장
+//                        if(btn_waypoint_mission.isSelected()) {
+//                            DroneApplication.getDroneInstance().setMissionPoints(mWaypoints);
+//                        }else{
+//                            DroneApplication.getDroneInstance().setMissionPoints(flight_points);
+//                        }
+//                        // 비행화면으로 전환
+//                        DroneApplication.getEventBus().post(new ViewWrapper(new PixhawkFlightView(context), false));
+                        DroneApplication.getDroneInstance().startMission(0, 0);
                     }
                 });
             }
@@ -581,7 +585,7 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
                 break;
             case R.id.pixhawk_btn_new_course:
                 // 현재 임무를 초기화 하겠냐는 팝업
-                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, 0, R.string.clear_mission));
+                DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.clear_mission, 0));
                 break;
             case R.id.pixhawk_btn_load_shape:
                 // Mission 파일 목록 팝업
@@ -602,13 +606,13 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
                         DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_create_fail, null));
                         return;
                     }
-                    waypoint_mission = new MAVLinkWaypointMission(devideFlightPath(), new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
+                    waypoint_mission = new MAVLinkWaypointMission(devideFlightPath(), new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed, shoot_time_interval, _info.status);
                 }else{
                     // 비행고도 적용
                     for(GeoPoint point : mWaypoints){
                         point.setAltitude(mission_altitude);
                     }
-                    waypoint_mission = new MAVLinkWaypointMission(mWaypoints, new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
+                    waypoint_mission = new MAVLinkWaypointMission(mWaypoints, new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed, shoot_time_interval, _info.status);
                 }
 
                 // 임무 업로드중 프로그레스바
@@ -618,8 +622,6 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
                 // 임무 업로드 검증 마치고..전송..
                 // 임무 데이터 전달
                 DroneApplication.getDroneInstance().mavlinkUploadMission(waypoint_mission.getMission());
-
-                //
 
                 break;
             case R.id.pixhawk_btn_polygon_mission:
@@ -677,8 +679,8 @@ public class PixhawkMissionView extends RelativeLayout implements View.OnClickLi
 
                 // 남은 거리가 단위거리보다 작을경우 나가기
                 double _temp = GeoManager.getInstance().distance(_next.getLatitude(), _next.getLongitude(), _end.getLatitude(), _end.getLongitude());
-                if(_temp < front_distance) break;
                 upload_mission.add(_next);
+                if(_temp < front_distance) break;
             }
             upload_mission.add(_end);
         }

@@ -489,7 +489,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                     return;
                 }
             }
-            LogWrapper.i("Mission View", "mission_start");
+
             DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_CONFIRM, R.string.mission_start_title, R.string.mission_start_content, ""));
         }else if(mission.command == MainActivity.Mission.MISSION_UPLOAD_FAIL){
             // ProgressDialog 닫기
@@ -509,7 +509,11 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                     @Override
                     public void run() {
                         // 비행경로 저장
-                        DroneApplication.getDroneInstance().setMissionPoints(flight_points);
+                        if(btn_waypoint_mission.isSelected()) {
+                            DroneApplication.getDroneInstance().setMissionPoints(mWaypoints);
+                        }else{
+                            DroneApplication.getDroneInstance().setMissionPoints(flight_points);
+                        }
                         // 비행화면으로 전환
                         DroneApplication.getEventBus().post(new ViewWrapper(new FlightView(context), false));
                     }
@@ -671,8 +675,8 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
                 // 남은 거리가 단위거리보다 작을경우 나가기
                 double _temp = GeoManager.getInstance().distance(_next.getLatitude(), _next.getLongitude(), _end.getLatitude(), _end.getLongitude());
-                if(_temp < front_distance) break;
                 upload_mission.add(_next);
+                if(_temp < front_distance) break;
             }
             upload_mission.add(_end);
         }

@@ -7,6 +7,7 @@ import java.util.List;
 
 import dji.common.gimbal.Attitude;
 import dji.common.gimbal.Rotation;
+import dji.common.mission.waypoint.Waypoint;
 import dji.common.mission.waypoint.WaypointMission;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.mission.MissionControl;
@@ -16,6 +17,7 @@ import dji.sdk.mission.timeline.TimelineMission;
 import dji.sdk.mission.timeline.actions.GimbalAttitudeAction;
 import dji.sdk.mission.timeline.actions.GoHomeAction;
 import dji.sdk.mission.timeline.actions.GoToAction;
+import dji.sdk.mission.timeline.actions.ShootPhotoAction;
 import dji.sdk.mission.timeline.actions.TakeOffAction;
 import kr.go.forest.das.DroneApplication;
 
@@ -38,8 +40,54 @@ public class DJITimelineMission {
         gimbalAction.setCompletionTime(3);
         elements.add(gimbalAction);
 
-        //비행고도까지 상승
-        elements.add(new GoToAction(new LocationCoordinate2D(base_point.getLatitude(), base_point.getLongitude()), (float)base_point.getAltitude()));
+        //임무비행 시작
+        for(WaypointMission mission : waypoints){
+            TimelineElement waypointMission = TimelineMission.elementFromWaypointMission(mission);
+            elements.add(waypointMission);
+        }
+
+        //짐벌 원위치
+        attitude = new Attitude(0, Rotation.NO_ROTATION, Rotation.NO_ROTATION);
+        gimbalAction = new GimbalAttitudeAction(attitude);
+        gimbalAction.setCompletionTime(3);
+        elements.add(gimbalAction);
+
+        //자동복귀
+        elements.add(new GoHomeAction());
+
+        if (missionControl.scheduledCount() > 0) {
+            missionControl.unscheduleEverything();
+            missionControl.removeAllListeners();
+        }
+
+        missionControl.scheduleElements(elements);
+    }
+
+    public DJITimelineMission(List<WaypointMission> waypoints, GeoPoint base_point, int count, int interval){
+        List<TimelineElement> elements = new ArrayList<>();
+        missionControl = MissionControl.getInstance();
+
+        final TimelineEvent preEvent = null;
+
+        //이륙
+        elements.add(new TakeOffAction());
+
+        // 짐벌 각도 조절
+        Attitude attitude = new Attitude(-90, Rotation.NO_ROTATION, Rotation.NO_ROTATION);
+        GimbalAttitudeAction gimbalAction = new GimbalAttitudeAction(attitude);
+        gimbalAction.setCompletionTime(3);
+        elements.add(gimbalAction);
+
+        // 시작점 이동
+        dji.common.mission.waypoint.WaypointMission.Builder builder = new dji.common.mission.waypoint.WaypointMission.Builder();
+
+        ArrayList<Waypoint> goto_mission = new ArrayList<>();
+        goto_mission.add(waypoints.get(0).getWaypointList().get(0));
+        builder.waypointList(goto_mission).waypointCount(1);
+        elements.add(TimelineMission.elementFromWaypointMission(builder.build()));
+
+        // 카메라 촬영 시작
+        elements.add(ShootPhotoAction.newShootIntervalPhotoAction(count,interval));
 
         //임무비행 시작
         for(WaypointMission mission : waypoints){

@@ -14,6 +14,7 @@ package kr.go.forest.das.drone;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.osmdroid.util.GeoPoint;
@@ -1375,7 +1376,10 @@ public class DJI extends Drone{
                 flight_controller.getMaxFlightHeight(new CommonCallbacks.CompletionCallbackWith<Integer>() {
                     @Override
                     public void onSuccess(Integer integer) {
+
                         max_flight_height = integer;
+                        Log.e("DJI", "getMaxFlightHeight Success : " + max_flight_height);
+                        LogWrapper.i("DJI", "getMaxFlightHeight Success : " + max_flight_height);
                     }
 
                     @Override

@@ -70,8 +70,53 @@ public class DJIWaypointMission {
 
             _waypoint_mission.clear();
         }
+    }
 
+    private void createDJIShootIntervalMission(List<GeoPoint> waypoints, GeoPoint base_point, float flight_speed){
+        waypoint_missions = new ArrayList<>();
+        dji.common.mission.waypoint.WaypointMission.Builder builder = new dji.common.mission.waypoint.WaypointMission.Builder();
 
+        builder.autoFlightSpeed(flight_speed);
+        builder.maxFlightSpeed(flight_speed);
+
+        // 업로드에서 선택한 내용 반영
+        builder.setExitMissionOnRCSignalLostEnabled(false);
+
+        // 첫번째 웨이포인트 이동시 안전하게 이동(상승후 이동)
+        builder.gotoFirstWaypointMode(WaypointMissionGotoWaypointMode.SAFELY);
+        builder.finishedAction(WaypointMissionFinishedAction.NO_ACTION);
+        builder.flightPathMode(WaypointMissionFlightPathMode.NORMAL);
+        builder.headingMode(WaypointMissionHeadingMode.AUTO);
+        builder.repeatTimes(0);
+
+        // 3D 정보 반영
+        GeoManager.getInstance().getElevations(waypoints, base_point);
+
+        List<Waypoint> _waypoint_mission = new ArrayList<>();
+
+        int group_count = waypoints.size()/WaypointMission.MAX_WAYPOINT_COUNT + 1;
+        for(int i = 0; i < group_count; i++) {
+            for(int j = 0; j < WaypointMission.MAX_WAYPOINT_COUNT ; j++){
+
+                int _index = i*WaypointMission.MAX_WAYPOINT_COUNT + j;
+                if(_index > waypoints.size() - 1 ) break;
+
+                GeoPoint _point = waypoints.get(_index);
+                float _altitude = (float)_point.getAltitude();
+                Waypoint waypoint = new Waypoint(_point.getLatitude(), _point.getLongitude(), _altitude);
+                LogWrapper.i("임무정보", String.format("lat : %f, lng : %f, alt : %f",_point.getLatitude(), _point.getLongitude(), _altitude));
+                _waypoint_mission.add(waypoint);
+
+                if(max_flight_altitude < _altitude) {
+                    max_flight_altitude = _altitude;
+                }
+            }
+            builder.waypointList(_waypoint_mission).waypointCount(_waypoint_mission.size());
+
+            waypoint_missions.add(builder.build());
+
+            _waypoint_mission.clear();
+        }
     }
 
     public List<WaypointMission> getDJIMission(){

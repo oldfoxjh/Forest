@@ -55,6 +55,7 @@ import kr.go.forest.das.MainActivity;
 import kr.go.forest.das.Model.DroneInfo;
 import kr.go.forest.das.Model.DroneInfoRequest;
 import kr.go.forest.das.Model.DroneInfoResponse;
+import kr.go.forest.das.Model.FireInfo;
 import kr.go.forest.das.R;
 import kr.go.forest.das.drone.Drone;
 import kr.go.forest.das.geo.GeoManager;
@@ -99,6 +100,7 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
     Button pixhawk_btn_flight_takeoff;                          // 이륙 버튼
     Button pixhawk_btn_flight_return_home;                      // 자동복귀 버튼
     Button pixhawk_btn_flight_cancel;                           // 자동복귀 취소 버튼
+    Button pixhawk_btn_flight_fires;
 
     // TextView
     TextView tv_distance;                                       // 드론과 거리
@@ -292,7 +294,8 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
 
         findViewById(R.id.pixhawk_btn_flight_location).setOnClickListener(this);
         findViewById(R.id.pixhawk_btn_flight_nofly).setOnClickListener(this);
-        findViewById(R.id.pixhawk_btn_flight_fires).setOnClickListener(this);
+        pixhawk_btn_flight_fires = findViewById(R.id.pixhawk_btn_flight_fires);
+        pixhawk_btn_flight_fires.setOnClickListener(this);
         findViewById(R.id.pixhawk_btn_flight_save_path).setOnClickListener(this);
 
         // 뒤로가기 버튼
@@ -359,28 +362,32 @@ public class PixhawkFlightView extends RelativeLayout implements View.OnClickLis
                 map_view.invalidate();
                 break;
             case R.id.pixhawk_btn_flight_fires:
-                // 산불발생현황 불러오기
-                // 요청 다이얼로그
-
                 // 기존에 있는 마커 삭제
-                for (Marker _marker : forest_fires) {
-                    map_view.getOverlays().remove(_marker);
-                }
-                forest_fires.clear();
+//                for (Marker _marker : forest_fires) {
+//                    map_view.getOverlays().remove(_marker);
+//                }
+//                forest_fires.clear();
+//
+//                if(pixhawk_btn_flight_fires.isSelected() == false){
+//                    // 산불발생현황 마커 생성
+//                    ArrayList<FireInfo> _fires = DroneApplication.getSystemInfo().fireInfoList;
+//                    if(_fires != null && _fires.size() > 0){
+//                        for( FireInfo info : _fires){
+//                            Marker _marker = new Marker(map_view);
+//                            _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.forest_fire, null));
+//                            _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+//                            _marker.setPosition(new GeoPoint(info.frfrSttmnLctnYcrd, info.frfrSttmnLctnXcrd));
+//                            map_view.getOverlays().add(_marker);
+//                            forest_fires.add(_marker);
+//                        }
+//                    }
+//                }
+//
+//                pixhawk_btn_flight_fires.setSelected(!pixhawk_btn_flight_fires.isSelected());
+//                map_view.invalidate();
 
-                // 마커 생성
-                // request api
-                List<GeoPoint> _response = new ArrayList<GeoPoint>();
-                _response.add(new GeoPoint(36.361481, 127.384841));
-                for( GeoPoint _point : _response){
-                    Marker _marker = new Marker(map_view);
-                    _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.forest_fire, null));
-                    _marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
-                    _marker.setPosition(_point);
-                    map_view.getOverlays().add(_marker);
-                    forest_fires.add(_marker);
-                }
-                map_view.invalidate();
+                // 모드 변경
+
                 break;
             case R.id.pixhawk_btn_flight_save_path:
                 // 비행경로 저장하기

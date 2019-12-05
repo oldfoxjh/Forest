@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import io.dronefleet.mavlink.ardupilotmega.AutopilotVersionRequest;
+import io.dronefleet.mavlink.ardupilotmega.Meminfo;
 import io.dronefleet.mavlink.common.ActuatorControlTarget;
 import io.dronefleet.mavlink.common.Altitude;
 import io.dronefleet.mavlink.common.Attitude;
@@ -46,6 +47,7 @@ import io.dronefleet.mavlink.common.MavAutopilot;
 import io.dronefleet.mavlink.common.MavCmd;
 import io.dronefleet.mavlink.common.MavDataStream;
 import io.dronefleet.mavlink.common.MavMissionType;
+import io.dronefleet.mavlink.common.MavMode;
 import io.dronefleet.mavlink.common.MavResult;
 import io.dronefleet.mavlink.common.MavState;
 import io.dronefleet.mavlink.common.MavType;
@@ -54,12 +56,14 @@ import io.dronefleet.mavlink.common.MissionCount;
 import io.dronefleet.mavlink.common.MissionCurrent;
 import io.dronefleet.mavlink.common.MissionItem;
 import io.dronefleet.mavlink.common.MissionRequest;
+import io.dronefleet.mavlink.common.NavControllerOutput;
 import io.dronefleet.mavlink.common.ParamRequestList;
 import io.dronefleet.mavlink.common.ParamRequestRead;
 import io.dronefleet.mavlink.common.ParamValue;
 import io.dronefleet.mavlink.common.Ping;
 import io.dronefleet.mavlink.common.PositionTargetGlobalInt;
 import io.dronefleet.mavlink.common.PositionTargetLocalNed;
+import io.dronefleet.mavlink.common.PowerStatus;
 import io.dronefleet.mavlink.common.RcChannels;
 import io.dronefleet.mavlink.common.RcChannelsOverride;
 import io.dronefleet.mavlink.common.RequestDataStream;
@@ -67,6 +71,7 @@ import io.dronefleet.mavlink.common.ScaledImu;
 import io.dronefleet.mavlink.common.ScaledImu2;
 import io.dronefleet.mavlink.common.ScaledImu3;
 import io.dronefleet.mavlink.common.ServoOutputRaw;
+import io.dronefleet.mavlink.common.SetMode;
 import io.dronefleet.mavlink.common.Statustext;
 import io.dronefleet.mavlink.common.SysStatus;
 import io.dronefleet.mavlink.common.Timesync;
@@ -332,6 +337,7 @@ public class MavDataManager implements Runnable{
                 .param1(mission.param1)
                 .param2(mission.param2)
                 .param3(mission.param3)
+                .param3(mission.param4)
                 .x(mission.x)
                 .y(mission.y)
                 .z(mission.z)
@@ -344,24 +350,39 @@ public class MavDataManager implements Runnable{
         MissionClearAll request = MissionClearAll.builder()
                 .targetSystem(system_id)
                 .targetComponent(component_id)
-                .missionType(MavMissionType.	MAV_MISSION_TYPE_ALL)
+                .missionType(MavMissionType.MAV_MISSION_TYPE_ALL)
                 .build();
 
         send(request);
     }
 
     /**
-     * 드론 임무 시작
+     * 드론 모드 변경
      */
-    public void requestMissionStart(){
-//        CommandInt request = CommandInt.builder()
-//                .targetComponent(component_id)
-//                .targetSystem(system_id)
-//                .command(MavCmd.MAV_CMD_COMPONENT_ARM_DISARM )
-//                .param1(isArm)
-//                .build();
-//
-//        send(request);
+    public void requestSetModeArdupilot(){
+        CommandLong request = CommandLong.builder()
+                .targetComponent(component_id)
+                .targetSystem(system_id)
+                .command(MavCmd.MAV_CMD_DO_SET_MODE)
+                .param1(81)
+                .param2(3)
+                .param3(3)
+                .build();
+
+        send(request);
+    }
+
+    public void requestSetModePx4(){
+        CommandLong request = CommandLong.builder()
+                .targetComponent(component_id)
+                .targetSystem(system_id)
+                .command(MavCmd.MAV_CMD_DO_SET_MODE)
+                .param1(81)
+                .param2(4)
+                .param3(4)
+                .build();
+
+        send(request);
     }
 
     /**
@@ -372,7 +393,7 @@ public class MavDataManager implements Runnable{
         CommandInt request = CommandInt.builder()
                 .targetComponent(component_id)
                 .targetSystem(system_id)
-                .command(MavCmd.MAV_CMD_COMPONENT_ARM_DISARM )
+                .command(MavCmd.MAV_CMD_COMPONENT_ARM_DISARM)
                 .param1(isArm)
                 .build();
 
@@ -421,7 +442,7 @@ public class MavDataManager implements Runnable{
                 if (payload instanceof Heartbeat) {
                     sendHeartBeat();
                     seq++;
-                    if (seq == 10)
+                    if (seq == 5)
                         send(RequestDataStream.builder().targetSystem(system_id).targetComponent(component_id).reqStreamId(2).reqMessageRate(2).startStop(1).build());
 
                     if(seq%5==0) requestHomePosition(); // 홈 위치 요청
@@ -433,9 +454,10 @@ public class MavDataManager implements Runnable{
                 } else if (payload instanceof Altitude || payload instanceof Attitude || payload instanceof RcChannels || payload instanceof RcChannelsOverride || payload instanceof LocalPositionNed
                         || payload instanceof BatteryStatus || payload instanceof ServoOutputRaw || payload instanceof ExtendedSysState || payload instanceof HighresImu
                         || payload instanceof EstimatorStatus || payload instanceof Vibration || payload instanceof SysStatus
-                        || payload instanceof UtmGlobalPosition || payload instanceof AttitudeTarget || payload instanceof VfrHud || payload instanceof GpsRawInt || payload instanceof Statustext || payload instanceof ParamValue
+                        || payload instanceof UtmGlobalPosition || payload instanceof AttitudeTarget || payload instanceof VfrHud || payload instanceof GpsRawInt || /*payload instanceof Statustext ||*/ payload instanceof ParamValue
                         || payload instanceof ScaledImu3 || payload instanceof ScaledImu2 || payload instanceof ScaledImu || payload instanceof ActuatorControlTarget || payload instanceof AttitudeQuaternion
-                        || payload instanceof GlobalPositionInt || payload instanceof PositionTargetGlobalInt || payload instanceof PositionTargetLocalNed || payload instanceof Timesync || payload instanceof Heartbeat || payload instanceof MissionRequest
+                        || payload instanceof GlobalPositionInt || payload instanceof PositionTargetGlobalInt || payload instanceof PositionTargetLocalNed || payload instanceof Timesync || payload instanceof Heartbeat || payload instanceof MissionRequest || payload instanceof MissionCurrent
+                        || payload instanceof PowerStatus || payload instanceof Meminfo || payload instanceof NavControllerOutput
                 ) {
 
                 } else {
