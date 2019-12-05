@@ -1,5 +1,7 @@
 package kr.go.forest.das.Model;
 
+import android.util.Log;
+
 import org.osmdroid.util.GeoPoint;
 
 import java.util.ArrayList;
@@ -63,7 +65,7 @@ public class DJITimelineMission {
         missionControl.scheduleElements(elements);
     }
 
-    public DJITimelineMission(List<WaypointMission> waypoints, GeoPoint base_point, int count, int interval){
+    public DJITimelineMission(List<WaypointMission> waypoints, GeoPoint base_point, int count, int interval, float flight_speed){
         List<TimelineElement> elements = new ArrayList<>();
         missionControl = MissionControl.getInstance();
 
@@ -78,13 +80,8 @@ public class DJITimelineMission {
         gimbalAction.setCompletionTime(3);
         elements.add(gimbalAction);
 
-        // 시작점 이동
-        dji.common.mission.waypoint.WaypointMission.Builder builder = new dji.common.mission.waypoint.WaypointMission.Builder();
-
-        ArrayList<Waypoint> goto_mission = new ArrayList<>();
-        goto_mission.add(waypoints.get(0).getWaypointList().get(0));
-        builder.waypointList(goto_mission).waypointCount(1);
-        elements.add(TimelineMission.elementFromWaypointMission(builder.build()));
+        // 상승 미션
+        elements.add(TimelineMission.elementFromWaypointMission(new DJIWaypointMission().getDJIMission(base_point, waypoints.get(0).getWaypointList().get(0), flight_speed)));
 
         // 카메라 촬영 시작
         elements.add(ShootPhotoAction.newShootIntervalPhotoAction(count,interval));
@@ -94,6 +91,8 @@ public class DJITimelineMission {
             TimelineElement waypointMission = TimelineMission.elementFromWaypointMission(mission);
             elements.add(waypointMission);
         }
+
+        elements.add(ShootPhotoAction.newStopIntervalPhotoAction());
 
         //짐벌 원위치
         attitude = new Attitude(0, Rotation.NO_ROTATION, Rotation.NO_ROTATION);

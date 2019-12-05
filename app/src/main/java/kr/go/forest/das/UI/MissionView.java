@@ -112,6 +112,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
 
 	Button btn_waypoint_mission;
     Button btn_polygon_mission;
+    Button btn_3d_mission;
 
 	TextView tv_mission_area;
 	TextView tv_mission_distance;
@@ -373,6 +374,10 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
         btn_polygon_mission.setOnClickListener(this);
         btn_polygon_mission.setSelected(true);
 
+        btn_3d_mission = findViewById(R.id.btn_3d_mission);
+        btn_3d_mission.setOnClickListener(this);
+        btn_3d_mission.setSelected(true);
+
         // TextView
         tv_mission_area = findViewById(R.id.mission_area);
         tv_mission_distance = findViewById(R.id.mission_distance);
@@ -474,7 +479,12 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
             List<WaypointMission> _waypoints_mission = waypoint_mission.getDJIMission();
 
             // Timeline Mission 생성
-            DJITimelineMission _temp = new DJITimelineMission(_waypoints_mission, new GeoPoint(_info.drone_latitude, _info.drone_longitude));
+            DJITimelineMission _temp;
+            if(btn_3d_mission.isSelected()) {
+                _temp = new DJITimelineMission(_waypoints_mission, new GeoPoint(_info.drone_latitude, _info.drone_longitude));
+            }else{
+                _temp = new DJITimelineMission(_waypoints_mission, new GeoPoint(_info.drone_latitude, _info.drone_longitude, mission_altitude), 999, shoot_time_interval, mission_flight_speed);
+            }
 
             String _result = null;
 
@@ -596,13 +606,22 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                         DroneApplication.getEventBus().post(new MainActivity.PopupDialog(MainActivity.PopupDialog.DIALOG_TYPE_OK, 0, R.string.mission_create_fail, null));
                         return;
                     }
-                    waypoint_mission = new DJIWaypointMission(devideFlightPath(), new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
+                    if(btn_3d_mission.isSelected()) {
+                        waypoint_mission = new DJIWaypointMission(devideFlightPath(), new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
+                    }else{
+                        waypoint_mission = new DJIWaypointMission(flight_points, new GeoPoint(_info.drone_latitude, _info.drone_longitude, mission_altitude), mission_flight_speed, shoot_time_interval);
+                    }
                 }else{
                     // 비행고도 적용
                     for(GeoPoint point : mWaypoints){
                         point.setAltitude(mission_altitude);
                     }
-                    waypoint_mission = new DJIWaypointMission(mWaypoints, new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
+
+                    if(btn_3d_mission.isSelected()) {
+                        waypoint_mission = new DJIWaypointMission(mWaypoints, new GeoPoint(_info.drone_latitude, _info.drone_longitude), mission_flight_speed);
+                    }else{
+                        waypoint_mission = new DJIWaypointMission(mWaypoints, new GeoPoint(_info.drone_latitude, _info.drone_longitude, mission_altitude), mission_flight_speed, shoot_time_interval);
+                    }
                 }
 
                 if(waypoint_mission.max_flight_altitude > 500){
@@ -639,6 +658,9 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 sb_mission_angle.setEnabled(true);
                 sb_mission_overlap.setEnabled(true);
                 sb_mission_sidelap.setEnabled(true);
+                break;
+            case R.id.btn_3d_mission:
+                btn_3d_mission.setSelected(!btn_3d_mission.isSelected());
                 break;
         }
     }
@@ -1048,6 +1070,7 @@ public class MissionView extends RelativeLayout implements View.OnClickListener,
                 shoot_count++;
             }
 
+            shoot_count += (flight_points.size() - 2);
             tv_mission_shoot_interval.setText(String.format("%d", shoot_count));
             // 종간격, 횡간격 정보 업데이트
             tv_mission_lap_distance.setText(String.format("F:%.1f m/S:%.1f m", front_distance, side_distance));

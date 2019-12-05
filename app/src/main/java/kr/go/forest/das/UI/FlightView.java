@@ -97,6 +97,7 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
     ArrayList<DroneInfo> drone_flight_log_4_bigdata = new ArrayList<>();    // 빅데이터 업로드용 비행 및 기체정보
     int drone_info_seq = 1;                                                 // 실시간 전송 data seq
     boolean send_complete = true;                                          // 실시간 전송 성공 여부
+    long draw_time = 0;                                                     // 이미지 저장 이벤트가 3번 넘어옴.
     private Handler handler_ui;                                             // UI 업데이트 핸들러
     private ProgressDialog progress;
 
@@ -997,9 +998,6 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                     CameraInfo _info = DroneApplication.getDroneInstance().getStorageInfo();
                     primary_camera.setVisibility(VISIBLE);
 
-                    // 임무 중이면 카메라 위젯 보이지 않도록 처리
-                    if((DroneApplication.getDroneInstance().getDroneStatus() & Drone.DRONE_STATUS_MISSION) == Drone.DRONE_STATUS_MISSION) return;
-
                     if(camera.mode == 0) {
                         // 사진 촬영
                         tv_flight_format_info.setText(_info.photo_file_format);
@@ -1036,7 +1034,10 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                         tv_record_time.setText("00:00");
                         is_recording = false;
                     }else if(camera.mode == 2){ // 드론이 비행중이면 카메라 촬영 지점 표시
-                        if(DroneApplication.getDroneInstance().isFlying()){
+
+                        long _current_time= System.currentTimeMillis();
+                        if(DroneApplication.getDroneInstance().isFlying() && (_current_time - draw_time) > 1500){
+                            Log.e("camera_state_callback", "비행중 : " + DroneApplication.getDroneInstance().isFlying());
                             DroneInfo _drone_info = DroneApplication.getDroneInstance().getDroneInfo();
                             Marker _marker = new Marker(map_view);
                             _marker.setIcon(ResourcesCompat.getDrawable(getResources(), R.mipmap.ico_mission_5, null));
@@ -1049,6 +1050,8 @@ public class FlightView extends RelativeLayout implements View.OnClickListener, 
                                 }
                             });
                             map_view.getOverlays().add(_marker);
+                            map_view.invalidate();
+                            draw_time = _current_time;
                         }
                     }
                 }

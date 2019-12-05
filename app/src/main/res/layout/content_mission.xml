@@ -31,6 +31,12 @@
             android:layout_height="@dimen/px64"
             android:layout_marginTop="@dimen/px22"
             android:background="@drawable/btn_waypoint_mission_selector"/>
+        <Button
+            android:id="@+id/btn_3d_mission"
+            android:layout_width="@dimen/px64"
+            android:layout_height="@dimen/px64"
+            android:layout_marginTop="@dimen/px22"
+            android:background="@drawable/btn_3d_mission_selector"/>
     </LinearLayout>
 
     <LinearLayout

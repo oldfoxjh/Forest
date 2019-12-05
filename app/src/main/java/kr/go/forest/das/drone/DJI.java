@@ -1001,14 +1001,17 @@ public class DJI extends Drone{
      */
     public String uploadMission(WaypointMission mission){
 
-        WaypointMissionOperator mission_operator = MissionControl.getInstance().getWaypointMissionOperator();
-        waypoint_count = mission.getWaypointCount() - 1;
+
         // 설정된 임무에 대한 확인
         DJIError  _error = MissionControl.getInstance().getWaypointMissionOperator().loadMission(mission);
         if(_error != null){
             LogWrapper.i("DJI", "loadMission Fail : " + _error.getDescription());
             return _error.getDescription();
         }
+
+        WaypointMissionOperator mission_operator = MissionControl.getInstance().getWaypointMissionOperator();
+        waypoint_count = mission.getWaypointCount() - 1;
+        mission_operator.addListener(mission_notification_listener);
 
         // 임무 업로드
 //        mission_operator.uploadMission(new CommonCallbacks.CompletionCallback() {
@@ -1335,7 +1338,6 @@ public class DJI extends Drone{
             home_latitude = current_state.getHomeLocation().getLatitude();
             home_longitude = current_state.getHomeLocation().getLongitude();
             home_set = current_state.isHomeLocationSet();
-
             is_flying =  current_state.isFlying();
 
             // 시동 걸려있는지 체크
